@@ -1,0 +1,177 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Coffee, ImageOff, Loader2, Pencil, Plus, RefreshCw, Search, Star, Trash2, Utensils, UtensilsCrossed, X } from 'lucide-react'
+
+const SECTIONS = ['Restaurant', 'Tea stall'] as const
+type Section = (typeof SECTIONS)[number]
+type MenuItem = { _id: string; name: string; description: string; price: number; category: string; section: Section; image: string; isAvailable: boolean; isPopular: boolean }
+type FormState = { name: string; description: string; price: string; category: string; section: Section; image: string; isAvailable: boolean; isPopular: boolean }
+
+const emptyForm: FormState = { name: '', description: '', price: '', category: '', section: 'Restaurant', image: '', isAvailable: true, isPopular: false }
+
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
+  const data = await res.json().catch(() => ({}))
+  if (res.status === 401) window.location.href = '/admin/login'
+  if (!res.ok) throw new Error(data.error ?? 'Something went wrong')
+  return data as T
+}
+
+const byMenuOrder = (a: MenuItem, b: MenuItem) => a.section.localeCompare(b.section) || a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+
+export function MenuManager() {
+  const [items, setItems] = useState<MenuItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [section, setSection] = useState<'All' | Section>('All')
+  const [category, setCategory] = useState('All')
+  const [search, setSearch] = useState('')
+  const [editing, setEditing] = useState<MenuItem | 'new' | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      setItems((await api<{ items: MenuItem[] }>('/api/menu')).items)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load menu')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const inSection = useMemo(() => items.filter(i => section === 'All' || i.section === section), [items, section])
+  const categories = useMemo(() => [...new Set(inSection.map(i => i.category))].sort(), [inSection])
+  const allCategories = useMemo(() => [...new Set(items.map(i => i.category))].sort(), [items])
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return inSection.filter(i => (category === 'All' || i.category === category) && (!q || `${i.name} ${i.description} ${i.category}`.toLowerCase().includes(q)))
+  }, [inSection, category, search])
+  const counts = useMemo(() => ({ total: items.length, available: items.filter(i => i.isAvailable).length, out: items.filter(i => !i.isAvailable).length, categories: allCategories.length }), [items, allCategories])
+
+  const patch = async (item: MenuItem, changes: Partial<MenuItem>) => {
+    setBusyId(item._id)
+    setError('')
+    try {
+      const { item: updated } = await api<{ item: MenuItem }>(`/api/menu/${item._id}`, { method: 'PATCH', body: JSON.stringify(changes) })
+      setItems(current => current.map(i => i._id === updated._id ? updated : i))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update item')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const remove = async (item: MenuItem) => {
+    setBusyId(item._id)
+    setError('')
+    try {
+      await api(`/api/menu/${item._id}`, { method: 'DELETE' })
+      setItems(current => current.filter(i => i._id !== item._id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete item')
+    } finally {
+      setBusyId(null)
+      setConfirmDelete(null)
+    }
+  }
+
+  const saved = (item: MenuItem) => {
+    setItems(current => (current.some(i => i._id === item._id) ? current.map(i => i._id === item._id ? item : i) : [...current, item]).sort(byMenuOrder))
+    setEditing(null)
+  }
+
+  return <div>
+    <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">Menu</p><h2 className="font-serif text-3xl font-bold tracking-tight">Manage menu</h2></div><div className="flex gap-2"><button onClick={load} aria-label="Refresh menu" className="flex size-10 items-center justify-center rounded-xl border border-[#e0e5df] bg-white text-[#68756b] hover:bg-[#f5f7f4]"><RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} /></button><button onClick={() => setEditing('new')} className="flex items-center gap-2 rounded-xl bg-[#174d3c] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#123f31]"><Plus className="size-4" /> Add item</button></div></div>
+
+    <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <Stat label="Menu items" value={counts.total} />
+      <Stat label="Available" value={counts.available} />
+      <Stat label="Out of stock" value={counts.out} warm />
+      <Stat label="Categories" value={counts.categories} />
+    </section>
+
+    <div className="mt-7 flex flex-wrap items-center gap-3">
+      <div className="flex gap-2 overflow-x-auto">{(['All', ...SECTIONS] as const).map(s => <button key={s} onClick={() => { setSection(s); setCategory('All') }} className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold transition ${section === s ? 'bg-[#174d3c] text-white' : 'bg-white text-[#728077] ring-1 ring-inset ring-[#e3e8e1] hover:bg-[#f5f7f4]'}`}>{s === 'Tea stall' ? <Coffee className="size-3.5" /> : s === 'Restaurant' ? <Utensils className="size-3.5" /> : null}{s}</button>)}</div>
+      <div className="relative min-w-[200px] flex-1 sm:max-w-xs sm:ml-auto"><Search className="absolute left-3 top-2.5 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..." aria-label="Search menu items" className="h-9 w-full rounded-lg border border-[#e2e7e1] bg-white pl-9 pr-3 text-xs outline-none focus:border-[#8eaf9b]" /></div>
+    </div>
+    {categories.length > 1 && <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{['All', ...categories].map(c => <button key={c} onClick={() => setCategory(c)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${category === c ? 'bg-[#f4ddca] text-[#a96438]' : 'bg-[#f1f4f0] text-[#728077] hover:bg-[#e7eee7]'}`}>{c}</button>)}</div>}
+
+    {error && <p role="alert" className="mt-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p>}
+
+    {loading && items.length === 0 ? <div className="mt-10 flex justify-center text-[#87928a]"><Loader2 className="size-6 animate-spin" /></div>
+      : visible.length === 0 ? <div className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-[#d9e0d8] bg-white px-6 py-14 text-center"><UtensilsCrossed className="size-10 text-[#c7d1c7]" /><p className="mt-4 font-semibold">{items.length === 0 ? 'Your menu is empty' : 'No items match'}</p><p className="mt-1 text-xs text-[#89938b]">{items.length === 0 ? 'Add your first dish or drink so guests can order it.' : 'Try another section, category or search.'}</p>{items.length === 0 && <button onClick={() => setEditing('new')} className="mt-5 flex items-center gap-2 rounded-xl bg-[#eef4ed] px-4 py-2.5 text-xs font-bold text-[#174d3c] hover:bg-[#dfece0]"><Plus className="size-4" /> Add item</button>}</div>
+      : <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{visible.map(item => <article key={item._id} className="flex flex-col overflow-hidden rounded-2xl border border-[#e3e8e1] bg-white">
+        <div className="relative h-36 bg-[#f1f4f0]">
+          {item.image ? <img src={item.image} alt={item.name} className={`h-full w-full object-cover ${item.isAvailable ? '' : 'grayscale'}`} /> : <div className="flex h-full items-center justify-center text-[#b9c4ba]">{item.section === 'Tea stall' ? <Coffee className="size-9" /> : <ImageOff className="size-8" />}</div>}
+          <div className="absolute left-3 top-3 flex gap-1.5">{item.isPopular && <span className="flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-[#b86f3c]"><Star className="size-3 fill-current" /> Popular</span>}{!item.isAvailable && <span className="rounded-full bg-[#202521]/80 px-2 py-1 text-[10px] font-bold text-white">Out of stock</span>}</div>
+        </div>
+        <div className="flex flex-1 flex-col p-4">
+          <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate font-serif text-base font-bold">{item.name}</h3><p className="mt-0.5 text-[11px] text-[#8a968d]">{item.category} · {item.section}</p></div><span className="whitespace-nowrap text-sm font-bold text-[#b86f3c]">৳ {item.price}</span></div>
+          {item.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#89938b]">{item.description}</p>}
+          <div className="mt-auto flex items-center gap-2 pt-4">
+            <div className="flex flex-1 items-center gap-2 text-xs font-medium text-[#5f6b62]"><button type="button" role="switch" aria-checked={item.isAvailable} aria-label={`${item.name} available`} disabled={busyId === item._id} onClick={() => patch(item, { isAvailable: !item.isAvailable })} className={`relative h-5 w-9 rounded-full transition ${item.isAvailable ? 'bg-[#174d3c]' : 'bg-[#d5dbd4]'}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-all ${item.isAvailable ? 'left-[18px]' : 'left-0.5'}`} /></button>{item.isAvailable ? 'Available' : 'Unavailable'}</div>
+            <button onClick={() => setEditing(item)} aria-label={`Edit ${item.name}`} className="flex size-9 items-center justify-center rounded-lg border border-[#e2e7e1] text-[#68756b] hover:bg-[#f5f7f4]"><Pencil className="size-3.5" /></button>
+            <button onClick={() => setConfirmDelete(item._id)} aria-label={`Delete ${item.name}`} className="flex size-9 items-center justify-center rounded-lg border border-[#e2e7e1] text-[#b4472c] hover:bg-[#fdf0ec]"><Trash2 className="size-3.5" /></button>
+          </div>
+          {confirmDelete === item._id && <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-[#fdf0ec] px-3 py-2.5"><p className="text-xs font-medium text-[#b4472c]">Delete this item?</p><div className="flex gap-1.5"><button onClick={() => setConfirmDelete(null)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#68756b] hover:bg-white">Cancel</button><button onClick={() => remove(item)} disabled={busyId === item._id} className="rounded-lg bg-[#b4472c] px-2.5 py-1.5 text-xs font-semibold text-white">Delete</button></div></div>}
+        </div>
+      </article>)}</div>}
+
+    {editing && <MenuForm item={editing === 'new' ? null : editing} categories={allCategories} defaultSection={section === 'All' ? 'Restaurant' : section} onClose={() => setEditing(null)} onSaved={saved} />}
+  </div>
+}
+
+function MenuForm({ item, categories, defaultSection, onClose, onSaved }: { item: MenuItem | null; categories: string[]; defaultSection: Section; onClose: () => void; onSaved: (item: MenuItem) => void }) {
+  const [form, setForm] = useState<FormState>(item ? { name: item.name, description: item.description, price: String(item.price), category: item.category, section: item.section, image: item.image, isAvailable: item.isAvailable, isPopular: item.isPopular } : { ...emptyForm, section: defaultSection })
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [imageBroken, setImageBroken] = useState(false)
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm(current => ({ ...current, [key]: value }))
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const body = JSON.stringify({ ...form, price: Number(form.price) })
+      const { item: result } = item
+        ? await api<{ item: MenuItem }>(`/api/menu/${item._id}`, { method: 'PATCH', body })
+        : await api<{ item: MenuItem }>('/api/menu', { method: 'POST', body })
+      onSaved(result)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save item')
+      setSaving(false)
+    }
+  }
+
+  const input = 'mt-1.5 h-11 w-full rounded-xl border border-[#e2e7e1] bg-[#fbfcfb] px-3 text-sm outline-none focus:border-[#8eaf9b]'
+  const label = 'block text-xs font-semibold text-[#5f6b62]'
+
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#202521]/30 sm:items-center sm:p-4" onClick={onClose}>
+    <form onSubmit={submit} onClick={e => e.stopPropagation()} className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 shadow-2xl sm:rounded-2xl">
+      <div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[.16em] text-[#b86f3c]">{item ? 'Edit item' : 'New item'}</p><h3 className="mt-1 font-serif text-2xl font-bold">{item ? item.name : 'Add a menu item'}</h3></div><button type="button" aria-label="Close" onClick={onClose} className="rounded-full p-2 hover:bg-[#f2f4f0]"><X className="size-5" /></button></div>
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="col-span-2"><label className={label} htmlFor="m-name">Name</label><input id="m-name" required maxLength={80} placeholder="e.g. Dudh cha, Kacchi Biryani" value={form.name} onChange={e => set('name', e.target.value)} className={input} /></div>
+        <div><label className={label} htmlFor="m-price">Price (৳)</label><input id="m-price" type="number" min={0} step="any" required value={form.price} onChange={e => set('price', e.target.value)} className={input} /></div>
+        <div><label className={label} htmlFor="m-section">Section</label><select id="m-section" value={form.section} onChange={e => set('section', e.target.value as Section)} className={input}>{SECTIONS.map(s => <option key={s}>{s}</option>)}</select></div>
+        <div className="col-span-2"><label className={label} htmlFor="m-category">Category</label><input id="m-category" required maxLength={40} list="menu-categories" placeholder="e.g. Biryani, Tea, Snacks" value={form.category} onChange={e => set('category', e.target.value)} className={input} /><datalist id="menu-categories">{categories.map(c => <option key={c} value={c} />)}</datalist></div>
+        <div className="col-span-2"><label className={label} htmlFor="m-description">Description <span className="font-normal text-[#a0aaa2]">(optional)</span></label><textarea id="m-description" maxLength={300} rows={2} value={form.description} onChange={e => set('description', e.target.value)} className={`${input} h-auto py-2.5`} /></div>
+        <div className="col-span-2"><label className={label} htmlFor="m-image">Image URL <span className="font-normal text-[#a0aaa2]">(optional)</span></label><div className="mt-1.5 flex gap-3"><div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f1f4f0] text-[#b9c4ba]">{form.image && !imageBroken ? <img src={form.image} alt="" onError={() => setImageBroken(true)} className="size-full object-cover" /> : <ImageOff className="size-4" />}</div><input id="m-image" type="text" inputMode="url" placeholder="https://..." value={form.image} onChange={e => { set('image', e.target.value); setImageBroken(false) }} className={`${input} mt-0`} /></div></div>
+        <label className="flex items-center gap-2.5 text-xs font-medium text-[#5f6b62]"><input type="checkbox" checked={form.isAvailable} onChange={e => set('isAvailable', e.target.checked)} className="size-4 accent-[#174d3c]" /> Available now</label>
+        <label className="flex items-center gap-2.5 text-xs font-medium text-[#5f6b62]"><input type="checkbox" checked={form.isPopular} onChange={e => set('isPopular', e.target.checked)} className="size-4 accent-[#174d3c]" /> Mark as popular</label>
+      </div>
+      {error && <p role="alert" className="mt-4 rounded-lg bg-[#fdf0ec] px-3 py-2 text-xs font-medium text-[#b4472c]">{error}</p>}
+      <div className="mt-6 flex gap-2"><button type="button" onClick={onClose} className="h-11 flex-1 rounded-xl border border-[#e2e7e1] text-sm font-semibold text-[#68756b] hover:bg-[#f5f7f4]">Cancel</button><button disabled={saving} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#174d3c] text-sm font-semibold text-white hover:bg-[#123f31] disabled:opacity-70">{saving && <Loader2 className="size-4 animate-spin" />}{item ? 'Save changes' : 'Add item'}</button></div>
+    </form>
+  </div>
+}
+
+function Stat({ label, value, warm }: { label: string; value: number; warm?: boolean }) {
+  return <div className="rounded-2xl border border-[#e3e8e1] bg-white p-5"><p className="text-xs font-medium text-[#87928a]">{label}</p><p className={`mt-1 font-serif text-2xl font-bold tracking-tight ${warm ? 'text-[#c7773d]' : ''}`}>{value}</p></div>
+}

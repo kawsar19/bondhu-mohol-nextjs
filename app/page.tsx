@@ -1,33 +1,34 @@
-'use client'
+import { CustomerMenu, type PublicMenuItem, type PublicTable } from '@/components/customer/customer-menu'
+import { connectDB } from '@/lib/db'
+import { MenuItem } from '@/lib/models/menu-item'
+import { Table } from '@/lib/models/table'
 
-import { useMemo, useState } from 'react'
-import { Check, ChevronRight, MapPin, Minus, Plus, ShoppingBag, Utensils, X } from 'lucide-react'
+// Menu changes in the admin panel should show up immediately.
+export const dynamic = 'force-dynamic'
 
-const menuItems = [
-  { name: 'Kacchi Biryani', description: 'Fragrant basmati rice with tender mutton', category: 'Popular', price: 320, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=700&q=85' },
-  { name: 'Butter Chicken', description: 'Creamy tomato curry with roasted chicken', category: 'Chicken', price: 280, image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=85' },
-  { name: 'Beef Kala Bhuna', description: 'Slow-cooked beef with aromatic spices', category: 'Beef', price: 360, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=85' },
-  { name: 'Hilsa Curry', description: 'Traditional mustard hilsa curry', category: 'Fish', price: 420, image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=700&q=85' },
-  { name: 'Borhani', description: 'Refreshing spiced yogurt drink', category: 'Drinks', price: 80, image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=700&q=85' },
-  { name: 'Firni', description: 'Silky rice pudding with rose and pistachio', category: 'Desserts', price: 140, image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=700&q=85' },
-]
+export default async function Home({ searchParams }: { searchParams: Promise<{ table?: string }> }) {
+  await connectDB()
+  const [docs, tableDocs, params] = await Promise.all([
+    MenuItem.find({ isAvailable: true }).sort({ section: 1, category: 1, name: 1 }).lean(),
+    Table.find({ isActive: true }).sort({ number: 1 }).lean(),
+    searchParams,
+  ])
 
-type CartItem = (typeof menuItems)[number] & { qty: number }
+  const items: PublicMenuItem[] = docs.map(doc => ({
+    id: doc._id.toString(),
+    name: doc.name,
+    description: doc.description ?? '',
+    category: doc.category,
+    section: doc.section ?? 'Restaurant',
+    price: doc.price,
+    image: doc.image ?? '',
+    isPopular: doc.isPopular ?? false,
+  }))
+  const tables: PublicTable[] = tableDocs.map(t => ({ number: t.number, name: t.name ?? '' }))
 
-export default function Home() {
-  const [category, setCategory] = useState('Popular')
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [showCart, setShowCart] = useState(false)
-  const categories = ['Popular', 'Chicken', 'Beef', 'Fish', 'Drinks', 'Desserts']
-  const visibleItems = useMemo(() => category === 'Popular' ? menuItems.slice(0, 4) : menuItems.filter(item => item.category === category), [category])
-  const count = cart.reduce((sum, item) => sum + item.qty, 0)
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const add = (item: CartItem) => setCart(current => current.some(x => x.name === item.name) ? current.map(x => x.name === item.name ? { ...x, qty: x.qty + 1 } : x) : [...current, { ...item, qty: 1 }])
-  const changeQty = (name: string, delta: number) => setCart(current => current.flatMap(item => item.name === name ? (item.qty + delta > 0 ? [{ ...item, qty: item.qty + delta }] : []) : [item]))
+  // QR codes link to /?table=5 so the table is filled in for the guest.
+  const requested = Number(params.table)
+  const initialTable = Number.isInteger(requested) && (tables.length === 0 ? requested > 0 : tables.some(t => t.number === requested)) ? requested : null
 
-  return <main className="min-h-screen bg-[#fbfaf7] text-[#202521]">
-    <header className="border-b border-[#e8e5dd] bg-[#fbfaf7]/95 px-5 py-4 backdrop-blur sm:px-8"><div className="mx-auto flex max-w-6xl items-center justify-between"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-[#174d3c] text-white"><Utensils className="size-5" /></div><div><p className="font-serif text-lg font-bold">Bondhu Mohol</p><p className="text-[10px] uppercase tracking-[.18em] text-[#89938b]">Restaurant & Cafe</p></div></div><button onClick={() => setShowCart(true)} className="relative flex items-center gap-2 rounded-xl bg-[#174d3c] px-3.5 py-2.5 text-sm font-semibold text-white"><ShoppingBag className="size-4" /> <span className="hidden sm:inline">Your order</span>{count > 0 && <span className="flex size-5 items-center justify-center rounded-full bg-[#d58a50] text-[10px]">{count}</span>}</button></div></header>
-    <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12"><div className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end"><div><div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-[#89938b]"><MapPin className="size-3.5 text-[#b86f3c]" /> Dhanmondi, Dhaka <span className="mx-1">·</span> Open until 11:00 PM</div><h1 className="max-w-xl font-serif text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Good food, made with <span className="text-[#b86f3c]">bondhu.</span></h1><p className="mt-3 max-w-lg text-sm leading-relaxed text-[#718075]">Order your favorites for dine-in or takeaway. Freshly prepared, warmly served.</p></div><div className="rounded-2xl border border-[#e6dfd3] bg-[#f7f0e5] p-4 sm:max-w-[210px]"><p className="text-xs font-semibold text-[#805b35]">Dine in or takeaway?</p><p className="mt-1 text-[11px] leading-relaxed text-[#9a7a53]">Choose your preference at checkout.</p></div></div><nav className="mb-7 flex gap-2 overflow-x-auto pb-1">{categories.map(item => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full px-4 py-2.5 text-xs font-semibold ${category === item ? 'bg-[#174d3c] text-white' : 'bg-white text-[#738077] ring-1 ring-inset ring-[#e3e8e1]'}`}>{item}</button>)}</nav><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{visibleItems.map(item => <article key={item.name} className="overflow-hidden rounded-2xl border border-[#e7e8e2] bg-white"><img src={item.image} alt={item.name} className="h-44 w-full object-cover" /><div className="p-4"><div className="flex items-start justify-between gap-3"><div><h2 className="font-serif text-lg font-bold">{item.name}</h2><p className="mt-1 text-xs leading-relaxed text-[#89938b]">{item.description}</p></div><span className="whitespace-nowrap text-sm font-bold text-[#b86f3c]">৳ {item.price}</span></div><button onClick={() => add(item)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#eef4ed] py-2.5 text-xs font-bold text-[#174d3c] hover:bg-[#dfece0]"><Plus className="size-4" /> Add to order</button></div></article>)}</div></div>
-    {showCart && <div className="fixed inset-0 z-50 bg-[#202521]/30" onClick={() => setShowCart(false)}><aside onClick={event => event.stopPropagation()} className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[.16em] text-[#b86f3c]">Your order</p><h2 className="mt-1 font-serif text-2xl font-bold">Ready when you are</h2></div><button aria-label="Close cart" onClick={() => setShowCart(false)} className="rounded-full p-2 hover:bg-[#f2f4f0]"><X className="size-5" /></button></div>{cart.length === 0 ? <div className="flex flex-1 flex-col items-center justify-center text-center"><ShoppingBag className="size-10 text-[#c7d1c7]" /><p className="mt-4 font-semibold">Your order is empty</p><p className="mt-1 text-xs text-[#89938b]">Add something delicious to get started.</p></div> : <><div className="mt-8 flex flex-1 flex-col gap-4 overflow-y-auto">{cart.map(item => <div key={item.name} className="flex items-center gap-3 border-b border-[#edf0ec] pb-4"><img src={item.image} alt="" className="size-14 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{item.name}</p><p className="mt-1 text-xs text-[#b86f3c]">৳ {item.price * item.qty}</p></div><div className="flex items-center gap-2 rounded-lg bg-[#f2f5f1] p-1"><button onClick={() => changeQty(item.name, -1)} className="flex size-6 items-center justify-center"><Minus className="size-3" /></button><span className="w-4 text-center text-xs font-bold">{item.qty}</span><button onClick={() => changeQty(item.name, 1)} className="flex size-6 items-center justify-center"><Plus className="size-3" /></button></div></div>)}</div><div className="border-t border-[#e8ece7] pt-5"><div className="flex justify-between text-sm"><span className="text-[#718075]">Subtotal</span><strong>৳ {total}</strong></div><button onClick={() => alert('Order flow ready for checkout')} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#174d3c] py-3.5 text-sm font-semibold text-white">Continue to checkout <ChevronRight className="size-4" /></button></div></>}</aside></div>}
-  </main>
+  return <CustomerMenu items={items} tables={tables} initialTable={initialTable} />
 }
