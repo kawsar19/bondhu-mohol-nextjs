@@ -1,4 +1,5 @@
-import { model, models, Schema, type InferSchemaType, type Model } from 'mongoose'
+import { Schema, type InferSchemaType } from 'mongoose'
+import { defineModel } from './define-model'
 
 export const USER_ROLES = ['admin', 'manager', 'cashier', 'kitchen'] as const
 
@@ -14,4 +15,4 @@ const userSchema = new Schema(
 
 export type UserDoc = InferSchemaType<typeof userSchema>
 
-export const User: Model<UserDoc> = models.User || model<UserDoc>('User', userSchema)
+export const User = defineModel<UserDoc>('User', userSchema)

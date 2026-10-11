@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export default async function Home({ searchParams }: { searchParams: Promise<{ table?: string }> }) {
   await connectDB()
   const [docs, tableDocs, params] = await Promise.all([
-    MenuItem.find({ isAvailable: true }).sort({ section: 1, category: 1, name: 1 }).lean(),
+    MenuItem.find({ isAvailable: true }).sort({ category: 1, name: 1 }).lean(),
     Table.find({ isActive: true }).sort({ number: 1 }).lean(),
     searchParams,
   ])
@@ -19,7 +19,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
     name: doc.name,
     description: doc.description ?? '',
     category: doc.category,
-    section: doc.section ?? 'Restaurant',
     price: doc.price,
     image: doc.image ?? '',
     isPopular: doc.isPopular ?? false,

@@ -1,9 +1,8 @@
-import { TABLE_SECTIONS, TABLE_STATUSES } from './models/table'
+import { TABLE_STATUSES } from './models/table'
 
 export type TableInput = {
   number?: number
   name?: string
-  section?: (typeof TABLE_SECTIONS)[number]
   capacity?: number
   status?: (typeof TABLE_STATUSES)[number]
   isActive?: boolean
@@ -24,10 +23,6 @@ export function parseTableInput(body: unknown, partial = false): { data: TableIn
   if (raw.name !== undefined) {
     if (typeof raw.name !== 'string' || raw.name.length > 60) return { error: 'Name must be text of up to 60 characters' }
     data.name = raw.name.trim()
-  }
-  if (raw.section !== undefined) {
-    if (!TABLE_SECTIONS.includes(raw.section as never)) return { error: `Section must be one of: ${TABLE_SECTIONS.join(', ')}` }
-    data.section = raw.section as TableInput['section']
   }
   if (raw.capacity !== undefined) {
     const capacity = Number(raw.capacity)

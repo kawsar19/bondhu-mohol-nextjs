@@ -1,4 +1,4 @@
-// Adds a starter menu (restaurant + tea stall) when the menu is empty.
+// Adds the Bondhu Mohol menu when the menu is empty. Photos live in public/menu/.
 // Usage: npm run seed:menu   (reads MONGODB_URI from .env.local)
 import mongoose from 'mongoose'
 
@@ -8,20 +8,29 @@ if (!MONGODB_URI) {
   process.exit(1)
 }
 
-const img = id => `https://images.unsplash.com/${id}?w=700&q=85`
+const TEA = 'চা ও বিশেষ আইটেম'
+const FAST = 'ফাস্টফুড'
+const LUNCH = 'দুপুরের স্পেশাল (প্যাকেজ)'
+const DINNER = 'রাতের স্পেশাল'
+const img = name => `/menu/${name}.jpg`
+
 const items = [
-  { name: 'Kacchi Biryani', description: 'Fragrant basmati rice with tender mutton', category: 'Biryani', section: 'Restaurant', price: 320, image: img('photo-1565557623262-b51c2513a641'), isPopular: true },
-  { name: 'Butter Chicken', description: 'Creamy tomato curry with roasted chicken', category: 'Chicken', section: 'Restaurant', price: 280, image: img('photo-1603894584373-5ac82b2ae398'), isPopular: true },
-  { name: 'Beef Kala Bhuna', description: 'Slow-cooked beef with aromatic spices', category: 'Beef', section: 'Restaurant', price: 360, image: img('photo-1544025162-d76694265947') },
-  { name: 'Hilsa Curry', description: 'Traditional mustard hilsa curry', category: 'Fish', section: 'Restaurant', price: 420, image: img('photo-1519708227418-c8fd9a32b7a2') },
-  { name: 'Borhani', description: 'Refreshing spiced yogurt drink', category: 'Drinks', section: 'Restaurant', price: 80, image: img('photo-1551024709-8f23befc6f87') },
-  { name: 'Firni', description: 'Silky rice pudding with rose and pistachio', category: 'Desserts', section: 'Restaurant', price: 140, image: img('photo-1570197788417-0e82375c9371') },
-  { name: 'Dudh Cha', description: 'Milk tea, brewed strong', category: 'Tea', section: 'Tea stall', price: 15, isPopular: true },
-  { name: 'Lal Cha', description: 'Black tea with a hint of lemon', category: 'Tea', section: 'Tea stall', price: 10 },
-  { name: 'Malai Cha', description: 'Milk tea topped with fresh malai', category: 'Tea', section: 'Tea stall', price: 30, isPopular: true },
-  { name: 'Coffee', description: 'Hot milk coffee', category: 'Coffee', section: 'Tea stall', price: 40 },
-  { name: 'Singara', description: 'Crispy pastry with spiced potato', category: 'Snacks', section: 'Tea stall', price: 10 },
-  { name: 'Puri', description: 'Fried lentil puri', category: 'Snacks', section: 'Tea stall', price: 10 },
+  { name: 'গরুর দুধের চা', description: 'গাঢ় দুধের মজাদার চা', category: TEA, price: 25, image: img('cow-milk-tea'), isPopular: true },
+  { name: 'পোড়া রুটি', description: 'নরম ও মজাদার পোড়া রুটি', category: TEA, price: 20, image: img('pora-ruti') },
+  { name: 'মালাই চা', description: 'মালাইয়ের ঘ্রাণে দুধ চা', category: TEA, price: 35, image: img('malai-cha'), isPopular: true },
+  { name: 'মালাই', description: 'তাজা ও ঘন মালাই', category: TEA, price: 30, image: img('malai') },
+  { name: 'দুধ ডেনিশ', description: 'দুধে ভেজানো নরম ডেনিশ', category: TEA, price: 40, image: img('milk-danish') },
+  { name: 'তেতুল চা / মরিচ চা', description: 'টক-মিষ্টি বা ঝাল-ঝাল চায়ের মজা', category: TEA, price: 25, image: img('tetul-cha') },
+  { name: 'ঝালটক ফুসকা', description: 'ঝাল, টক আর মজায় ভরপুর', category: FAST, price: 60, image: img('jhaltok-fuchka'), isPopular: true },
+  { name: 'দই ফুসকা', description: 'দই, মিষ্টি চাটনি আর মশলা', category: FAST, price: 70, image: img('doi-fuchka') },
+  { name: 'ভেলপুরি', description: 'ঝাল-মিষ্টি মুখরোচক ভেলপুরি', category: FAST, price: 60, image: img('velpuri') },
+  { name: 'চিকেন বার্গার', description: 'জুসি চিকেন, সস ও ভেজিটেবলসহ', category: FAST, price: 129, image: img('chicken-burger'), isPopular: true },
+  { name: 'ভেজিটেবল রোলস', description: 'হেলদি ও টেস্টি ভেজ রোলস', category: FAST, price: 89, image: img('veg-roll') },
+  { name: 'গরুর মাংস প্যাকেজ', description: 'করলা ভাজি + গরুর মাংস ভুনা + সাদা ভাত + মাসকলাই ডাল', category: LUNCH, price: 160, image: img('lunch-beef'), isPopular: true },
+  { name: 'দেশী মুরগি প্যাকেজ', description: 'করলা ভাজি + দেশী মুরগি মাংস + সাদা ভাত + মাসকলাই ডাল', category: LUNCH, price: 150, image: img('lunch-chicken') },
+  { name: 'রুমাল রুটি / পরোটা', description: 'নরম রুটি বা পরোটা', category: DINNER, price: 20, image: img('ruti-porota') },
+  { name: 'গরুর মাংস ভুনা', description: 'ঝাল-মশলাদার গরুর মাংস ভুনা', category: DINNER, price: 150, image: img('beef-bhuna') },
+  { name: 'দেশি মুরগি ভুনা', description: 'ঘরোয়া স্বাদে দেশি মুরগির ভুনা', category: DINNER, price: 150, image: img('deshi-murgi-bhuna') },
 ]
 
 await mongoose.connect(MONGODB_URI)

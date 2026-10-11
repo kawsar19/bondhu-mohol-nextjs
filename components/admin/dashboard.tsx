@@ -1,85 +1,266 @@
-'use client'
+"use client";
 
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Bell, ChevronDown, ChefHat, CircleDollarSign, ClipboardList, Clock3,
-  Coffee, Grid2X2, LayoutDashboard, Menu, MoreHorizontal, Plus, Search,
-  Settings, ShoppingBag, Utensils, Users, X, Check, ArrowUpRight,
-  CalendarDays, SlidersHorizontal, QrCode, CircleCheck, Flame, PanelLeft, LogOut,
-} from 'lucide-react'
-import { MenuManager } from './menu-manager'
-import { OrdersManager } from './orders-manager'
-import { TablesManager } from './tables-manager'
+  ChefHat,
+  ClipboardList,
+  ExternalLink,
+  Grid2X2,
+  LayoutDashboard,
+  LogOut,
+  PanelLeft,
+  QrCode,
+  Settings,
+  ShoppingBag,
+  Utensils,
+  X,
+} from "lucide-react";
+import { MenuManager } from "./menu-manager";
+import { OrdersManager } from "./orders-manager";
+import { Overview } from "./overview";
+import { QrManager } from "./qr-manager";
+import { TablesManager } from "./tables-manager";
+import { WaiterPanel } from "./waiter-panel";
 
-export type AdminUser = { name: string; email: string; role: string }
-
-type OrderStatus = 'Pending' | 'Confirmed' | 'Preparing' | 'Ready' | 'Served' | 'Completed'
-type Order = { id: string; table: string; type: string; items: string; amount: number; status: OrderStatus; time: string; initials: string; color: string }
+export type AdminUser = { name: string; email: string; role: string };
 
 const navItems = [
-  { label: 'Overview', icon: LayoutDashboard }, { label: 'Orders', icon: ClipboardList },
-  { label: 'Tables', icon: Grid2X2 }, { label: 'Menu', icon: Utensils }, { label: 'Kitchen display', icon: ChefHat },
-]
-const secondaryItems = [{ label: 'Waiter order panel', icon: ShoppingBag }, { label: 'QR ordering', icon: QrCode }, { label: 'Settings', icon: Settings }]
-const categories = ['All items', 'Rice', 'Biryani', 'Chicken', 'Beef', 'Fish', 'Drinks', 'Desserts']
-const menuItems = [
-  { name: 'Kacchi Biryani', category: 'Biryani', price: 320, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=500&q=80', popular: true },
-  { name: 'Butter Chicken', category: 'Chicken', price: 280, image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&q=80', popular: true },
-  { name: 'Beef Kala Bhuna', category: 'Beef', price: 360, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80', popular: false },
-  { name: 'Hilsa Curry', category: 'Fish', price: 420, image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500&q=80', popular: false },
-]
-const initialOrders: Order[] = [
-  { id: '#BM-1048', table: 'Table 08', type: 'Dine in', items: '2× Kacchi Biryani, 1× Borhani', amount: 780, status: 'Preparing', time: '12:42 PM', initials: 'AR', color: 'bg-amber-100 text-amber-700' },
-  { id: '#BM-1047', table: 'Table 14', type: 'Dine in', items: '1× Beef Kala Bhuna, 2× Rice', amount: 920, status: 'Pending', time: '12:38 PM', initials: 'NS', color: 'bg-orange-100 text-orange-700' },
-  { id: '#BM-1046', table: 'Takeaway', type: 'Takeaway', items: '2× Butter Chicken, 1× Naan', amount: 640, status: 'Ready', time: '12:31 PM', initials: 'TH', color: 'bg-teal-100 text-teal-700' },
-  { id: '#BM-1045', table: 'Table 03', type: 'Dine in', items: '1× Hilsa Curry, 2× Rice, 2× Water', amount: 980, status: 'Completed', time: '12:15 PM', initials: 'SA', color: 'bg-violet-100 text-violet-700' },
-  { id: '#BM-1044', table: 'Table 11', type: 'Dine in', items: '3× Chicken Roast, 2× Borhani', amount: 1_140, status: 'Served', time: '11:58 AM', initials: 'FM', color: 'bg-pink-100 text-pink-700' },
-]
+  { label: "Overview", icon: LayoutDashboard },
+  { label: "Orders", icon: ClipboardList },
+  { label: "Tables", icon: Grid2X2 },
+  { label: "Menu", icon: Utensils },
+  { label: "Kitchen display", icon: ChefHat },
+];
+const secondaryItems = [
+  { label: "Waiter order panel", icon: ShoppingBag },
+  { label: "QR ordering", icon: QrCode },
+  { label: "Settings", icon: Settings },
+];
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const styles: Record<OrderStatus, string> = { Pending: 'bg-amber-50 text-amber-700', Confirmed: 'bg-blue-50 text-blue-700', Preparing: 'bg-orange-50 text-orange-700', Ready: 'bg-teal-50 text-teal-700', Served: 'bg-violet-50 text-violet-700', Completed: 'bg-emerald-50 text-emerald-700' }
-  return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles[status]}`}><span className="size-1.5 rounded-full bg-current" />{status}</span>
+function greeting(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 export function AdminDashboard({ user }: { user: AdminUser }) {
-  const router = useRouter()
-  const initials = user.name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
-  const logout = async () => { await fetch('/api/auth/logout', { method: 'POST' }); router.replace('/admin/login'); router.refresh() }
-  const [active, setActive] = useState('Overview')
-  const selectNav = (label: string) => { setActive(label); setMobileNav(false) }
-  const [orders, setOrders] = useState(initialOrders)
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('All items')
-  const [mobileNav, setMobileNav] = useState(false)
-  const [cart, setCart] = useState<{ name: string; qty: number; price: number }[]>([])
-  const filteredOrders = useMemo(() => orders.filter(o => `${o.id} ${o.table} ${o.items}`.toLowerCase().includes(search.toLowerCase())), [orders, search])
-  const filteredMenu = menuItems.filter(item => category === 'All items' || item.category === category)
-  const nextStatus = (status: OrderStatus): OrderStatus => ({ Pending: 'Confirmed', Confirmed: 'Preparing', Preparing: 'Ready', Ready: 'Served', Served: 'Completed', Completed: 'Completed' })[status]
-  const advanceOrder = (id: string) => setOrders(current => current.map(order => order.id === id ? { ...order, status: nextStatus(order.status) } : order))
-  const addToCart = (item: typeof menuItems[number]) => setCart(current => { const found = current.find(i => i.name === item.name); return found ? current.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i) : [...current, { name: item.name, qty: 1, price: item.price }] })
+  const router = useRouter();
+  const initials = user.name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/admin/login");
+    router.refresh();
+  };
+  const [active, setActive] = useState("Overview");
+  const [mobileNav, setMobileNav] = useState(false);
+  const selectNav = (label: string) => {
+    setActive(label);
+    setMobileNav(false);
+  };
 
-  return <div className="min-h-screen bg-[#f7f8f6] text-[#202521]">
-    <aside className={`${mobileNav ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[#e4e8e2] bg-white px-4 py-5 transition-transform lg:translate-x-0`}>
-      <div className="flex items-center gap-3 px-3"><div className="flex size-10 items-center justify-center rounded-xl bg-[#174d3c] text-white"><Utensils /></div><div><p className="font-serif text-[17px] font-bold tracking-tight">Bondhu Mohol</p><p className="text-[10px] font-medium uppercase tracking-[.18em] text-[#849087]">Restaurant</p></div><button onClick={() => setMobileNav(false)} className="ml-auto lg:hidden"><X /></button></div>
-      <div className="mt-9 flex flex-1 flex-col gap-7"><NavGroup label="Main menu" items={navItems} active={active} setActive={selectNav} /><NavGroup label="Operations" items={secondaryItems} active={active} setActive={selectNav} /></div>
-      <div className="rounded-2xl bg-[#f0f5f0] p-3.5"><div className="flex items-center gap-2 text-xs font-semibold text-[#174d3c]"><CircleCheck className="size-4" /> Restaurant is open</div><p className="mt-1 pl-6 text-[11px] text-[#718075]">Last synced just now</p></div>
-      <div className="mt-4 flex items-center gap-3 border-t border-[#e8ece7] px-2 pt-4"><div className="flex size-9 items-center justify-center rounded-full bg-[#ead8b6] text-xs font-bold text-[#714b17]">{initials}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{user.name}</p><p className="text-[11px] capitalize text-[#8a948b]">{user.role}</p></div><button onClick={logout} aria-label="Log out" title="Log out" className="rounded-lg p-1.5 text-[#9aa39b] hover:bg-[#f5f7f4] hover:text-[#b4472c]"><LogOut className="size-4" /></button></div>
-    </aside>
-    {mobileNav && <button aria-label="Close navigation" onClick={() => setMobileNav(false)} className="fixed inset-0 z-30 bg-black/20 lg:hidden" />}
-    <main className="lg:pl-64"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#e6eae4] bg-[#f7f8f6]/95 px-5 backdrop-blur-md sm:px-8"><div className="flex items-center gap-3"><button onClick={() => setMobileNav(true)} className="lg:hidden"><PanelLeft className="size-5" /></button><div><p className="text-xs font-medium text-[#89938b]">Tuesday, October 14, 2025</p><h1 className="font-serif text-xl font-bold tracking-tight">Good afternoon, {user.name.split(' ')[0]} <span className="text-[#c48545]">.</span></h1></div></div><div className="flex items-center gap-3"><button className="relative flex size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white"><Bell className="size-4" /><span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-[#c96b42]" /></button><div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex"><div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">{initials}</div><span className="text-xs font-semibold">{user.name}</span><span className="rounded-full bg-[#eaf2eb] px-1.5 py-0.5 text-[10px] font-semibold capitalize text-[#174d3c]">{user.role}</span></div><button onClick={logout} aria-label="Log out" title="Log out" className="flex size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white text-[#68756b] hover:text-[#b4472c]"><LogOut className="size-4" /></button></div></header>
-      {active === 'Tables' ? <div className="mx-auto max-w-[1440px] p-5 sm:p-8"><TablesManager /></div> : active === 'Menu' ? <div className="mx-auto max-w-[1440px] p-5 sm:p-8"><MenuManager /></div> : active === 'Orders' ? <div className="mx-auto max-w-[1440px] p-5 sm:p-8"><OrdersManager /></div> : <div className="mx-auto max-w-[1440px] p-5 sm:p-8"><div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">Overview</p><h2 className="font-serif text-3xl font-bold tracking-tight">Today at a glance</h2></div><button onClick={() => setActive('Waiter order panel')} className="flex items-center gap-2 rounded-xl bg-[#174d3c] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#123f31]"><Plus className="size-4" /> New order</button></div>
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric icon={ClipboardList} label="Today's orders" value="86" change="+12.5%" detail="vs. yesterday" /><Metric icon={Clock3} label="Pending orders" value="12" change="Needs attention" detail="right now" warm /><Metric icon={Flame} label="Preparing" value="08" change="In the kitchen" detail="being prepared" /><Metric icon={CircleDollarSign} label="Today's sales" value="৳ 48,650" change="+8.2%" detail="vs. yesterday" /></section>
-        <div className="mt-7 grid gap-6 xl:grid-cols-[1.55fr_1fr]"><section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6"><div className="mb-5 flex items-center justify-between"><div><h3 className="font-serif text-lg font-bold">Recent orders</h3><p className="mt-0.5 text-xs text-[#87928a]">Keep an eye on what&apos;s happening now</p></div><button onClick={() => setActive('Orders')} className="text-xs font-semibold text-[#b86f3c] hover:underline">View all orders <ArrowUpRight className="ml-1 inline size-3.5" /></button></div><div className="mb-4 flex flex-wrap gap-2"><div className="relative min-w-[200px] flex-1"><Search className="absolute left-3 top-2.5 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search order or table..." className="h-9 w-full rounded-lg border border-[#e2e7e1] bg-[#fbfcfb] pl-9 pr-3 text-xs outline-none focus:border-[#8eaf9b]" /></div><button className="flex h-9 items-center gap-2 rounded-lg border border-[#e2e7e1] px-3 text-xs font-medium text-[#68756b]"><SlidersHorizontal className="size-3.5" /> Filters</button></div><div className="overflow-x-auto"><table className="w-full min-w-[630px] text-left text-xs"><thead><tr className="border-b border-[#edf0ec] text-[10px] uppercase tracking-wider text-[#9aa39c]"><th className="pb-3 font-semibold">Order</th><th className="pb-3 font-semibold">Table</th><th className="pb-3 font-semibold">Items</th><th className="pb-3 font-semibold">Amount</th><th className="pb-3 font-semibold">Status</th><th className="pb-3" /></tr></thead><tbody>{filteredOrders.map(order => <tr key={order.id} className="border-b border-[#f0f2ef] last:border-0"><td className="py-3.5"><div className="flex items-center gap-2.5"><div className={`flex size-7 items-center justify-center rounded-full text-[9px] font-bold ${order.color}`}>{order.initials}</div><div><p className="font-semibold text-[#303932]">{order.id}</p><p className="text-[10px] text-[#a0aaa2]">{order.time}</p></div></div></td><td className="py-3.5 font-medium">{order.table}</td><td className="max-w-[175px] truncate py-3.5 text-[#78837b]">{order.items}</td><td className="py-3.5 font-semibold">৳ {order.amount.toLocaleString()}</td><td className="py-3.5"><StatusBadge status={order.status} /></td><td className="py-3.5"><button onClick={() => advanceOrder(order.id)} title="Advance status" className="rounded-md p-1 text-[#a0aaa2] hover:bg-[#f1f5f0] hover:text-[#174d3c]"><ChevronDown className="size-4" /></button></td></tr>)}</tbody></table></div></section>
-          <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6"><div className="mb-5 flex items-center justify-between"><div><h3 className="font-serif text-lg font-bold">Popular this week</h3><p className="mt-0.5 text-xs text-[#87928a]">Your guests&apos; favorites</p></div><button onClick={() => setActive('Menu')} className="text-xs font-semibold text-[#b86f3c] hover:underline">Manage menu <ArrowUpRight className="ml-1 inline size-3.5" /></button></div><div className="flex flex-col gap-4">{menuItems.slice(0, 3).map((item, i) => <div key={item.name} className="flex items-center gap-3"><img src={item.image} alt={item.name} className="size-14 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{item.name}</p><p className="mt-1 text-[11px] text-[#8a968d]">{['48 orders this week', '36 orders this week', '29 orders this week'][i]}</p><div className="mt-1.5 h-1 w-full max-w-[150px] rounded-full bg-[#edf1ec]"><div className="h-1 rounded-full bg-[#d38a51]" style={{ width: `${90 - i * 20}%` }} /></div></div><span className="text-xs font-bold text-[#b97442]">৳ {item.price}</span></div>)}</div><div className="mt-6 rounded-xl bg-[#fbf5ec] p-3.5"><div className="flex items-center gap-2 text-xs font-semibold text-[#835a2c]"><Coffee className="size-4" /> Kitchen is running smoothly</div><p className="mt-1 text-[11px] leading-relaxed text-[#9a7a53]">Average preparation time is down by 8 minutes today.</p></div></section></div>
-        <section className="mt-6 rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-serif text-lg font-bold">Quick order panel</h3><p className="mt-0.5 text-xs text-[#87928a]">Add items to create a waiter order</p></div><div className="flex items-center gap-2 rounded-lg border border-[#e2e7e1] px-3 py-2 text-xs font-medium"><Grid2X2 className="size-3.5 text-[#b86f3c]" /> Table 08 <ChevronDown className="size-3.5 text-[#a0aaa2]" /></div></div><div className="mb-5 flex gap-2 overflow-x-auto pb-1">{categories.map(cat => <button key={cat} onClick={() => setCategory(cat)} className={`whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold transition ${category === cat ? 'bg-[#174d3c] text-white' : 'bg-[#f1f4f0] text-[#728077] hover:bg-[#e7eee7]'}`}>{cat}</button>)}</div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{filteredMenu.map(item => <div key={item.name} className="group flex gap-3 rounded-xl border border-[#edf0ec] p-2.5"><img src={item.image} alt={item.name} className="size-[76px] rounded-lg object-cover" /><div className="flex min-w-0 flex-1 flex-col justify-between py-0.5"><div><p className="truncate text-sm font-semibold">{item.name}</p><p className="mt-1 text-[11px] text-[#929b94]">{item.category}</p></div><div className="flex items-center justify-between"><span className="text-xs font-bold text-[#b86f3c]">৳ {item.price}</span><button onClick={() => addToCart(item)} aria-label={`Add ${item.name}`} className="flex size-7 items-center justify-center rounded-lg bg-[#eef4ed] text-[#174d3c] transition hover:bg-[#174d3c] hover:text-white"><Plus className="size-4" /></button></div></div></div>)}</div>{cart.length > 0 && <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#174d3c] p-3.5 text-white"><div className="flex items-center gap-2 text-xs"><ShoppingBag className="size-4" /><span><strong>{cart.reduce((sum, i) => sum + i.qty, 0)} items</strong> added to Table 08</span></div><button onClick={() => { setCart([]); setActive('Orders') }} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-[#174d3c]">Submit order · ৳ {cart.reduce((sum, i) => sum + i.qty * i.price, 0)}</button></div>}</section>
-      </div>}
-    </main>
-  </div>
+  // Date and greeting use the viewer's clock, so they are set after mount to avoid a server/client mismatch.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const content =
+    active === "Overview" ? (
+      <Overview onNavigate={setActive} />
+    ) : active === "Orders" ? (
+      <OrdersManager />
+    ) : active === "Tables" ? (
+      <TablesManager />
+    ) : active === "Menu" ? (
+      <MenuManager />
+    ) : active === "Waiter order panel" ? (
+      <WaiterPanel />
+    ) : active === "QR ordering" ? (
+      <QrManager onGoToTables={() => setActive("Tables")} />
+    ) : (
+      <ComingSoon title={active} />
+    );
+
+  return (
+    <div className="min-h-screen bg-[#f7f8f6] text-[#202521]">
+      <aside
+        className={`${mobileNav ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[#e4e8e2] bg-white px-4 py-5 transition-transform lg:translate-x-0`}
+      >
+        <div className="flex items-center gap-3 px-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-[#174d3c] text-white">
+            <Utensils />
+          </div>
+          <div>
+            <p className="font-serif text-[17px] font-bold tracking-tight"></p>
+            <p className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[.08em] text-[#849087]">
+              Restaurant &amp; Tea Stall
+            </p>
+          </div>
+          <button
+            onClick={() => setMobileNav(false)}
+            aria-label="Close menu"
+            className="ml-auto lg:hidden"
+          >
+            <X />
+          </button>
+        </div>
+        <div className="mt-9 flex flex-1 flex-col gap-7">
+          <NavGroup
+            label="Main menu"
+            items={navItems}
+            active={active}
+            setActive={selectNav}
+          />
+          <NavGroup
+            label="Operations"
+            items={secondaryItems}
+            active={active}
+            setActive={selectNav}
+          />
+        </div>
+        <a
+          href="/"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 rounded-2xl bg-[#f0f5f0] p-3.5 text-xs font-semibold text-[#174d3c] hover:bg-[#e6efe7]"
+        >
+          <ExternalLink className="size-4" /> Open customer menu
+        </a>
+        <div className="mt-4 flex items-center gap-3 border-t border-[#e8ece7] px-2 pt-4">
+          <div className="flex size-9 items-center justify-center rounded-full bg-[#ead8b6] text-xs font-bold text-[#714b17]">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold">{user.name}</p>
+            <p className="text-[11px] capitalize text-[#8a948b]">{user.role}</p>
+          </div>
+          <button
+            onClick={logout}
+            aria-label="Log out"
+            title="Log out"
+            className="rounded-lg p-1.5 text-[#9aa39b] hover:bg-[#f5f7f4] hover:text-[#b4472c]"
+          >
+            <LogOut className="size-4" />
+          </button>
+        </div>
+      </aside>
+      {mobileNav && (
+        <button
+          aria-label="Close navigation"
+          onClick={() => setMobileNav(false)}
+          className="fixed inset-0 z-30 bg-black/20 lg:hidden"
+        />
+      )}
+      <main className="lg:pl-64">
+        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b border-[#e6eae4] bg-[#f7f8f6]/95 px-5 backdrop-blur-md sm:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              onClick={() => setMobileNav(true)}
+              aria-label="Open menu"
+              className="lg:hidden"
+            >
+              <PanelLeft className="size-5" />
+            </button>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-[#89938b]">
+                {now
+                  ? now.toLocaleDateString([], {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : " "}
+              </p>
+              <h1 className="truncate font-serif text-xl font-bold tracking-tight">
+                {now ? greeting(now.getHours()) : "Hello"},{" "}
+                {user.name.split(" ")[0]}
+                <span className="text-[#c48545]">.</span>
+              </h1>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
+              <div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">
+                {initials}
+              </div>
+              <span className="text-xs font-semibold">{user.name}</span>
+              <span className="rounded-full bg-[#eaf2eb] px-1.5 py-0.5 text-[10px] font-semibold capitalize text-[#174d3c]">
+                {user.role}
+              </span>
+            </div>
+            <button
+              onClick={logout}
+              aria-label="Log out"
+              title="Log out"
+              className="flex size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white text-[#68756b] hover:text-[#b4472c]"
+            >
+              <LogOut className="size-4" />
+            </button>
+          </div>
+        </header>
+        <div className="mx-auto max-w-[1440px] p-5 sm:p-8">{content}</div>
+      </main>
+    </div>
+  );
 }
 
-function NavGroup({ label, items, active, setActive }: { label: string; items: { label: string; icon: typeof LayoutDashboard; count?: string }[]; active: string; setActive: (label: string) => void }) { return <div><p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.16em] text-[#a3aca5]">{label}</p><div className="flex flex-col gap-1">{items.map(item => { const Icon = item.icon; return <button key={item.label} onClick={() => setActive(item.label)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition ${active === item.label ? 'bg-[#eaf2eb] text-[#174d3c]' : 'text-[#7d897f] hover:bg-[#f5f7f4]'}`}><Icon className="size-[17px]" /> <span className="flex-1">{item.label}</span>{item.count && <span className="rounded-full bg-[#f4ddca] px-1.5 py-0.5 text-[10px] text-[#a96438]">{item.count}</span>}</button> })}</div></div> }
-function Metric({ icon: Icon, label, value, change, detail, warm }: { icon: typeof ClipboardList; label: string; value: string; change: string; detail: string; warm?: boolean }) { return <div className="rounded-2xl border border-[#e3e8e1] bg-white p-5"><div className="flex items-start justify-between"><div className={`flex size-9 items-center justify-center rounded-xl ${warm ? 'bg-[#fff0df] text-[#c7773d]' : 'bg-[#eaf2eb] text-[#174d3c]'}`}><Icon className="size-[18px]" /></div><span className={`text-[10px] font-semibold ${warm ? 'text-[#c7773d]' : 'text-[#5c9870]'}`}>{change}</span></div><p className="mt-4 text-xs font-medium text-[#87928a]">{label}</p><div className="mt-1 flex items-baseline gap-2"><p className="font-serif text-2xl font-bold tracking-tight">{value}</p><span className="text-[10px] text-[#9aa39c]">{detail}</span></div></div> }
+function ComingSoon({ title }: { title: string }) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">
+        {title}
+      </p>
+      <h2 className="font-serif text-3xl font-bold tracking-tight">
+        Coming soon
+      </h2>
+      <p className="mt-3 max-w-md text-sm text-[#68756b]">
+        This section isn&apos;t built yet. Orders, tables, menu, the waiter
+        panel and QR codes are ready to use.
+      </p>
+    </div>
+  );
+}
 
-// keep the navigation icons visible in compact mobile screenshots
-void Menu; void Users; void CalendarDays; void Check
+function NavGroup({
+  label,
+  items,
+  active,
+  setActive,
+}: {
+  label: string;
+  items: { label: string; icon: typeof LayoutDashboard }[];
+  active: string;
+  setActive: (label: string) => void;
+}) {
+  return (
+    <div>
+      <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.16em] text-[#a3aca5]">
+        {label}
+      </p>
+      <div className="flex flex-col gap-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.label}
+              onClick={() => setActive(item.label)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition ${active === item.label ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#7d897f] hover:bg-[#f5f7f4]"}`}
+            >
+              <Icon className="size-[17px]" />{" "}
+              <span className="flex-1">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

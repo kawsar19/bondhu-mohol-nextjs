@@ -1,6 +1,5 @@
-import { model, models, Schema, type InferSchemaType, type Model } from 'mongoose'
-
-export const MENU_SECTIONS = ['Restaurant', 'Tea stall'] as const
+import { Schema, type InferSchemaType } from 'mongoose'
+import { defineModel } from './define-model'
 
 const menuItemSchema = new Schema(
   {
@@ -8,7 +7,6 @@ const menuItemSchema = new Schema(
     description: { type: String, trim: true, default: '', maxlength: 300 },
     price: { type: Number, required: true, min: 0, max: 100000 },
     category: { type: String, required: true, trim: true, maxlength: 40 },
-    section: { type: String, enum: MENU_SECTIONS, default: 'Restaurant' },
     image: { type: String, trim: true, default: '' },
     isAvailable: { type: Boolean, default: true },
     isPopular: { type: Boolean, default: false },
@@ -16,8 +14,8 @@ const menuItemSchema = new Schema(
   { timestamps: true },
 )
 
-menuItemSchema.index({ section: 1, category: 1, name: 1 })
+menuItemSchema.index({ category: 1, name: 1 })
 
 export type MenuItemDoc = InferSchemaType<typeof menuItemSchema>
 
-export const MenuItem: Model<MenuItemDoc> = models.MenuItem || model<MenuItemDoc>('MenuItem', menuItemSchema)
+export const MenuItem = defineModel<MenuItemDoc>('MenuItem', menuItemSchema)

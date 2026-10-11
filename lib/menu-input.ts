@@ -1,11 +1,8 @@
-import { MENU_SECTIONS } from './models/menu-item'
-
 export type MenuInput = {
   name?: string
   description?: string
   price?: number
   category?: string
-  section?: (typeof MENU_SECTIONS)[number]
   image?: string
   isAvailable?: boolean
   isPopular?: boolean
@@ -51,11 +48,6 @@ export function parseMenuInput(body: unknown, partial = false): Result {
     if (raw.price === '' || !Number.isFinite(price) || price < 0 || price > 100000) return { error: 'Price must be between 0 and 100000' }
     data.price = Math.round(price * 100) / 100
   } else if (!partial) return { error: 'Price is required' }
-
-  if (raw.section !== undefined) {
-    if (!MENU_SECTIONS.includes(raw.section as never)) return { error: `Section must be one of: ${MENU_SECTIONS.join(', ')}` }
-    data.section = raw.section as MenuInput['section']
-  }
 
   const image = text(raw.image, 'Image URL', 500, false)
   if (image.error) return { error: image.error }

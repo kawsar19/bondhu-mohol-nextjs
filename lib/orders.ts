@@ -21,8 +21,11 @@ async function nextOrderCode() {
   return `BM-${1000 + counter.seq}`
 }
 
-/** Validates a customer order, prices it from the database, and saves it. */
-export async function createCustomerOrder(body: unknown) {
+/**
+ * Validates an order, prices it from the database, and saves it.
+ * Pass `staff` when a waiter places it for a guest; the phone number is then optional for takeaway.
+ */
+export async function createOrder(body: unknown, staff?: { name: string }) {
   if (!body || typeof body !== 'object') throw new OrderInputError('Invalid order')
   const raw = body as Record<string, unknown>
 
@@ -56,13 +59,16 @@ export async function createCustomerOrder(body: unknown) {
       if (!(await Table.exists({ number: tableNumber, isActive: true }))) throw new OrderInputError(`Table ${tableNumber} is not available. Please ask a staff member.`)
     }
   } else {
-    const normalized = normalizePhone(typeof raw.phone === 'string' ? raw.phone : '')
-    if (!normalized) throw new OrderInputError('Enter a valid mobile number, e.g. 01712345678')
-    phone = normalized
+    const rawPhone = typeof raw.phone === 'string' ? raw.phone.trim() : ''
+    if (rawPhone || !staff) {
+      const normalized = normalizePhone(rawPhone)
+      if (!normalized) throw new OrderInputError('Enter a valid mobile number, e.g. 01712345678')
+      phone = normalized
+    }
   }
 
   const trackingToken = randomBytes(16).toString('hex')
-  const order = await Order.create({ code: await nextOrderCode(), type, tableNumber, customerName, phone, note, items, total, trackingToken })
+  const order = await Order.create({ code: await nextOrderCode(), type, tableNumber, customerName, phone, note, items, total, trackingToken, source: staff ? 'Staff' : 'Customer', takenBy: staff?.name ?? '' })
   if (tableNumber) await Table.updateOne({ number: tableNumber }, { status: 'Occupied' })
 
   return { id: order._id.toString(), code: order.code, trackingToken }

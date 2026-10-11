@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Bike, Check, ChefHat, ChevronRight, Coffee, Loader2, Minus, Plus, ShoppingBag, Utensils, UtensilsCrossed, X } from 'lucide-react'
 
-export type PublicMenuItem = { id: string; name: string; description: string; category: string; section: 'Restaurant' | 'Tea stall'; price: number; image: string; isPopular: boolean }
+export type PublicMenuItem = { id: string; name: string; description: string; category: string; price: number; image: string; isPopular: boolean }
 export type PublicTable = { number: number; name: string }
 type OrderType = 'Dine in' | 'Takeaway'
 type TrackedOrder = { id: string; code: string; type: OrderType; tableNumber: number | null; items: { name: string; price: number; qty: number }[]; total: number; status: string }
 type SavedOrder = { id: string; token: string; code: string }
 
-const SECTIONS = ['Restaurant', 'Tea stall'] as const
+// Tea and coffee items without a photo get a cup icon.
+const isTea = (category: string) => /\b(tea|cha|chai|coffee)\b|চা|কফি/i.test(category)
 const OPEN = ['Pending', 'Preparing', 'Ready', 'Served']
 const taka = (n: number) => `৳ ${n.toLocaleString('en-IN')}`
 
@@ -22,8 +23,6 @@ function save(key: string, value: unknown) {
 }
 
 export function CustomerMenu({ items, tables, initialTable }: { items: PublicMenuItem[]; tables: PublicTable[]; initialTable: number | null }) {
-  const sections = SECTIONS.filter(s => items.some(i => i.section === s))
-  const [section, setSection] = useState<PublicMenuItem['section']>(sections[0] ?? 'Restaurant')
   const [cart, setCart] = useState<Record<string, number>>({})
   const [sheet, setSheet] = useState<'cart' | 'track' | null>(null)
   const [saved, setSaved] = useState<SavedOrder | null>(null)
@@ -63,17 +62,16 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
     return () => { document.body.style.overflow = previous }
   }, [sheet])
 
-  const sectionItems = useMemo(() => items.filter(i => i.section === section), [items, section])
   const groups = useMemo(() => {
     const result: { name: string; items: PublicMenuItem[] }[] = []
-    const popular = sectionItems.filter(i => i.isPopular)
+    const popular = items.filter(i => i.isPopular)
     if (popular.length) result.push({ name: 'Popular', items: popular })
-    for (const item of sectionItems) {
+    for (const item of items) {
       const group = result.find(g => g.name === item.category && g.name !== 'Popular') ?? (result.push({ name: item.category, items: [] }), result[result.length - 1])
       group.items.push(item)
     }
     return result
-  }, [sectionItems])
+  }, [items])
 
   // Highlight the category chip for the group in view.
   const chipBar = useRef<HTMLDivElement>(null)
@@ -82,12 +80,18 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
     const observer = new IntersectionObserver(entries => {
       const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
       if (visible) setActiveCategory(visible.target.getAttribute('data-category') ?? '')
-    }, { rootMargin: '-140px 0px -60% 0px' })
+    }, { rootMargin: '-80px 0px -60% 0px' })
     document.querySelectorAll('[data-category]').forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [groups])
+  // Scroll only the chip bar sideways. scrollIntoView would also move the page and fight the guest's own scrolling on phones.
   useEffect(() => {
-    chipBar.current?.querySelector(`[data-chip="${CSS.escape(activeCategory)}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    const bar = chipBar.current
+    const chip = bar?.querySelector<HTMLElement>(`[data-chip="${CSS.escape(activeCategory)}"]`)
+    if (!bar || !chip) return
+    const left = chip.offsetLeft - bar.offsetLeft
+    if (left >= bar.scrollLeft && left + chip.offsetWidth <= bar.scrollLeft + bar.clientWidth) return
+    bar.scrollTo({ left: left - (bar.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' })
   }, [activeCategory])
 
   const setQty = (id: string, qty: number) => setCart(current => {
@@ -108,17 +112,16 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
   }
 
   return <main className="min-h-dvh bg-[#fbfaf7] pb-32 text-[#202521]">
-    <header className="px-4 pt-5 sm:px-8"><div className="mx-auto flex max-w-5xl items-center justify-between gap-3"><div className="flex items-center gap-3"><div className="flex size-11 items-center justify-center rounded-2xl bg-[#174d3c] text-white"><Utensils className="size-5" /></div><div><p className="font-serif text-xl font-bold leading-tight">Bondhu Mohol</p><p className="text-xs text-[#89938b]">Order from your phone</p></div></div>{initialTable && <span className="rounded-full bg-[#f4ddca] px-3 py-1.5 text-sm font-bold text-[#8a4f26]">Table {initialTable}</span>}</div></header>
+    <header className="px-4 pt-5 sm:px-8"><div className="mx-auto flex max-w-5xl items-center justify-between gap-3"><div className="flex items-center gap-3"><div className="flex size-11 items-center justify-center rounded-2xl bg-[#174d3c] text-white"><Utensils className="size-5" /></div><div><p className="font-serif text-xl font-bold leading-tight">Bondhu Mohol</p><p className="text-xs text-[#89938b]">Restaurant &amp; Tea Stall</p></div></div>{initialTable && <span className="rounded-full bg-[#f4ddca] px-3 py-1.5 text-sm font-bold text-[#8a4f26]">Table {initialTable}</span>}</div></header>
 
     {saved && tracked && orderIsOpen && <div className="mx-auto mt-4 max-w-5xl px-4 sm:px-8"><button onClick={() => setSheet('track')} className="flex w-full items-center gap-3 rounded-2xl bg-[#174d3c] p-4 text-left text-white"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15">{tracked.status === 'Ready' ? <Check className="size-5" /> : <ChefHat className="size-5" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Order {tracked.code}</span><span className="block text-xs text-white/75">{statusLine(tracked)}</span></span><ChevronRight className="size-5 shrink-0" /></button></div>}
 
     {items.length === 0 ? <div className="mx-auto mt-6 max-w-5xl px-4 sm:px-8"><div className="flex flex-col items-center rounded-3xl border border-dashed border-[#e3ded3] bg-white px-6 py-16 text-center"><UtensilsCrossed className="size-10 text-[#c7d1c7]" /><p className="mt-4 text-lg font-semibold">The menu is being prepared</p><p className="mt-1 text-sm text-[#89938b]">Please check back in a little while.</p></div></div> : <>
-      <div className="sticky top-0 z-30 mt-4 border-b border-[#ece8df] bg-[#fbfaf7]/95 backdrop-blur"><div className="mx-auto max-w-5xl px-4 pt-3 sm:px-8">
-        {sections.length > 1 && <div className="grid grid-cols-2 gap-1 rounded-2xl bg-[#f1eee7] p-1">{sections.map(s => <button key={s} onClick={() => { setSection(s); window.scrollTo({ top: 0 }) }} aria-pressed={section === s} className={`flex h-12 items-center justify-center gap-2 rounded-xl text-base font-semibold transition ${section === s ? 'bg-white text-[#174d3c] shadow-sm' : 'text-[#8a8577]'}`}>{s === 'Tea stall' ? <Coffee className="size-5" /> : <Utensils className="size-5" />}{s}</button>)}</div>}
+      <div className="sticky top-0 z-30 mt-4 border-b border-[#ece8df] bg-[#fbfaf7]/95 backdrop-blur"><div className="mx-auto max-w-5xl px-4 sm:px-8">
         <div ref={chipBar} className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:px-0">{groups.map(g => <button key={g.name} data-chip={g.name} onClick={() => document.getElementById(`cat-${g.name}`)?.scrollIntoView({ behavior: 'smooth' })} className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold transition ${activeCategory === g.name ? 'bg-[#174d3c] text-white' : 'bg-white text-[#5f6b62] ring-1 ring-inset ring-[#e3e8e1]'}`}>{g.name}</button>)}</div>
       </div></div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-8">{groups.map(group => <section key={group.name} id={`cat-${group.name}`} data-category={group.name} className="scroll-mt-40 pt-6">
+      <div className="mx-auto max-w-5xl px-4 sm:px-8">{groups.map(group => <section key={group.name} id={`cat-${group.name}`} data-category={group.name} className="scroll-mt-20 pt-6">
         <h2 className="mb-3 font-serif text-2xl font-bold">{group.name}</h2>
         <div className="grid gap-3 md:grid-cols-2">{group.items.map(item => <ItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onQty={qty => setQty(item.id, qty)} />)}</div>
       </section>)}</div>
@@ -139,7 +142,7 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
 
 function ItemRow({ item, qty, onQty }: { item: PublicMenuItem; qty: number; onQty: (qty: number) => void }) {
   return <article className={`flex gap-3 rounded-2xl border bg-white p-3 transition ${qty ? 'border-[#9cc2aa] ring-1 ring-[#9cc2aa]' : 'border-[#ebece6]'}`}>
-    {item.image ? <img src={item.image} alt="" loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" /> : <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-[#f5f1e8] text-[#d2b893]">{item.section === 'Tea stall' ? <Coffee className="size-9" /> : <Utensils className="size-8" />}</div>}
+    {item.image ? <img src={item.image} alt="" loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" /> : <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-[#f5f1e8] text-[#d2b893]">{isTea(item.category) ? <Coffee className="size-9" /> : <Utensils className="size-8" />}</div>}
     <div className="flex min-w-0 flex-1 flex-col">
       <h3 className="text-base font-semibold leading-snug">{item.name}</h3>
       {item.description && <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#89938b]">{item.description}</p>}

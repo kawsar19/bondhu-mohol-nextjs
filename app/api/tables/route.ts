@@ -9,7 +9,7 @@ export async function GET() {
   if (error) return error
 
   await connectDB()
-  const tables = await Table.find().sort({ section: 1, number: 1 })
+  const tables = await Table.find().sort({ number: 1 })
   return NextResponse.json({ tables })
 }
 

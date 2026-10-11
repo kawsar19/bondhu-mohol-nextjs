@@ -1,9 +1,11 @@
-import { model, models, Schema, type InferSchemaType, type Model } from 'mongoose'
+import { Schema, type InferSchemaType } from 'mongoose'
+import { defineModel } from './define-model'
 
 export const ORDER_TYPES = ['Dine in', 'Takeaway'] as const
 export const ORDER_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served', 'Completed', 'Cancelled'] as const
 export const PAYMENT_STATUSES = ['Unpaid', 'Paid'] as const
 export const OPEN_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served'] as const
+export const ORDER_SOURCES = ['Customer', 'Staff'] as const
 
 const orderItemSchema = new Schema(
   {
@@ -28,6 +30,9 @@ const orderSchema = new Schema(
     total: { type: Number, required: true, min: 0 },
     status: { type: String, enum: ORDER_STATUSES, default: 'Pending' },
     paymentStatus: { type: String, enum: PAYMENT_STATUSES, default: 'Unpaid' },
+    // Who placed it: the guest from their phone, or a staff member on their behalf.
+    source: { type: String, enum: ORDER_SOURCES, default: 'Customer' },
+    takenBy: { type: String, trim: true, default: '' },
     trackingToken: { type: String, required: true, select: false },
   },
   { timestamps: true },
@@ -37,7 +42,7 @@ orderSchema.index({ createdAt: -1 })
 orderSchema.index({ status: 1, createdAt: -1 })
 
 export type OrderDoc = InferSchemaType<typeof orderSchema>
-export const Order: Model<OrderDoc> = models.Order || model<OrderDoc>('Order', orderSchema)
+export const Order = defineModel<OrderDoc>('Order', orderSchema)
 
 const counterSchema = new Schema({ _id: { type: String, required: true }, seq: { type: Number, default: 0 } })
-export const Counter = models.Counter || model('Counter', counterSchema)
+export const Counter = defineModel<{ _id: string; seq: number }>('Counter', counterSchema)
