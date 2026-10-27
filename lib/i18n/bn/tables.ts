@@ -1,4 +1,45 @@
 import type { Messages } from '../types'
 import type { tables as En } from '../en/tables'
 
-export const tables: Messages<typeof En> = {}
+export const tables: Messages<typeof En> = {
+  eyebrow: 'টেবিল',
+  title: 'টেবিল ব্যবস্থাপনা',
+  refresh: 'টেবিল রিফ্রেশ করুন',
+  add: 'টেবিল যোগ করুন',
+  stats: { total: 'মোট টেবিল', available: 'এখন খালি', occupied: 'ব্যস্ত', seats: 'মোট আসন' },
+  emptyTitle: 'এখনো কোনো টেবিল নেই',
+  emptyHint: 'ডাইন-ইন অর্ডার নিতে প্রথম টেবিলটি যোগ করুন।',
+  seatOne: '{count} আসন',
+  seatMany: '{count} আসন',
+  status: 'অবস্থা',
+  enable: 'চালু করুন',
+  disable: 'বন্ধ করুন',
+  editLabel: 'টেবিল {number} এডিট করুন',
+  deleteLabel: 'টেবিল {number} ডিলিট করুন',
+  confirmDelete: 'এই টেবিলটি ডিলিট করবেন?',
+  loadFailed: 'টেবিল লোড করা যায়নি',
+  updateFailed: 'টেবিল আপডেট করা যায়নি',
+  deleteFailed: 'টেবিল ডিলিট করা যায়নি',
+  saveFailed: 'টেবিল সেভ করা যায়নি',
+  form: {
+    editEyebrow: 'টেবিল এডিট',
+    newEyebrow: 'নতুন টেবিল',
+    addTitle: 'টেবিল যোগ করুন',
+    number: 'টেবিল নম্বর',
+    seats: 'আসন',
+    name: 'নাম',
+    namePlaceholder: 'যেমন: জানালার পাশে, ফ্যামিলি কেবিন',
+    status: 'অবস্থা',
+    active: 'চালু (নতুন অর্ডারে এই টেবিল দেখাবে)',
+  },
+  api: {
+    notFound: 'টেবিল পাওয়া যায়নি',
+    exists: 'টেবিল {number} আগে থেকেই আছে',
+    numberInvalid: 'টেবিল নম্বর 1 বা তার বেশি পূর্ণসংখ্যা হতে হবে',
+    numberRequired: 'টেবিল নম্বর দিতে হবে',
+    nameInvalid: 'নাম সর্বোচ্চ 60 অক্ষরের হতে হবে',
+    seatsInvalid: 'আসন 1 থেকে 50-এর মধ্যে হতে হবে',
+    statusInvalid: 'অবস্থা এগুলোর একটি হতে হবে: {list}',
+    isActiveInvalid: 'isActive অবশ্যই true বা false হতে হবে',
+  },
+}

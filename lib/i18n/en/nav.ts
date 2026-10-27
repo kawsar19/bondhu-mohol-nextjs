@@ -1,1 +1,31 @@
-export const nav = {}
+// Dashboard shell: sidebar, header, greeting.
+export const nav = {
+  // Section names, keyed by the English section ID used in code and permissions.
+  sections: {
+    Overview: 'Overview',
+    Orders: 'Orders',
+    Tables: 'Tables',
+    Menu: 'Menu',
+    'Kitchen display': 'Kitchen display',
+    Reports: 'Reports',
+    Expenses: 'Expenses',
+    'Waiter order panel': 'Waiter order panel',
+    'QR ordering': 'QR ordering',
+    Staff: 'Staff',
+    Settings: 'Settings',
+  },
+  tagline: 'Restaurant & Tea Stall',
+  mainMenu: 'Main menu',
+  operations: 'Operations',
+  openCustomerMenu: 'Open customer menu',
+  openMenu: 'Open menu',
+  closeMenu: 'Close menu',
+  closeNavigation: 'Close navigation',
+  logOut: 'Log out',
+  goodMorning: 'Good morning',
+  goodAfternoon: 'Good afternoon',
+  goodEvening: 'Good evening',
+  hello: 'Hello',
+  comingSoon: 'Coming soon',
+  comingSoonText: "This section isn't built yet. Orders, kitchen display, tables, menu, the waiter panel and QR codes are ready to use.",
+}

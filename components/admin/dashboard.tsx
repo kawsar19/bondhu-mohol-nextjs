@@ -19,7 +19,10 @@ import {
   Utensils,
   X,
 } from "lucide-react";
-import { canAccess } from "@/lib/permissions";
+import { useIntlLocale, useT } from "@/components/i18n-provider";
+import { LanguageSwitch } from "@/components/language-switch";
+import type { MessageKey, TFunction } from "@/lib/i18n";
+import { canAccess, isRole } from "@/lib/permissions";
 import { ExpensesManager } from "./expenses-manager";
 import { KitchenDisplay } from "./kitchen-display";
 import { MenuManager } from "./menu-manager";
@@ -33,31 +36,45 @@ import { TablesManager } from "./tables-manager";
 import { WaiterPanel } from "./waiter-panel";
 
 export type AdminUser = { id: string; name: string; email: string; role: string };
+type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
 
-const navItems = [
-  { label: "Overview", icon: LayoutDashboard },
-  { label: "Orders", icon: ClipboardList },
-  { label: "Tables", icon: Grid2X2 },
-  { label: "Menu", icon: Utensils },
-  { label: "Kitchen display", icon: ChefHat },
-  { label: "Reports", icon: ChartColumn },
-  { label: "Expenses", icon: ShoppingBasket },
+// `label` is the section ID (used for permissions and navigation); `key` is its display name.
+const navItems: NavItem[] = [
+  { label: "Overview", key: "nav.sections.Overview", icon: LayoutDashboard },
+  { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
+  { label: "Tables", key: "nav.sections.Tables", icon: Grid2X2 },
+  { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
+  { label: "Kitchen display", key: "nav.sections.Kitchen display", icon: ChefHat },
+  { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
+  { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
 ];
-const secondaryItems = [
-  { label: "Waiter order panel", icon: ShoppingBag },
-  { label: "QR ordering", icon: QrCode },
-  { label: "Staff", icon: UserCog },
-  { label: "Settings", icon: Settings },
+const secondaryItems: NavItem[] = [
+  { label: "Waiter order panel", key: "nav.sections.Waiter order panel", icon: ShoppingBag },
+  { label: "QR ordering", key: "nav.sections.QR ordering", icon: QrCode },
+  { label: "Staff", key: "nav.sections.Staff", icon: UserCog },
+  { label: "Settings", key: "nav.sections.Settings", icon: Settings },
 ];
+const sectionKeys: Record<string, MessageKey> = Object.fromEntries([...navItems, ...secondaryItems].map((item) => [item.label, item.key]));
+const sectionName = (t: TFunction, label: string) => (sectionKeys[label] ? t(sectionKeys[label]) : label);
+const ROLE_KEY = {
+  admin: "staff.roles.admin.label",
+  manager: "staff.roles.manager.label",
+  cashier: "staff.roles.cashier.label",
+  waiter: "staff.roles.waiter.label",
+  kitchen: "staff.roles.kitchen.label",
+} as const;
 
-function greeting(hour: number) {
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+function greeting(t: TFunction, hour: number) {
+  if (hour < 12) return t("nav.goodMorning");
+  if (hour < 17) return t("nav.goodAfternoon");
+  return t("nav.goodEvening");
 }
 
 export function AdminDashboard({ user }: { user: AdminUser }) {
   const router = useRouter();
+  const t = useT();
+  const intlLocale = useIntlLocale();
+  const roleName = isRole(user.role) ? t(ROLE_KEY[user.role]) : user.role;
   const initials = user.name
     .split(/\s+/)
     .map((part) => part[0])
@@ -89,7 +106,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 
   const content =
     !canAccess(user.role, active) ? (
-      <ComingSoon title={active} />
+      <ComingSoon title={sectionName(t, active)} />
     ) : active === "Overview" ? (
       <Overview onNavigate={setActive} />
     ) : active === "Orders" ? (
@@ -111,7 +128,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
     ) : (
-      <ComingSoon title={active} />
+      <ComingSoon title={sectionName(t, active)} />
     );
 
   return (
@@ -126,12 +143,12 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           <div>
             <p className="font-serif text-[17px] font-bold tracking-tight"></p>
             <p className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[.08em] text-[#849087]">
-              Restaurant &amp; Tea Stall
+              {t("nav.tagline")}
             </p>
           </div>
           <button
             onClick={() => setMobileNav(false)}
-            aria-label="Close menu"
+            aria-label={t("nav.closeMenu")}
             className="ml-auto lg:hidden"
           >
             <X />
@@ -139,13 +156,13 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         </div>
         <div className="mt-9 flex flex-1 flex-col gap-7">
           <NavGroup
-            label="Main menu"
+            label={t("nav.mainMenu")}
             items={mainItems}
             active={active}
             setActive={selectNav}
           />
           <NavGroup
-            label="Operations"
+            label={t("nav.operations")}
             items={operationItems}
             active={active}
             setActive={selectNav}
@@ -157,7 +174,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           rel="noreferrer"
           className="flex items-center gap-2 rounded-2xl bg-[#f0f5f0] p-3.5 text-xs font-semibold text-[#174d3c] hover:bg-[#e6efe7]"
         >
-          <ExternalLink className="size-4" /> Open customer menu
+          <ExternalLink className="size-4" /> {t("nav.openCustomerMenu")}
         </a>
         <div className="mt-4 flex items-center gap-3 border-t border-[#e8ece7] px-2 pt-4">
           <div className="flex size-9 items-center justify-center rounded-full bg-[#ead8b6] text-xs font-bold text-[#714b17]">
@@ -165,12 +182,12 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold">{user.name}</p>
-            <p className="text-[11px] capitalize text-[#8a948b]">{user.role}</p>
+            <p className="text-[11px] capitalize text-[#8a948b]">{roleName}</p>
           </div>
           <button
             onClick={logout}
-            aria-label="Log out"
-            title="Log out"
+            aria-label={t("nav.logOut")}
+            title={t("nav.logOut")}
             className="rounded-lg p-1.5 text-[#9aa39b] hover:bg-[#f5f7f4] hover:text-[#b4472c]"
           >
             <LogOut className="size-4" />
@@ -179,7 +196,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       </aside>
       {mobileNav && (
         <button
-          aria-label="Close navigation"
+          aria-label={t("nav.closeNavigation")}
           onClick={() => setMobileNav(false)}
           className="fixed inset-0 z-30 bg-black/20 lg:hidden"
         />
@@ -189,7 +206,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setMobileNav(true)}
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               className="lg:hidden"
             >
               <PanelLeft className="size-5" />
@@ -197,7 +214,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             <div className="min-w-0">
               <p className="text-xs font-medium text-[#89938b]">
                 {now
-                  ? now.toLocaleDateString([], {
+                  ? now.toLocaleDateString(intlLocale, {
                       weekday: "long",
                       day: "numeric",
                       month: "long",
@@ -206,26 +223,27 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
                   : " "}
               </p>
               <h1 className="truncate font-serif text-xl font-bold tracking-tight">
-                {now ? greeting(now.getHours()) : "Hello"},{" "}
+                {now ? greeting(t, now.getHours()) : t("nav.hello")},{" "}
                 {user.name.split(" ")[0]}
                 <span className="text-[#c48545]">.</span>
               </h1>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders' || active === 'Kitchen display'} onOpenOrders={() => setActive(canAccess(user.role, 'Orders') ? 'Orders' : 'Kitchen display')} />
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders' || active === 'Kitchen display'} onOpenOrders={() => setActive(canAccess(user.role, 'Orders') ? 'Orders' : 'Kitchen display')} />
+            <LanguageSwitch />
             <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
               <div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">
                 {initials}
               </div>
               <span className="text-xs font-semibold">{user.name}</span>
               <span className="rounded-full bg-[#eaf2eb] px-1.5 py-0.5 text-[10px] font-semibold capitalize text-[#174d3c]">
-                {user.role}
+                {roleName}
               </span>
             </div>
             <button
               onClick={logout}
-              aria-label="Log out"
-              title="Log out"
+              aria-label={t("nav.logOut")}
+              title={t("nav.logOut")}
               className="flex size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white text-[#68756b] hover:text-[#b4472c]"
             >
               <LogOut className="size-4" />
@@ -239,17 +257,17 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 }
 
 function ComingSoon({ title }: { title: string }) {
+  const t = useT();
   return (
     <div>
       <p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">
         {title}
       </p>
       <h2 className="font-serif text-3xl font-bold tracking-tight">
-        Coming soon
+        {t("nav.comingSoon")}
       </h2>
       <p className="mt-3 max-w-md text-sm text-[#68756b]">
-        This section isn&apos;t built yet. Orders, kitchen display, tables,
-        menu, the waiter panel and QR codes are ready to use.
+        {t("nav.comingSoonText")}
       </p>
     </div>
   );
@@ -262,10 +280,11 @@ function NavGroup({
   setActive,
 }: {
   label: string;
-  items: { label: string; icon: typeof LayoutDashboard }[];
+  items: NavItem[];
   active: string;
   setActive: (label: string) => void;
 }) {
+  const t = useT();
   if (items.length === 0) return null;
   return (
     <div>
@@ -282,7 +301,7 @@ function NavGroup({
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition ${active === item.label ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#7d897f] hover:bg-[#f5f7f4]"}`}
             >
               <Icon className="size-[17px]" />{" "}
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1">{t(item.key)}</span>
             </button>
           );
         })}

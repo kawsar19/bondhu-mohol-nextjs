@@ -2,6 +2,7 @@ import 'server-only'
 import { randomBytes } from 'node:crypto'
 import { isValidObjectId, type Types } from 'mongoose'
 import { MenuItem } from './models/menu-item'
+import { getT } from './i18n/server'
 import { Counter, OPEN_STATUSES, Order, ORDER_TYPES } from './models/order'
 import { Table } from './models/table'
 
@@ -31,19 +32,20 @@ type PricedItem = { menuItem: Types.ObjectId; name: string; price: number; qty: 
  * name and price they were ordered at; anything new is priced from the menu and must be available.
  */
 export async function priceItems(rawItems: unknown, existing: PricedItem[] = []): Promise<PricedItem[]> {
-  if (!Array.isArray(rawItems) || rawItems.length === 0) throw new OrderInputError('The order is empty')
-  if (rawItems.length > MAX_LINES) throw new OrderInputError('Too many items in one order')
+  const t = await getT()
+  if (!Array.isArray(rawItems) || rawItems.length === 0) throw new OrderInputError(t('customer.server.emptyOrder'))
+  if (rawItems.length > MAX_LINES) throw new OrderInputError(t('customer.server.tooManyItems'))
   const wanted = new Map<string, number>()
   for (const line of rawItems as { id?: unknown; qty?: unknown }[]) {
     const qty = Number(line?.qty)
-    if (typeof line?.id !== 'string' || !isValidObjectId(line.id) || !Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw new OrderInputError('Some items in the order are invalid')
+    if (typeof line?.id !== 'string' || !isValidObjectId(line.id) || !Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw new OrderInputError(t('customer.server.invalidItems'))
     wanted.set(line.id, Math.min(MAX_QTY, (wanted.get(line.id) ?? 0) + qty))
   }
 
   const kept = new Map(existing.map(i => [i.menuItem.toString(), i]))
   const newIds = [...wanted.keys()].filter(id => !kept.has(id))
   const menuItems = newIds.length ? await MenuItem.find({ _id: { $in: newIds }, isAvailable: true }).lean() : []
-  if (menuItems.length !== newIds.length) throw new OrderInputError('Some items are no longer available. Please check the order.')
+  if (menuItems.length !== newIds.length) throw new OrderInputError(t('customer.server.unavailableItems'))
   const fresh = new Map(menuItems.map(m => [m._id.toString(), { menuItem: m._id, name: m.name, price: m.price }]))
 
   return [...wanted.entries()].map(([id, qty]) => {
@@ -59,11 +61,12 @@ export const orderTotal = (items: { price: number; qty: number }[]) => items.red
  * Pass `staff` when a waiter places it for a guest; the phone number is then optional for takeaway.
  */
 export async function createOrder(body: unknown, staff?: { name: string }) {
-  if (!body || typeof body !== 'object') throw new OrderInputError('Invalid order')
+  const t = await getT()
+  if (!body || typeof body !== 'object') throw new OrderInputError(t('customer.server.invalidOrder'))
   const raw = body as Record<string, unknown>
 
   const type = raw.type as (typeof ORDER_TYPES)[number]
-  if (!ORDER_TYPES.includes(type as never)) throw new OrderInputError('Choose dine in or takeaway')
+  if (!ORDER_TYPES.includes(type as never)) throw new OrderInputError(t('customer.server.chooseType'))
 
   const items = await priceItems(raw.items)
   const total = orderTotal(items)
@@ -75,16 +78,16 @@ export async function createOrder(body: unknown, staff?: { name: string }) {
 
   if (type === 'Dine in') {
     tableNumber = Number(raw.tableNumber)
-    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 999) throw new OrderInputError('Choose your table number')
+    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 999) throw new OrderInputError(t('customer.server.chooseTable'))
     // If tables are set up in admin, only accept an active one.
     if (await Table.exists({})) {
-      if (!(await Table.exists({ number: tableNumber, isActive: true }))) throw new OrderInputError(`Table ${tableNumber} is not available. Please ask a staff member.`)
+      if (!(await Table.exists({ number: tableNumber, isActive: true }))) throw new OrderInputError(t('customer.server.tableUnavailable', { number: tableNumber }))
     }
   } else {
     const rawPhone = typeof raw.phone === 'string' ? raw.phone.trim() : ''
     if (rawPhone || !staff) {
       const normalized = normalizePhone(rawPhone)
-      if (!normalized) throw new OrderInputError('Enter a valid mobile number, e.g. 01712345678')
+      if (!normalized) throw new OrderInputError(t('customer.server.invalidPhone'))
       phone = normalized
     }
   }
@@ -92,7 +95,7 @@ export async function createOrder(body: unknown, staff?: { name: string }) {
   if (!staff) {
     const sameGuest = tableNumber ? { tableNumber } : { phone }
     const pending = await Order.countDocuments({ ...sameGuest, source: 'Customer', status: 'Pending' })
-    if (pending >= MAX_PENDING_GUEST_ORDERS) throw new OrderInputError(`${tableNumber ? `Table ${tableNumber}` : 'This number'} already has ${pending} orders waiting for the kitchen. Please wait a moment or ask a staff member.`)
+    if (pending >= MAX_PENDING_GUEST_ORDERS) throw new OrderInputError(tableNumber ? t('customer.server.tooManyPendingTable', { number: tableNumber, count: pending }) : t('customer.server.tooManyPendingPhone', { count: pending }))
   }
 
   const trackingToken = randomBytes(16).toString('hex')

@@ -3,6 +3,8 @@ import { isValidObjectId } from 'mongoose'
 import { NextResponse } from 'next/server'
 import { requireRole, setSessionCookie } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
+import type { TFunction } from '@/lib/i18n'
+import { getT } from '@/lib/i18n/server'
 import { User } from '@/lib/models/user'
 import { hasOtherActiveAdmin, STAFF_FIELDS } from '@/lib/staff'
 import { isDuplicateKeyError } from '@/lib/table-input'
@@ -10,27 +12,28 @@ import { parseUserInput } from '@/lib/user-input'
 
 type Context = { params: Promise<{ id: string }> }
 
-const notFound = () => NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
+const notFound = (t: TFunction) => NextResponse.json({ error: t('staff.errors.notFound') }, { status: 404 })
 const badRequest = (error: string) => NextResponse.json({ error }, { status: 400 })
 
 export async function PATCH(request: Request, { params }: Context) {
   const { session, error } = await requireRole(['admin'])
   if (error) return error
+  const t = await getT()
   const { id } = await params
-  if (!isValidObjectId(id)) return notFound()
+  if (!isValidObjectId(id)) return notFound(t)
 
-  const parsed = parseUserInput(await request.json().catch(() => null), true)
+  const parsed = parseUserInput(t, await request.json().catch(() => null), true)
   if (!parsed.data) return badRequest(parsed.error)
   const { password, ...fields } = parsed.data
   const isSelf = id === session.userId
-  if (isSelf && fields.role !== undefined && fields.role !== 'admin') return badRequest('You can\'t change your own role')
-  if (isSelf && fields.isActive === false) return badRequest('You can\'t disable your own account')
+  if (isSelf && fields.role !== undefined && fields.role !== 'admin') return badRequest(t('staff.errors.cantChangeOwnRole'))
+  if (isSelf && fields.isActive === false) return badRequest(t('staff.errors.cantDisableOwn'))
 
   await connectDB()
   const user = await User.findById(id)
-  if (!user) return notFound()
+  if (!user) return notFound(t)
   const losesAdmin = user.role === 'admin' && ((fields.role !== undefined && fields.role !== 'admin') || fields.isActive === false)
-  if (losesAdmin && !(await hasOtherActiveAdmin(id))) return badRequest('Keep at least one active admin')
+  if (losesAdmin && !(await hasOtherActiveAdmin(id))) return badRequest(t('staff.errors.keepOneAdmin'))
 
   user.set(fields)
   if (password) user.passwordHash = await bcrypt.hash(password, 12)
@@ -39,7 +42,7 @@ export async function PATCH(request: Request, { params }: Context) {
   try {
     await user.save()
   } catch (err) {
-    if (isDuplicateKeyError(err)) return NextResponse.json({ error: `${fields.email} already has an account` }, { status: 409 })
+    if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('staff.errors.emailTaken', { email: fields.email ?? '' }) }, { status: 409 })
     throw err
   }
 
@@ -51,14 +54,15 @@ export async function PATCH(request: Request, { params }: Context) {
 export async function DELETE(_request: Request, { params }: Context) {
   const { session, error } = await requireRole(['admin'])
   if (error) return error
+  const t = await getT()
   const { id } = await params
-  if (!isValidObjectId(id)) return notFound()
-  if (id === session.userId) return badRequest('You can\'t delete your own account')
+  if (!isValidObjectId(id)) return notFound(t)
+  if (id === session.userId) return badRequest(t('staff.errors.cantDeleteOwn'))
 
   await connectDB()
   const user = await User.findById(id).select('role isActive')
-  if (!user) return notFound()
-  if (user.role === 'admin' && user.isActive !== false && !(await hasOtherActiveAdmin(id))) return badRequest('Keep at least one active admin')
+  if (!user) return notFound(t)
+  if (user.role === 'admin' && user.isActive !== false && !(await hasOtherActiveAdmin(id))) return badRequest(t('staff.errors.keepOneAdmin'))
   await user.deleteOne()
   return NextResponse.json({ ok: true })
 }

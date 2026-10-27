@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import { parseCategoryInput } from '@/lib/expense-input'
+import { getT } from '@/lib/i18n/server'
 import { Expense } from '@/lib/models/expense'
 import { ExpenseCategory } from '@/lib/models/expense-category'
 import { isDuplicateKeyError } from '@/lib/table-input'
 
 type Context = { params: Promise<{ id: string }> }
 
-const notFound = () => NextResponse.json({ error: 'Category not found' }, { status: 404 })
+const notFound = async () => NextResponse.json({ error: (await getT())('expenses.errors.categoryNotFound') }, { status: 404 })
 
 export async function PATCH(request: Request, { params }: Context) {
   const { error } = await requireAdmin()
@@ -17,7 +18,8 @@ export async function PATCH(request: Request, { params }: Context) {
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
-  const parsed = parseCategoryInput(await request.json().catch(() => null), true)
+  const t = await getT()
+  const parsed = parseCategoryInput(await request.json().catch(() => null), t, true)
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
   await connectDB()
@@ -28,7 +30,7 @@ export async function PATCH(request: Request, { params }: Context) {
   try {
     await category.save()
   } catch (err) {
-    if (isDuplicateKeyError(err)) return NextResponse.json({ error: `"${parsed.data.name}" already exists` }, { status: 409 })
+    if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('expenses.errors.categoryExists', { name: parsed.data.name ?? '' }) }, { status: 409 })
     throw err
   }
   // Entries store the name, so a rename carries over to them.
@@ -47,7 +49,7 @@ export async function DELETE(_request: Request, { params }: Context) {
   const category = await ExpenseCategory.findById(id)
   if (!category) return notFound()
   const used = await Expense.countDocuments({ category: category.name })
-  if (used > 0) return NextResponse.json({ error: `${used} ${used === 1 ? 'entry uses' : 'entries use'} "${category.name}". Hide it instead, or move those entries first.` }, { status: 409 })
+  if (used > 0) return NextResponse.json({ error: (await getT())(used === 1 ? 'expenses.errors.categoryInUseOne' : 'expenses.errors.categoryInUseMany', { count: used, name: category.name }) }, { status: 409 })
   await category.deleteOne()
   return NextResponse.json({ ok: true })
 }

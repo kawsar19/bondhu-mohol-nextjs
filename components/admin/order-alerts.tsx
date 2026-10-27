@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Bell, BellOff, BellRing, X } from 'lucide-react'
+import { useT } from '@/components/i18n-provider'
+import type { TFunction } from '@/lib/i18n'
 
 type AlertOrder = { id: string; code: string; type: 'Dine in' | 'Takeaway'; tableNumber: number | null; customerName: string; total: number; source: string; takenBy: string }
 
@@ -10,7 +12,7 @@ const POLL_MS = 8000
 const REMIND_MS = 45000
 const SOUND_KEY = 'bm_order_sound'
 
-const where = (o: AlertOrder) => o.type === 'Dine in' ? `Table ${o.tableNumber}` : o.customerName || 'Takeaway'
+const where = (t: TFunction, o: AlertOrder) => o.type === 'Dine in' ? t('common.table', { number: o.tableNumber ?? '' }) : o.customerName || t('common.orderType.Takeaway')
 
 /** A short two-note chime made with Web Audio, so no sound file is needed. */
 function playChime(ctx: AudioContext) {
@@ -30,6 +32,7 @@ function playChime(ctx: AudioContext) {
 }
 
 export function OrderAlerts({ userName, ordersOpen, onOpenOrders }: { userName: string; ordersOpen: boolean; onOpenOrders: () => void }) {
+  const t = useT()
   const [soundOn, setSoundOn] = useState(true)
   const [audioReady, setAudioReady] = useState(false)
   const [unseen, setUnseen] = useState<AlertOrder[]>([])
@@ -74,14 +77,14 @@ export function OrderAlerts({ userName, ordersOpen, onOpenOrders }: { userName: 
         setUnseen(current => [...current, ...fresh])
         ring()
         if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-          new Notification(fresh.length === 1 ? `New order ${fresh[0].code}` : `${fresh.length} new orders`, { body: fresh.map(o => `${o.code} · ${where(o)}`).join('\n') })
+          new Notification(fresh.length === 1 ? t('alerts.newOrderCode', { code: fresh[0].code }) : t('alerts.newOrdersCount', { count: fresh.length }), { body: fresh.map(o => `${o.code} · ${where(t, o)}`).join('\n') })
         }
       } catch { /* offline: try again next tick */ }
     }
     tick()
     const timer = setInterval(tick, POLL_MS)
     return () => { stopped = true; clearInterval(timer) }
-  }, [userName, ring])
+  }, [userName, ring, t])
 
   useEffect(() => {
     if (unseen.length === 0 || ordersOpen) return
@@ -93,9 +96,9 @@ export function OrderAlerts({ userName, ordersOpen, onOpenOrders }: { userName: 
   useEffect(() => {
     if (unseen.length === 0) return
     const original = document.title
-    document.title = `(${unseen.length}) New order · Bondhu Mohol`
+    document.title = t('alerts.tabTitle', { count: unseen.length })
     return () => { document.title = original }
-  }, [unseen.length])
+  }, [unseen.length, t])
 
   const toggleSound = () => {
     const next = !soundOn
@@ -113,16 +116,16 @@ export function OrderAlerts({ userName, ordersOpen, onOpenOrders }: { userName: 
   const BellIcon = !soundOn ? BellOff : unseen.length ? BellRing : Bell
 
   return <>
-    <button onClick={toggleSound} aria-label={soundOn ? 'Turn off new-order sound' : 'Turn on new-order sound'} title={soundOn ? 'New-order sound is on' : 'New-order sound is off'} className={`relative flex size-9 items-center justify-center rounded-full border bg-white ${soundOn ? 'border-[#e0e5df] text-[#174d3c]' : 'border-[#f0d9cf] text-[#b4472c]'}`}>
+    <button onClick={toggleSound} aria-label={soundOn ? t('alerts.turnOffSound') : t('alerts.turnOnSound')} title={soundOn ? t('alerts.soundIsOn') : t('alerts.soundIsOff')} className={`relative flex size-9 items-center justify-center rounded-full border bg-white ${soundOn ? 'border-[#e0e5df] text-[#174d3c]' : 'border-[#f0d9cf] text-[#b4472c]'}`}>
       <BellIcon className={`size-4 ${unseen.length ? 'animate-pulse' : ''}`} />
       {unseen.length > 0 && <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#c96b42] text-[10px] font-bold text-white">{unseen.length}</span>}
     </button>
 
     {unseen.length > 0 && <div role="alert" className="fixed right-4 top-20 z-50 w-[min(360px,calc(100vw-2rem))] rounded-2xl bg-[#174d3c] p-4 text-white shadow-2xl">
-      <div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15"><BellRing className="size-5" /></span><div className="min-w-0 flex-1"><p className="font-semibold">{unseen.length === 1 ? 'New order' : `${unseen.length} new orders`}</p><ul className="mt-1 space-y-0.5 text-xs text-white/80">{unseen.slice(-3).map(o => <li key={o.id} className="truncate">{o.code} · {where(o)} · ৳ {o.total.toLocaleString('en-IN')}</li>)}</ul></div><button onClick={() => setUnseen([])} aria-label="Dismiss" className="flex size-8 items-center justify-center rounded-full hover:bg-white/10"><X className="size-4" /></button></div>
-      <button onClick={view} className="mt-3 h-10 w-full rounded-xl bg-white text-sm font-bold text-[#174d3c]">View orders</button>
+      <div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15"><BellRing className="size-5" /></span><div className="min-w-0 flex-1"><p className="font-semibold">{unseen.length === 1 ? t('alerts.newOrder') : t('alerts.newOrdersCount', { count: unseen.length })}</p><ul className="mt-1 space-y-0.5 text-xs text-white/80">{unseen.slice(-3).map(o => <li key={o.id} className="truncate">{o.code} · {where(t, o)} · ৳ {o.total.toLocaleString('en-IN')}</li>)}</ul></div><button onClick={() => setUnseen([])} aria-label={t('alerts.dismiss')} className="flex size-8 items-center justify-center rounded-full hover:bg-white/10"><X className="size-4" /></button></div>
+      <button onClick={view} className="mt-3 h-10 w-full rounded-xl bg-white text-sm font-bold text-[#174d3c]">{t('alerts.viewOrders')}</button>
     </div>}
 
-    {soundOn && !audioReady && <button onClick={unlockAudio} className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#fff6e6] px-4 py-2.5 text-xs font-semibold text-[#946013] shadow-lg ring-1 ring-[#f1dcae]"><Bell className="size-4" /> Tap here to turn on the new-order sound</button>}
+    {soundOn && !audioReady && <button onClick={unlockAudio} className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#fff6e6] px-4 py-2.5 text-xs font-semibold text-[#946013] shadow-lg ring-1 ring-[#f1dcae]"><Bell className="size-4" /> {t('alerts.tapToEnableSound')}</button>}
   </>
 }

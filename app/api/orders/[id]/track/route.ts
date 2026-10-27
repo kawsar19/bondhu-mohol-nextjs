@@ -2,11 +2,12 @@ import { timingSafeEqual } from 'node:crypto'
 import { isValidObjectId } from 'mongoose'
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
+import { getT } from '@/lib/i18n/server'
 import { Order } from '@/lib/models/order'
 
 type Context = { params: Promise<{ id: string }> }
 
-const notFound = () => NextResponse.json({ error: 'Order not found' }, { status: 404 })
+const notFound = async () => NextResponse.json({ error: (await getT())('customer.server.orderNotFound') }, { status: 404 })
 
 // Public: the customer who placed the order can follow its status with their tracking token.
 export async function GET(request: Request, { params }: Context) {

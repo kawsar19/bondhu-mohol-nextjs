@@ -2,35 +2,40 @@ import { isValidObjectId } from 'mongoose'
 import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
+import type { TFunction } from '@/lib/i18n'
+import { getT } from '@/lib/i18n/server'
 import { OPEN_STATUSES, Order, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from '@/lib/models/order'
 import { OrderInputError, orderTotal, priceItems, releaseTableIfIdle } from '@/lib/orders'
 import { ALL_STAFF, ORDER_TAKERS, PAYMENT_HANDLERS } from '@/lib/permissions'
 
 type Context = { params: Promise<{ id: string }> }
 
-const notFound = () => NextResponse.json({ error: 'Order not found' }, { status: 404 })
+const STATUS_KEY = { Pending: 'common.orderStatus.Pending', Preparing: 'common.orderStatus.Preparing', Ready: 'common.orderStatus.Ready', Served: 'common.orderStatus.Served', Completed: 'common.orderStatus.Completed', Cancelled: 'common.orderStatus.Cancelled' } as const
+
+const notFound = (t: TFunction) => NextResponse.json({ error: t('orders.api.notFound') }, { status: 404 })
 const badRequest = (error: string, status = 400) => NextResponse.json({ error }, { status })
 
 // Staff: change status, payment, or the items on an open order. Each part has its own roles.
 export async function PATCH(request: Request, { params }: Context) {
   const { session, error } = await requireRole(ALL_STAFF)
   if (error) return error
+  const t = await getT()
   const { id } = await params
-  if (!isValidObjectId(id)) return notFound()
+  if (!isValidObjectId(id)) return notFound(t)
 
   const body = await request.json().catch(() => null)
   const changes: Record<string, unknown> = {}
   const unset: Record<string, 1> = {}
   if (body?.status !== undefined) {
-    if (!ORDER_STATUSES.includes(body.status)) return badRequest('Invalid status')
+    if (!ORDER_STATUSES.includes(body.status)) return badRequest(t('orders.api.invalidStatus'))
     changes.status = body.status
   }
   if (body?.paymentStatus !== undefined) {
-    if (!PAYMENT_HANDLERS.includes(session.role)) return badRequest('Only a cashier, manager or admin can change payment', 403)
-    if (!PAYMENT_STATUSES.includes(body.paymentStatus)) return badRequest('Invalid payment status')
+    if (!PAYMENT_HANDLERS.includes(session.role)) return badRequest(t('orders.api.paymentRoleOnly'), 403)
+    if (!PAYMENT_STATUSES.includes(body.paymentStatus)) return badRequest(t('orders.api.invalidPaymentStatus'))
     changes.paymentStatus = body.paymentStatus
     if (body.paymentStatus === 'Paid') {
-      if (!PAYMENT_METHODS.includes(body.paymentMethod)) return badRequest('Choose how it was paid: Cash, bKash, Nagad or Card')
+      if (!PAYMENT_METHODS.includes(body.paymentMethod)) return badRequest(t('billing.api.chooseMethod'))
       changes.paymentMethod = body.paymentMethod
       changes.paidAt = new Date()
     } else {
@@ -39,15 +44,15 @@ export async function PATCH(request: Request, { params }: Context) {
     }
   }
   const editingItems = body?.items !== undefined
-  if (editingItems && !ORDER_TAKERS.includes(session.role)) return badRequest('Your role can\'t change order items', 403)
-  if (Object.keys(changes).length === 0 && !editingItems) return badRequest('Nothing to update')
+  if (editingItems && !ORDER_TAKERS.includes(session.role)) return badRequest(t('orders.api.itemsRoleOnly'), 403)
+  if (Object.keys(changes).length === 0 && !editingItems) return badRequest(t('orders.api.nothingToUpdate'))
 
   await connectDB()
   if (editingItems) {
     const current = await Order.findById(id)
-    if (!current) return notFound()
-    if (!OPEN_STATUSES.includes(current.status as never)) return badRequest(`This order is ${current.status.toLowerCase()}, so its items can't be changed`)
-    if (current.paymentStatus === 'Paid' && changes.paymentStatus !== 'Unpaid') return badRequest('This order is already paid. Mark it unpaid first to change items.')
+    if (!current) return notFound(t)
+    if (!OPEN_STATUSES.includes(current.status as never)) return badRequest(t('orders.api.itemsLocked', { status: (current.status in STATUS_KEY ? t(STATUS_KEY[current.status as keyof typeof STATUS_KEY]) : current.status).toLowerCase() }))
+    if (current.paymentStatus === 'Paid' && changes.paymentStatus !== 'Unpaid') return badRequest(t('orders.api.alreadyPaid'))
     try {
       const items = await priceItems(body.items, current.items)
       changes.items = items
@@ -59,7 +64,7 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   const order = await Order.findByIdAndUpdate(id, { $set: changes, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { new: true, runValidators: true })
-  if (!order) return notFound()
+  if (!order) return notFound(t)
   if (changes.status === 'Completed' || changes.status === 'Cancelled') await releaseTableIfIdle(order.tableNumber)
   return NextResponse.json({ order })
 }

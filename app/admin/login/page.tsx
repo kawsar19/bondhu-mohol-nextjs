@@ -3,9 +3,12 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LockKeyhole, Utensils } from "lucide-react";
+import { useT } from "@/components/i18n-provider";
+import { LanguageSwitch } from "@/components/language-switch";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,17 +25,18 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Could not sign in");
+      if (!res.ok) throw new Error(data.error ?? t("auth.couldNotSignIn"));
       router.replace("/admin");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign in");
+      setError(err instanceof Error ? err.message : t("auth.couldNotSignIn"));
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7f8f6] px-4 py-10 text-[#202521]">
+    <main className="relative flex min-h-screen items-center justify-center bg-[#f7f8f6] px-4 py-10 text-[#202521]">
+      <LanguageSwitch className="absolute right-4 top-4" />
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-[#174d3c] text-white">
@@ -40,22 +44,22 @@ export default function LoginPage() {
           </div>
           <h1 className="mt-4 font-serif text-2xl font-bold tracking-tight"></h1>
           <p className="mt-1 text-xs uppercase tracking-[.18em] text-[#89938b]">
-            Admin panel
+            {t("auth.adminPanel")}
           </p>
         </div>
         <form
           onSubmit={submit}
           className="rounded-2xl border border-[#e3e8e1] bg-white p-6 shadow-sm"
         >
-          <h2 className="font-serif text-lg font-bold">Sign in</h2>
+          <h2 className="font-serif text-lg font-bold">{t("auth.signIn")}</h2>
           <p className="mt-1 text-xs text-[#87928a]">
-            Use your staff account to manage the restaurant.
+            {t("auth.signInHint")}
           </p>
           <label
             className="mt-6 block text-xs font-semibold text-[#5f6b62]"
             htmlFor="email"
           >
-            Email
+            {t("auth.email")}
           </label>
           <input
             id="email"
@@ -70,7 +74,7 @@ export default function LoginPage() {
             className="mt-4 block text-xs font-semibold text-[#5f6b62]"
             htmlFor="password"
           >
-            Password
+            {t("auth.password")}
           </label>
           <input
             id="password"
@@ -98,7 +102,7 @@ export default function LoginPage() {
             ) : (
               <LockKeyhole className="size-4" />
             )}{" "}
-            Sign in
+            {t("auth.signIn")}
           </button>
         </form>
       </div>

@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
+import { getT } from '@/lib/i18n/server'
 import { User } from '@/lib/models/user'
 import { STAFF_FIELDS } from '@/lib/staff'
 import { isDuplicateKeyError } from '@/lib/table-input'
@@ -21,7 +22,8 @@ export async function POST(request: Request) {
   const { error } = await requireRole(['admin'])
   if (error) return error
 
-  const parsed = parseUserInput(await request.json().catch(() => null))
+  const t = await getT()
+  const parsed = parseUserInput(t, await request.json().catch(() => null))
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
   const { password, ...fields } = parsed.data
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
     const user = await User.findById(created._id).select(STAFF_FIELDS)
     return NextResponse.json({ user }, { status: 201 })
   } catch (err) {
-    if (isDuplicateKeyError(err)) return NextResponse.json({ error: `${fields.email} already has an account` }, { status: 409 })
+    if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('staff.errors.emailTaken', { email: fields.email ?? '' }) }, { status: 409 })
     throw err
   }
 }

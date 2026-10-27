@@ -1,1 +1,26 @@
-export const qr = {}
+// Admin QR codes screen, including the text printed on the cards.
+export const qr = {
+  eyebrow: 'QR ordering',
+  title: 'Table QR codes',
+  print: 'Print',
+  printOne: 'Print {count} card',
+  printMany: 'Print {count} cards',
+  baseLabel: 'Menu link (your website address)',
+  linkHintBefore: 'Each table\'s code opens',
+  linkHintAfter: 'with the table filled in.',
+  baseInvalid: 'Enter a full address starting with https://',
+  localWarning: 'Guests\' phones can\'t open "localhost". Use your live website address before printing. For testing on the same Wi-Fi, use this computer\'s network address (e.g. http://192.168.0.110:3000).',
+  loadFailed: 'Could not load tables',
+  counterTitle: 'Order here',
+  counterSubtitle: 'Counter & takeaway',
+  noTables: 'No tables yet',
+  selectedCount: '{chosen} of {total} selected',
+  addTables: 'Add tables',
+  clearSelection: 'Clear selection',
+  selectAll: 'Select all',
+  willPrint: 'Will print',
+  tapToInclude: 'Tap to include',
+  // Printed on the card: the first line in the current language, the second in the other one for guests.
+  scanToOrder: 'Scan to order',
+  scanToOrderAlt: 'স্ক্যান করে অর্ডার দিন',
+}

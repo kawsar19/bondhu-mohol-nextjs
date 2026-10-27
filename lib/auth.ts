@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { connectDB } from './db'
 import { User } from './models/user'
+import { getT } from './i18n/server'
 import { MANAGERS, type Role } from './permissions'
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, verifySession, type SessionPayload } from './session'
 
@@ -45,8 +46,8 @@ export async function clearSessionCookie() {
 /** For route handlers: returns the user if their role is in `roles`, or a 401/403 response to send back. */
 export async function requireRole(roles: readonly Role[]): Promise<{ session: CurrentUser; error?: never } | { session?: never; error: NextResponse }> {
   const session = await getCurrentUser()
-  if (!session) return { error: NextResponse.json({ error: 'Not signed in' }, { status: 401 }) }
-  if (!roles.includes(session.role)) return { error: NextResponse.json({ error: 'Your role is not allowed to do this' }, { status: 403 }) }
+  if (!session) return { error: NextResponse.json({ error: (await getT())('common.notSignedIn') }, { status: 401 }) }
+  if (!roles.includes(session.role)) return { error: NextResponse.json({ error: (await getT())('common.roleNotAllowed') }, { status: 403 }) }
   return { session }
 }
 

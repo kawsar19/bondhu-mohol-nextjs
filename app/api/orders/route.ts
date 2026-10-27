@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { ALL_STAFF } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { Order, ORDER_STATUSES } from '@/lib/models/order'
+import { getT } from '@/lib/i18n/server'
 import { createOrder, OrderInputError } from '@/lib/orders'
 import { clientIp, hit } from '@/lib/rate-limit'
 import { startOfBusinessDay } from '@/lib/time'
@@ -16,7 +17,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   await connectDB()
   const { ok, retryMinutes } = await hit(`order-ip:${clientIp(request)}`, ORDERS_PER_IP, ORDER_WINDOW_MS)
-  if (!ok) return NextResponse.json({ error: `Too many orders from this network. Please wait ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'} or ask a staff member.` }, { status: 429 })
+  if (!ok) {
+    const t = await getT()
+    return NextResponse.json({ error: t(retryMinutes === 1 ? 'customer.server.rateLimitOne' : 'customer.server.rateLimitMany', { minutes: retryMinutes }) }, { status: 429 })
+  }
   try {
     const order = await createOrder(body)
     return NextResponse.json({ order }, { status: 201 })

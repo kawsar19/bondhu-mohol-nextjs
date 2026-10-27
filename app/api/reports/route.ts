@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { parseDateRange } from '@/lib/date-range'
 import { connectDB } from '@/lib/db'
+import { getT } from '@/lib/i18n/server'
 import { Expense } from '@/lib/models/expense'
 import { Order } from '@/lib/models/order'
 
@@ -14,7 +15,8 @@ export async function GET(request: Request) {
   const { error } = await requireAdmin()
   if (error) return error
 
-  const range = parseDateRange(new URL(request.url).searchParams)
+  const t = await getT()
+  const range = parseDateRange(new URL(request.url).searchParams, t)
   if (range.error) return NextResponse.json({ error: range.error }, { status: 400 })
 
   await connectDB()
