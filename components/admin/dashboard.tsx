@@ -13,18 +13,22 @@ import {
   QrCode,
   Settings,
   ShoppingBag,
+  UserCog,
   Utensils,
   X,
 } from "lucide-react";
+import { canAccess } from "@/lib/permissions";
+import { KitchenDisplay } from "./kitchen-display";
 import { MenuManager } from "./menu-manager";
 import { OrdersManager } from "./orders-manager";
 import { OrderAlerts } from "./order-alerts";
 import { Overview } from "./overview";
 import { QrManager } from "./qr-manager";
+import { StaffManager } from "./staff-manager";
 import { TablesManager } from "./tables-manager";
 import { WaiterPanel } from "./waiter-panel";
 
-export type AdminUser = { name: string; email: string; role: string };
+export type AdminUser = { id: string; name: string; email: string; role: string };
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard },
@@ -36,6 +40,7 @@ const navItems = [
 const secondaryItems = [
   { label: "Waiter order panel", icon: ShoppingBag },
   { label: "QR ordering", icon: QrCode },
+  { label: "Staff", icon: UserCog },
   { label: "Settings", icon: Settings },
 ];
 
@@ -58,7 +63,10 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     router.replace("/admin/login");
     router.refresh();
   };
-  const [active, setActive] = useState("Overview");
+  // Each role only sees the sections it is allowed to open; the APIs enforce the same rules.
+  const mainItems = navItems.filter((item) => canAccess(user.role, item.label));
+  const operationItems = secondaryItems.filter((item) => canAccess(user.role, item.label));
+  const [active, setActive] = useState(() => [...mainItems, ...operationItems][0]?.label ?? "Kitchen display");
   const [mobileNav, setMobileNav] = useState(false);
   const selectNav = (label: string) => {
     setActive(label);
@@ -74,7 +82,9 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   }, []);
 
   const content =
-    active === "Overview" ? (
+    !canAccess(user.role, active) ? (
+      <ComingSoon title={active} />
+    ) : active === "Overview" ? (
       <Overview onNavigate={setActive} />
     ) : active === "Orders" ? (
       <OrdersManager />
@@ -82,10 +92,14 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <TablesManager />
     ) : active === "Menu" ? (
       <MenuManager />
+    ) : active === "Kitchen display" ? (
+      <KitchenDisplay />
     ) : active === "Waiter order panel" ? (
       <WaiterPanel />
     ) : active === "QR ordering" ? (
       <QrManager onGoToTables={() => setActive("Tables")} />
+    ) : active === "Staff" ? (
+      <StaffManager currentUserId={user.id} />
     ) : (
       <ComingSoon title={active} />
     );
@@ -116,13 +130,13 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         <div className="mt-9 flex flex-1 flex-col gap-7">
           <NavGroup
             label="Main menu"
-            items={navItems}
+            items={mainItems}
             active={active}
             setActive={selectNav}
           />
           <NavGroup
             label="Operations"
-            items={secondaryItems}
+            items={operationItems}
             active={active}
             setActive={selectNav}
           />
@@ -188,7 +202,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
               </h1>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders'} onOpenOrders={() => setActive('Orders')} />
+          <div className="flex shrink-0 items-center gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders' || active === 'Kitchen display'} onOpenOrders={() => setActive(canAccess(user.role, 'Orders') ? 'Orders' : 'Kitchen display')} />
             <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
               <div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">
                 {initials}
@@ -224,8 +238,8 @@ function ComingSoon({ title }: { title: string }) {
         Coming soon
       </h2>
       <p className="mt-3 max-w-md text-sm text-[#68756b]">
-        This section isn&apos;t built yet. Orders, tables, menu, the waiter
-        panel and QR codes are ready to use.
+        This section isn&apos;t built yet. Orders, kitchen display, tables,
+        menu, the waiter panel and QR codes are ready to use.
       </p>
     </div>
   );
@@ -242,6 +256,7 @@ function NavGroup({
   active: string;
   setActive: (label: string) => void;
 }) {
+  if (items.length === 0) return null;
   return (
     <div>
       <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.16em] text-[#a3aca5]">

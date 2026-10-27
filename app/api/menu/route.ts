@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireAdmin, requireRole } from '@/lib/auth'
+import { ORDER_TAKERS } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { parseMenuInput } from '@/lib/menu-input'
 import { MenuItem } from '@/lib/models/menu-item'
 
+// Also read by the waiter panel.
 export async function GET() {
-  const { error } = await requireAdmin()
+  const { error } = await requireRole(ORDER_TAKERS)
   if (error) return error
 
   await connectDB()

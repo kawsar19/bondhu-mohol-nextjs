@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
+import { ORDER_TAKERS } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { createOrder, OrderInputError } from '@/lib/orders'
 
 // Staff: a waiter places an order on a guest's behalf.
 export async function POST(request: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requireRole(ORDER_TAKERS)
   if (error) return error
 
   const body = await request.json().catch(() => null)

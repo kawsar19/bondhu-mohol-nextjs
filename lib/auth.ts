@@ -1,11 +1,29 @@
 import 'server-only'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { connectDB } from './db'
+import { User } from './models/user'
+import { MANAGERS, type Role } from './permissions'
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, verifySession, type SessionPayload } from './session'
+
+export type CurrentUser = SessionPayload & { role: Role }
 
 export async function getSession() {
   const store = await cookies()
   return verifySession(store.get(SESSION_COOKIE)?.value)
+}
+
+/**
+ * The signed-in user as stored now, not as it was at login. Returns null when the account
+ * was deleted, disabled, or had its password reset since the cookie was issued.
+ */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const session = await getSession()
+  if (!session) return null
+  await connectDB()
+  const user = await User.findById(session.userId).select('name email role isActive sessionVersion').lean()
+  if (!user || user.isActive === false || (user.sessionVersion ?? 0) !== (session.sv ?? 0)) return null
+  return { userId: session.userId, name: user.name, email: user.email, role: (user.role ?? 'admin') as Role, sv: session.sv }
 }
 
 export async function setSessionCookie(payload: SessionPayload) {
@@ -24,10 +42,15 @@ export async function clearSessionCookie() {
   store.delete(SESSION_COOKIE)
 }
 
-/** For route handlers: returns the admin session, or a 401/403 response to send back. */
-export async function requireAdmin(): Promise<{ session: SessionPayload; error?: never } | { session?: never; error: NextResponse }> {
-  const session = await getSession()
+/** For route handlers: returns the user if their role is in `roles`, or a 401/403 response to send back. */
+export async function requireRole(roles: readonly Role[]): Promise<{ session: CurrentUser; error?: never } | { session?: never; error: NextResponse }> {
+  const session = await getCurrentUser()
   if (!session) return { error: NextResponse.json({ error: 'Not signed in' }, { status: 401 }) }
-  if (session.role !== 'admin' && session.role !== 'manager') return { error: NextResponse.json({ error: 'Not allowed' }, { status: 403 }) }
+  if (!roles.includes(session.role)) return { error: NextResponse.json({ error: 'Your role is not allowed to do this' }, { status: 403 }) }
   return { session }
+}
+
+/** Admins and managers. */
+export function requireAdmin() {
+  return requireRole(MANAGERS)
 }

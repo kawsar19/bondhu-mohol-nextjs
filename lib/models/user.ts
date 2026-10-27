@@ -1,7 +1,8 @@
 import { Schema, type InferSchemaType } from 'mongoose'
+import { USER_ROLES } from '../permissions'
 import { defineModel } from './define-model'
 
-export const USER_ROLES = ['admin', 'manager', 'cashier', 'kitchen'] as const
+export { USER_ROLES }
 
 const userSchema = new Schema(
   {
@@ -9,6 +10,9 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: USER_ROLES, default: 'admin' },
+    isActive: { type: Boolean, default: true },
+    // Bumped on password reset or disable, which signs the user out everywhere.
+    sessionVersion: { type: Number, default: 0 },
   },
   { timestamps: true },
 )

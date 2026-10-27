@@ -14,7 +14,8 @@ export async function POST(request: Request) {
   const user = await User.findOne({ email }).select('+passwordHash')
   const valid = user ? await bcrypt.compare(password, user.passwordHash) : false
   if (!user || !valid) return NextResponse.json({ error: 'Wrong email or password' }, { status: 401 })
+  if (user.isActive === false) return NextResponse.json({ error: 'This account is disabled. Ask the admin.' }, { status: 403 })
 
-  await setSessionCookie({ userId: user._id.toString(), name: user.name, email: user.email, role: user.role ?? 'admin' })
+  await setSessionCookie({ userId: user._id.toString(), name: user.name, email: user.email, role: user.role ?? 'admin', sv: user.sessionVersion ?? 0 })
   return NextResponse.json({ ok: true })
 }

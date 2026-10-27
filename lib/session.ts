@@ -4,7 +4,8 @@ import { jwtVerify, SignJWT } from 'jose'
 export const SESSION_COOKIE = 'bm_session'
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
-export type SessionPayload = { userId: string; name: string; email: string; role: string }
+// `sv` is the user's sessionVersion at login; older tokens have none and count as 0.
+export type SessionPayload = { userId: string; name: string; email: string; role: string; sv?: number }
 
 function getKey() {
   const secret = process.env.AUTH_SECRET

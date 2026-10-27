@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
+import { ALL_STAFF } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { Order, ORDER_STATUSES } from '@/lib/models/order'
 import { createOrder, OrderInputError } from '@/lib/orders'
@@ -18,15 +19,15 @@ export async function POST(request: Request) {
   }
 }
 
-// Admin: list orders, newest first. ?status=Pending&day=today
+// Staff: list orders, newest first. ?status=Pending,Preparing&day=today
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireRole(ALL_STAFF)
   if (error) return error
 
   const params = new URL(request.url).searchParams
   const filter: Record<string, unknown> = {}
-  const status = params.get('status')
-  if (status && ORDER_STATUSES.includes(status as never)) filter.status = status
+  const statuses = (params.get('status') ?? '').split(',').filter(s => ORDER_STATUSES.includes(s as never))
+  if (statuses.length) filter.status = { $in: statuses }
   if (params.get('day') === 'today') filter.createdAt = { $gte: startOfBusinessDay() }
 
   await connectDB()

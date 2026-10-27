@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
+import { ALL_STAFF } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { Order } from '@/lib/models/order'
 
-// Admin: orders created after `since`, polled by the dashboard to ring for new orders.
+// Staff: orders created after `since`, polled by the dashboard to ring for new orders.
 // Without a valid `since` it only returns the server time to start from.
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireRole(ALL_STAFF)
   if (error) return error
 
   const now = new Date()
