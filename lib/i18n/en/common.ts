@@ -1,0 +1,26 @@
+// Words and server messages used across many screens.
+export const common = {
+  language: 'Language',
+  save: 'Save',
+  saveChanges: 'Save changes',
+  cancel: 'Cancel',
+  delete: 'Delete',
+  edit: 'Edit',
+  close: 'Close',
+  refresh: 'Refresh',
+  add: 'Add',
+  search: 'Search',
+  loading: 'Loading…',
+  optional: '(optional)',
+  total: 'Total',
+  somethingWentWrong: 'Something went wrong',
+  invalidRequest: 'Invalid request body',
+  notSignedIn: 'Not signed in',
+  roleNotAllowed: 'Your role is not allowed to do this',
+  // Display names for values stored in the database. Keyed by the stored value.
+  orderStatus: { Pending: 'Pending', Preparing: 'Preparing', Ready: 'Ready', Served: 'Served', Completed: 'Completed', Cancelled: 'Cancelled' },
+  orderType: { 'Dine in': 'Dine in', Takeaway: 'Takeaway' },
+  tableStatus: { Available: 'Available', Occupied: 'Occupied', Reserved: 'Reserved' },
+  paymentStatus: { Paid: 'Paid', Unpaid: 'Unpaid' },
+  table: 'Table {number}',
+}
