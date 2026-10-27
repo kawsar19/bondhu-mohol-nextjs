@@ -1,12 +1,15 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
-import { isValidObjectId } from 'mongoose'
+import { isValidObjectId, type Types } from 'mongoose'
 import { MenuItem } from './models/menu-item'
 import { Counter, OPEN_STATUSES, Order, ORDER_TYPES } from './models/order'
 import { Table } from './models/table'
 
 const MAX_LINES = 30
 const MAX_QTY = 50
+// Guest orders still waiting for the kitchen, per table or phone. Stops one person flooding
+// the kitchen; staff can still add orders, and accepting one frees a slot.
+const MAX_PENDING_GUEST_ORDERS = 3
 
 export class OrderInputError extends Error {}
 
@@ -21,6 +24,36 @@ async function nextOrderCode() {
   return `BM-${1000 + counter.seq}`
 }
 
+type PricedItem = { menuItem: Types.ObjectId; name: string; price: number; qty: number }
+
+/**
+ * Turns [{ id, qty }] into priced order lines. Lines already on the order (`existing`) keep the
+ * name and price they were ordered at; anything new is priced from the menu and must be available.
+ */
+export async function priceItems(rawItems: unknown, existing: PricedItem[] = []): Promise<PricedItem[]> {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) throw new OrderInputError('The order is empty')
+  if (rawItems.length > MAX_LINES) throw new OrderInputError('Too many items in one order')
+  const wanted = new Map<string, number>()
+  for (const line of rawItems as { id?: unknown; qty?: unknown }[]) {
+    const qty = Number(line?.qty)
+    if (typeof line?.id !== 'string' || !isValidObjectId(line.id) || !Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw new OrderInputError('Some items in the order are invalid')
+    wanted.set(line.id, Math.min(MAX_QTY, (wanted.get(line.id) ?? 0) + qty))
+  }
+
+  const kept = new Map(existing.map(i => [i.menuItem.toString(), i]))
+  const newIds = [...wanted.keys()].filter(id => !kept.has(id))
+  const menuItems = newIds.length ? await MenuItem.find({ _id: { $in: newIds }, isAvailable: true }).lean() : []
+  if (menuItems.length !== newIds.length) throw new OrderInputError('Some items are no longer available. Please check the order.')
+  const fresh = new Map(menuItems.map(m => [m._id.toString(), { menuItem: m._id, name: m.name, price: m.price }]))
+
+  return [...wanted.entries()].map(([id, qty]) => {
+    const base = kept.get(id) ?? fresh.get(id)!
+    return { menuItem: base.menuItem, name: base.name, price: base.price, qty }
+  })
+}
+
+export const orderTotal = (items: { price: number; qty: number }[]) => items.reduce((sum, i) => sum + i.price * i.qty, 0)
+
 /**
  * Validates an order, prices it from the database, and saves it.
  * Pass `staff` when a waiter places it for a guest; the phone number is then optional for takeaway.
@@ -32,19 +65,8 @@ export async function createOrder(body: unknown, staff?: { name: string }) {
   const type = raw.type as (typeof ORDER_TYPES)[number]
   if (!ORDER_TYPES.includes(type as never)) throw new OrderInputError('Choose dine in or takeaway')
 
-  if (!Array.isArray(raw.items) || raw.items.length === 0) throw new OrderInputError('Your order is empty')
-  if (raw.items.length > MAX_LINES) throw new OrderInputError('Too many items in one order')
-  const wanted = new Map<string, number>()
-  for (const line of raw.items as { id?: unknown; qty?: unknown }[]) {
-    const qty = Number(line?.qty)
-    if (typeof line?.id !== 'string' || !isValidObjectId(line.id) || !Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw new OrderInputError('Some items in your order are invalid')
-    wanted.set(line.id, Math.min(MAX_QTY, (wanted.get(line.id) ?? 0) + qty))
-  }
-
-  const menuItems = await MenuItem.find({ _id: { $in: [...wanted.keys()] }, isAvailable: true }).lean()
-  if (menuItems.length !== wanted.size) throw new OrderInputError('Some items are no longer available. Please check your order.')
-  const items = menuItems.map(m => ({ menuItem: m._id, name: m.name, price: m.price, qty: wanted.get(m._id.toString())! }))
-  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0)
+  const items = await priceItems(raw.items)
+  const total = orderTotal(items)
 
   const note = typeof raw.note === 'string' ? raw.note.trim().slice(0, 200) : ''
   const customerName = typeof raw.customerName === 'string' ? raw.customerName.trim().slice(0, 60) : ''
@@ -65,6 +87,12 @@ export async function createOrder(body: unknown, staff?: { name: string }) {
       if (!normalized) throw new OrderInputError('Enter a valid mobile number, e.g. 01712345678')
       phone = normalized
     }
+  }
+
+  if (!staff) {
+    const sameGuest = tableNumber ? { tableNumber } : { phone }
+    const pending = await Order.countDocuments({ ...sameGuest, source: 'Customer', status: 'Pending' })
+    if (pending >= MAX_PENDING_GUEST_ORDERS) throw new OrderInputError(`${tableNumber ? `Table ${tableNumber}` : 'This number'} already has ${pending} orders waiting for the kitchen. Please wait a moment or ask a staff member.`)
   }
 
   const trackingToken = randomBytes(16).toString('hex')

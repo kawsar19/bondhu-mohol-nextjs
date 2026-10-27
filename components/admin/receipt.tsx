@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { SHOP } from '@/lib/shop'
 
-export type ReceiptOrder = { code: string; type: 'Dine in' | 'Takeaway'; tableNumber?: number; customerName: string; phone: string; items: { name: string; price: number; qty: number }[]; total: number; paymentStatus: 'Unpaid' | 'Paid'; createdAt: string }
+export type ReceiptOrder = { code: string; type: 'Dine in' | 'Takeaway'; tableNumber?: number; customerName: string; phone: string; items: { name: string; price: number; qty: number }[]; total: number; paymentStatus: 'Unpaid' | 'Paid'; paymentMethod?: string; createdAt: string }
 
 const taka = (n: number) => `৳${n.toLocaleString('en-IN')}`
 
@@ -40,7 +40,7 @@ function Receipt({ order }: { order: ReceiptOrder }) {
     </table>
     <Rule />
     <div className="flex justify-between text-[13pt] font-bold"><span>Total</span><span>{taka(order.total)}</span></div>
-    <p className="mt-[1.5mm] text-center text-[11pt] font-bold tracking-wider">{order.paymentStatus === 'Paid' ? 'PAID' : 'UNPAID'}</p>
+    <p className="mt-[1.5mm] text-center text-[11pt] font-bold tracking-wider">{order.paymentStatus === 'Paid' ? `PAID${order.paymentMethod ? ` · ${order.paymentMethod.toUpperCase()}` : ''}` : 'UNPAID'}</p>
     <Rule />
     <p className="text-center">{SHOP.thanks}</p>
   </div>

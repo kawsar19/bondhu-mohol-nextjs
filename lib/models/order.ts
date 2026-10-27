@@ -4,6 +4,7 @@ import { defineModel } from './define-model'
 export const ORDER_TYPES = ['Dine in', 'Takeaway'] as const
 export const ORDER_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served', 'Completed', 'Cancelled'] as const
 export const PAYMENT_STATUSES = ['Unpaid', 'Paid'] as const
+export const PAYMENT_METHODS = ['Cash', 'bKash', 'Nagad', 'Card'] as const
 export const OPEN_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served'] as const
 export const ORDER_SOURCES = ['Customer', 'Staff'] as const
 
@@ -30,6 +31,9 @@ const orderSchema = new Schema(
     total: { type: Number, required: true, min: 0 },
     status: { type: String, enum: ORDER_STATUSES, default: 'Pending' },
     paymentStatus: { type: String, enum: PAYMENT_STATUSES, default: 'Unpaid' },
+    // How it was paid; empty while unpaid (and on orders paid before this was recorded).
+    paymentMethod: { type: String, enum: [...PAYMENT_METHODS, ''], default: '' },
+    paidAt: { type: Date },
     // Who placed it: the guest from their phone, or a staff member on their behalf.
     source: { type: String, enum: ORDER_SOURCES, default: 'Customer' },
     takenBy: { type: String, trim: true, default: '' },

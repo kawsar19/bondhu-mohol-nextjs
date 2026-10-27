@@ -21,13 +21,14 @@ export async function GET(request: Request) {
   const inRange = { createdAt: { $gte: range.start, $lt: range.end } }
   const sold = { ...inRange, status: { $ne: 'Cancelled' } }
 
-  const [[totals], cancelled, byType, salesByDay, topItems, expensesByDay, expensesByCategory] = await Promise.all([
+  const [[totals], cancelled, byType, byPayment, salesByDay, topItems, expensesByDay, expensesByCategory] = await Promise.all([
     Order.aggregate([
       { $match: sold },
       { $group: { _id: null, orders: { $sum: 1 }, sales: { $sum: '$total' }, unpaid: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Unpaid'] }, '$total', 0] } } } },
     ]),
     Order.countDocuments({ ...inRange, status: 'Cancelled' }),
     Order.aggregate([{ $match: sold }, { $group: { _id: '$type', orders: { $sum: 1 }, sales: { $sum: '$total' } } }]),
+    Order.aggregate([{ $match: { ...sold, paymentStatus: 'Paid' } }, { $group: { _id: '$paymentMethod', orders: { $sum: 1 }, amount: { $sum: '$total' } } }, { $sort: { amount: -1 } }]),
     Order.aggregate([{ $match: sold }, { $group: { _id: byDay('$createdAt'), orders: { $sum: 1 }, sales: { $sum: '$total' } } }]),
     Order.aggregate([
       { $match: sold },
@@ -56,6 +57,8 @@ export async function GET(request: Request) {
   return NextResponse.json({
     totals: { orders: totals?.orders ?? 0, sales, unpaid: totals?.unpaid ?? 0, cancelled, expenses, profit: sales - expenses },
     byType: byType.map(row => ({ type: row._id, orders: row.orders, sales: row.sales })),
+    // Orders paid before methods were recorded show as "Not recorded".
+    byPayment: byPayment.map(row => ({ method: row._id || 'Not recorded', orders: row.orders, amount: row.amount })),
     daily: [...days.values()].sort((a, b) => b.date.localeCompare(a.date)).map(d => ({ ...d, profit: d.sales - d.expenses })),
     topItems: topItems.map(row => ({ id: String(row._id), name: row.name, qty: row.qty, revenue: row.revenue })),
     expensesByCategory: expensesByCategory.map(row => ({ category: row._id, amount: row.amount, count: row.count })),

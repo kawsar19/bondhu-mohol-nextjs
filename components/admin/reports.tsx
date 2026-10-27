@@ -11,6 +11,7 @@ type Day = { date: string; orders: number; sales: number; expenses: number; prof
 type Report = {
   totals: Totals
   byType: { type: string; orders: number; sales: number }[]
+  byPayment: { method: string; orders: number; amount: number }[]
   daily: Day[]
   topItems: { id: string; name: string; qty: number; revenue: number }[]
   expensesByCategory: { category: string; amount: number; count: number }[]
@@ -93,6 +94,10 @@ export function Reports() {
 
         <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6">
+            <h3 className="font-serif text-lg font-bold">Money received</h3>
+            {report.byPayment.length === 0 ? <Empty text="No paid orders in this period." /> : <ul className="mt-4 grid grid-cols-2 gap-2.5">{report.byPayment.map(p => <li key={p.method} className="rounded-xl bg-[#f7f8f6] p-3"><p className="text-xs font-medium text-[#87928a]">{p.method}</p><p className="mt-0.5 font-serif text-lg font-bold">{taka(p.amount)}</p><p className="text-[11px] text-[#9aa39c]">{p.orders} {p.orders === 1 ? 'order' : 'orders'}</p></li>)}</ul>}
+          </section>
+          <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6">
             <h3 className="font-serif text-lg font-bold">Best sellers</h3>
             {report.topItems.length === 0 ? <Empty text="Nothing sold in this period." /> : <ol className="mt-4 flex flex-col gap-2.5">{report.topItems.map((item, i) => <li key={item.id} className="flex items-center gap-3 text-sm"><span className="w-5 text-xs font-bold text-[#a0aaa2]">{i + 1}</span><span className="min-w-0 flex-1 truncate font-medium">{item.name}</span><span className="text-xs text-[#87928a]">{item.qty} sold</span><span className="w-24 text-right font-semibold">{taka(item.revenue)}</span></li>)}</ol>}
           </section>
@@ -119,6 +124,7 @@ function ReportSheet({ report, range }: { report: Report; range: DateRange }) {
     </tbody></table>
     {report.daily.length > 1 && <><h2 className="mt-4 font-bold">Day by day</h2><table className="mt-1 w-full border-collapse"><thead><tr>{['Date', 'Orders', 'Sales', 'Expenses', 'Profit'].map(h => <th key={h} className={`${cell} text-left`}>{h}</th>)}</tr></thead><tbody>{[...report.daily].reverse().map(d => <tr key={d.date}><td className={cell}>{formatDay(d.date)}</td><td className={cell}>{d.orders}</td><td className={cell}>{taka(d.sales)}</td><td className={cell}>{taka(d.expenses)}</td><td className={cell}>{taka(d.profit)}</td></tr>)}</tbody></table></>}
     <div className="mt-4 grid grid-cols-2 gap-4">
+      <div><h2 className="font-bold">Money received</h2><table className="mt-1 w-full border-collapse"><tbody>{report.byPayment.map(p => <tr key={p.method}><td className={cell}>{p.method}</td><td className={cell}>{p.orders}</td><td className={`${cell} text-right`}>{taka(p.amount)}</td></tr>)}</tbody></table></div>
       <div><h2 className="font-bold">Best sellers</h2><table className="mt-1 w-full border-collapse"><tbody>{report.topItems.map(i => <tr key={i.id}><td className={cell}>{i.name}</td><td className={cell}>{i.qty}</td><td className={`${cell} text-right`}>{taka(i.revenue)}</td></tr>)}</tbody></table></div>
       <div><h2 className="font-bold">Expenses</h2><table className="mt-1 w-full border-collapse"><tbody>{report.expensesByCategory.map(c => <tr key={c.category}><td className={cell}>{c.category}</td><td className={`${cell} text-right`}>{taka(c.amount)}</td></tr>)}</tbody></table></div>
     </div>
