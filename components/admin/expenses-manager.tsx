@@ -125,7 +125,7 @@ export function ExpensesManager() {
         </button></li>)}</ul>
       </section>)}</div>}
 
-    <button onClick={() => setEditing('new')} aria-label={t('expenses.addExpense')} className="fixed bottom-5 right-5 z-30 flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl sm:hidden"><Plus className="size-6" /></button>
+    <button onClick={() => setEditing('new')} aria-label={t('expenses.addExpense')} className="fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom))+4.5rem)] right-4 z-30 flex size-14 items-center justify-center rounded-full bg-[#c48545] text-white shadow-xl sm:hidden"><Plus className="size-6" /></button>
 
     {editing && <ExpenseForm expense={editing === 'new' ? null : editing} categories={categories} suggestions={suggestions} onCategoryAdded={c => setCategories(cs => [...cs, c])} onClose={() => setEditing(null)} onSaved={saved} />}
     {managingCategories && <CategoryManager categories={categories} onChange={setCategories} onClose={() => { setManagingCategories(false); load() }} />}

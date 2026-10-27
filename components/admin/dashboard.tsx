@@ -204,13 +204,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <main className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b border-[#e6eae4] bg-[#f7f8f6]/95 px-5 backdrop-blur-md sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <button
-              onClick={() => setMobileNav(true)}
-              aria-label={t("nav.openMenu")}
-              className="lg:hidden"
-            >
-              <PanelLeft className="size-5" />
-            </button>
             <div className="min-w-0">
               <p className="text-xs font-medium text-[#89938b]">
                 {now
@@ -250,8 +243,16 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             </button>
           </div>
         </header>
-        <div className="mx-auto max-w-[1440px] p-5 sm:p-8">{content}</div>
+        <div className="mx-auto max-w-[1440px] p-5 pb-24 sm:p-8 sm:pb-24 lg:pb-8">{content}</div>
       </main>
+      <button
+        onClick={() => setMobileNav((open) => !open)}
+        aria-label={mobileNav ? t("nav.closeMenu") : t("nav.openMenu")}
+        aria-expanded={mobileNav}
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-50 flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl lg:hidden"
+      >
+        {mobileNav ? <X className="size-6" /> : <PanelLeft className="size-6" />}
+      </button>
     </div>
   );
 }
