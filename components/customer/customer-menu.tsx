@@ -112,25 +112,61 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
   }
 
   return <main className="min-h-dvh bg-[#fbfaf7] pb-32 text-[#202521]">
-    <header className="px-4 pt-5 sm:px-8"><div className="mx-auto flex max-w-5xl items-center justify-between gap-3"><div className="flex items-center gap-3"><div className="flex size-11 items-center justify-center rounded-2xl bg-[#174d3c] text-white"><Utensils className="size-5" /></div><div><p className="font-serif text-xl font-bold leading-tight">Bondhu Mohol</p><p className="text-xs text-[#89938b]">Restaurant &amp; Tea Stall</p></div></div>{initialTable && <span className="rounded-full bg-[#f4ddca] px-3 py-1.5 text-sm font-bold text-[#8a4f26]">Table {initialTable}</span>}</div></header>
+    <header className="sticky top-0 z-40 border-b border-[#ece8df] bg-[#fbfaf7]/95 px-4 pb-3 pt-5 backdrop-blur sm:px-8">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex size-11 items-center justify-center rounded-2xl bg-[#edf4ee] text-[#174d3c]">
+            <ChefHat className="size-5" />
+          </div>
+          <div>
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[#819086]">Bondhu Mohol</p>
+            <h1 className="font-serif text-xl font-bold leading-none text-[#1e2b27]">Chef's Table</h1>
+          </div>
+        </div>
+        <button type="button" onClick={() => setSheet('cart')} aria-label="Open cart" className="relative flex h-11 items-center justify-center rounded-xl bg-[#174d3c] px-3 text-white shadow-sm">
+          <ShoppingBag className="size-5" />
+          {count > 0 && <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#b86f3c] text-[10px] font-bold text-white">{count}</span>}
+        </button>
+      </div>
+    </header>
 
-    {saved && tracked && orderIsOpen && <div className="mx-auto mt-4 max-w-5xl px-4 sm:px-8"><button onClick={() => setSheet('track')} className="flex w-full items-center gap-3 rounded-2xl bg-[#174d3c] p-4 text-left text-white"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15">{tracked.status === 'Ready' ? <Check className="size-5" /> : <ChefHat className="size-5" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Order {tracked.code}</span><span className="block text-xs text-white/75">{statusLine(tracked)}</span></span><ChevronRight className="size-5 shrink-0" /></button></div>}
+    {saved && tracked && orderIsOpen && <div className="mx-auto mt-4 max-w-5xl px-4 sm:px-8"><button onClick={() => setSheet('track')} className="flex w-full items-center gap-3 rounded-2xl bg-[#eef4ed] px-4 py-3 text-left shadow-sm ring-1 ring-[#dfe8df]">
+      <div className="flex size-11 items-center justify-center rounded-xl bg-[#dfece0] text-[#174d3c]"><Bike className="size-5" /></div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#69776d]">Order status</p>
+        <p className="truncate text-base font-semibold text-[#1f2b28]">{tracked.code} · {statusLine(tracked)}</p>
+      </div>
+      <ChevronRight className="size-5 text-[#174d3c]" />
+    </button></div>}
 
-    {items.length === 0 ? <div className="mx-auto mt-6 max-w-5xl px-4 sm:px-8"><div className="flex flex-col items-center rounded-3xl border border-dashed border-[#e3ded3] bg-white px-6 py-16 text-center"><UtensilsCrossed className="size-10 text-[#c7d1c7]" /><p className="mt-4 text-lg font-semibold">The menu is being prepared</p><p className="mt-1 text-sm text-[#89938b]">Please check back in a little while.</p></div></div> : <>
-      <div className="sticky top-0 z-30 mt-4 border-b border-[#ece8df] bg-[#fbfaf7]/95 backdrop-blur"><div className="mx-auto max-w-5xl px-4 sm:px-8">
-        <div ref={chipBar} className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:px-0">{groups.map(g => <button key={g.name} data-chip={g.name} onClick={() => document.getElementById(`cat-${g.name}`)?.scrollIntoView({ behavior: 'smooth' })} className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold transition ${activeCategory === g.name ? 'bg-[#174d3c] text-white' : 'bg-white text-[#5f6b62] ring-1 ring-inset ring-[#e3e8e1]'}`}>{g.name}</button>)}</div>
-      </div></div>
+    {items.length === 0 ? <div className="mx-auto mt-6 max-w-5xl px-4 sm:px-8"><div className="flex flex-col items-center rounded-3xl border border-dashed border-[#e3ded3] bg-white px-6 py-16 text-center text-[#5f6b62]">
+      <UtensilsCrossed className="size-12 text-[#c7d1c7]" />
+      <p className="mt-4 text-lg font-semibold text-[#1f2b28]">No menu items available yet</p>
+      <p className="mt-1 text-sm">Please check back soon.</p>
+    </div></div> : <>
+      <div className="mx-auto mt-4 max-w-5xl px-4 sm:px-8">
+        <div className="sticky top-[4.5rem] z-30 mt-4 border-b border-[#ece8df] bg-[#fbfaf7]/95 backdrop-blur">
+          <div ref={chipBar} className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:mx-0 sm:px-0">
+            {groups.map(g => <button key={g.name} data-chip={g.name} onClick={() => document.getElementById(`cat-${g.name}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className={`whitespace-nowrap rounded-full border px-3 py-2 text-sm font-semibold transition ${activeCategory === g.name ? 'border-[#174d3c] bg-[#174d3c] text-white' : 'border-[#e4e1db] bg-white text-[#44514a]'}`}>
+              {g.name}
+            </button>)}
+          </div>
+        </div>
+      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-8">{groups.map(group => <section key={group.name} id={`cat-${group.name}`} data-category={group.name} className="scroll-mt-20 pt-6">
+      <div className="mx-auto max-w-5xl px-4 sm:px-8">{groups.map(group => <section key={group.name} id={`cat-${group.name}`} data-category={group.name} className="scroll-mt-28 pt-6">
         <h2 className="mb-3 font-serif text-2xl font-bold">{group.name}</h2>
         <div className="grid gap-3 md:grid-cols-2">{group.items.map(item => <ItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onQty={qty => setQty(item.id, qty)} />)}</div>
       </section>)}</div>
     </>}
 
-    {count > 0 && !sheet && <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-[#fbfaf7] via-[#fbfaf7] to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6"><button onClick={() => setSheet('cart')} className="mx-auto flex h-16 w-full max-w-lg items-center gap-3 rounded-2xl bg-[#174d3c] px-4 text-white shadow-lg shadow-[#174d3c]/25 active:scale-[.99]"><span className="flex size-9 items-center justify-center rounded-xl bg-white/15 text-base font-bold">{count}</span><span className="flex-1 text-left text-base font-semibold">View order</span><span className="text-xl font-bold">{taka(total)}</span><ChevronRight className="size-5" /></button></div>}
+    {count > 0 && !sheet && <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-[#fbfaf7] via-[#fbfaf7] to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6"><button type="button" onClick={() => setSheet('cart')} className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between rounded-2xl bg-[#174d3c] px-5 text-white shadow-lg shadow-[#d9e2db]">
+      <span className="flex items-center gap-2 text-base font-bold"><ShoppingBag className="size-5" /> {count} item{count > 1 ? 's' : ''}</span>
+      <span className="flex items-center gap-2 text-base font-bold">{taka(total)} <ChevronRight className="size-5" /></span>
+    </button></div>}
 
     {sheet && <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#202521]/40 sm:items-center sm:p-4" onClick={() => setSheet(null)}>
-      <div role="dialog" aria-modal="true" aria-label={sheet === 'cart' ? 'Your order' : 'Order status'} onClick={e => e.stopPropagation()} className="flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+      <div role="dialog" aria-modal="true" aria-label={sheet === 'cart' ? 'Your order' : 'Order status'} onClick={e => e.stopPropagation()} className="flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[#fbfaf7] sm:rounded-3xl">
         <div className="mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-[#e2e5e0] sm:hidden" />
         {sheet === 'cart'
           ? <CartSheet lines={lines} total={total} tables={tables} initialTable={initialTable} onQty={setQty} onClose={() => setSheet(null)} onPlaced={placed} />
@@ -142,14 +178,14 @@ export function CustomerMenu({ items, tables, initialTable }: { items: PublicMen
 
 function ItemRow({ item, qty, onQty }: { item: PublicMenuItem; qty: number; onQty: (qty: number) => void }) {
   return <article className={`flex gap-3 rounded-2xl border bg-white p-3 transition ${qty ? 'border-[#9cc2aa] ring-1 ring-[#9cc2aa]' : 'border-[#ebece6]'}`}>
-    {item.image ? <img src={item.image} alt="" loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" /> : <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-[#f5f1e8] text-[#d2b893]">{isTea(item.category) ? <Coffee className="size-9" /> : <Utensils className="size-8" />}</div>}
+    {item.image ? <img src={item.image} alt="" loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" /> : <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-[#eef4ed] text-[#174d3c]"><Coffee className="size-8" /></div>}
     <div className="flex min-w-0 flex-1 flex-col">
       <h3 className="text-base font-semibold leading-snug">{item.name}</h3>
       {item.description && <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-[#89938b]">{item.description}</p>}
       <div className="mt-auto flex items-center justify-between gap-2 pt-2">
         <span className="text-xl font-bold text-[#b86f3c]">{taka(item.price)}</span>
         {qty === 0
-          ? <button onClick={() => onQty(1)} aria-label={`Add ${item.name}`} className="flex h-11 items-center gap-1.5 rounded-xl bg-[#174d3c] px-4 text-sm font-bold text-white active:scale-95"><Plus className="size-5" /> Add</button>
+          ? <button onClick={() => onQty(1)} aria-label={`Add ${item.name}`} className="flex h-11 items-center gap-1.5 rounded-xl bg-[#174d3c] px-4 text-sm font-bold text-white active:scale-95"><Plus className="size-4" /> Add</button>
           : <Stepper qty={qty} name={item.name} onQty={onQty} />}
       </div>
     </div>
@@ -183,7 +219,7 @@ function CartSheet({ lines, total, tables, initialTable, onQty, onClose, onPlace
     if (type === 'Takeaway' && phone.replace(/\D/g, '').length < 11) return setError('Please enter your mobile number')
     setSending(true)
     try {
-      const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, tableNumber: table, phone, customerName: name, note, items: lines.map(l => ({ id: l.item.id, qty: l.qty })) }) })
+      const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, tableNumber: table, phone, customerName: name, note, items: lines.map(({ item, qty }) => ({ id: item.id, qty })) }) })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? 'Could not place your order. Please try again.')
       if (type === 'Takeaway') save('bm_contact', { phone, name })
@@ -194,10 +230,10 @@ function CartSheet({ lines, total, tables, initialTable, onQty, onClose, onPlace
     }
   }
 
-  if (lines.length === 0) return <div className="flex flex-col items-center px-6 pb-10 pt-8 text-center"><ShoppingBag className="size-12 text-[#c7d1c7]" /><p className="mt-4 text-lg font-semibold">Your order is empty</p><button onClick={onClose} className="mt-6 h-12 rounded-xl bg-[#eef4ed] px-6 text-base font-bold text-[#174d3c]">Browse menu</button></div>
+  if (lines.length === 0) return <div className="flex flex-col items-center px-6 pb-10 pt-8 text-center"><ShoppingBag className="size-12 text-[#c7d1c7]" /><p className="mt-4 text-lg font-semibold text-[#1f2b28]">Your cart is empty</p><p className="mt-1 text-sm text-[#5f6b62]">Pick some delicious items to continue.</p></div>
 
   return <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-    <div className="flex items-center justify-between px-5 pb-2 pt-3"><h2 className="font-serif text-2xl font-bold">Your order</h2><button type="button" aria-label="Close" onClick={onClose} className="flex size-11 items-center justify-center rounded-full hover:bg-[#f2f4f0]"><X className="size-6" /></button></div>
+    <div className="flex items-center justify-between px-5 pb-2 pt-3"><h2 className="font-serif text-2xl font-bold">Your order</h2><button type="button" aria-label="Close" onClick={onClose} className="flex size-11 items-center justify-center rounded-full hover:bg-[#f2f4f0]"><X className="size-5" /></button></div>
 
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
       <ul className="divide-y divide-[#eef0ec]">{lines.map(({ item, qty }) => <li key={item.id} className="flex items-center gap-3 py-3.5">
@@ -207,29 +243,29 @@ function CartSheet({ lines, total, tables, initialTable, onQty, onClose, onPlace
       </li>)}</ul>
       <button type="button" onClick={onClose} className="mt-1 flex h-11 items-center gap-1.5 text-sm font-semibold text-[#174d3c]"><Plus className="size-4" /> Add more items</button>
 
-      <fieldset className="mt-4"><legend className="mb-2 text-sm font-semibold text-[#5f6b62]">How will you eat?</legend><div className="grid grid-cols-2 gap-2">{([['Dine in', Utensils, 'At a table'], ['Takeaway', Bike, 'Pick up']] as const).map(([value, Icon, hint]) => <button key={value} type="button" aria-pressed={type === value} onClick={() => { setType(value); setError('') }} className={`flex h-16 items-center gap-3 rounded-2xl border-2 px-4 text-left transition ${type === value ? 'border-[#174d3c] bg-[#eef4ed]' : 'border-[#e6e9e4] bg-white'}`}><Icon className={`size-6 ${type === value ? 'text-[#174d3c]' : 'text-[#9aa39c]'}`} /><span><span className="block text-base font-bold">{value}</span><span className="block text-xs text-[#89938b]">{hint}</span></span></button>)}</div></fieldset>
+      <fieldset className="mt-4"><legend className="mb-2 text-sm font-semibold text-[#5f6b62]">How will you eat?</legend><div className="grid grid-cols-2 gap-2">{([['Dine in', Utensils, 'At a table'], ['Takeaway', ShoppingBag, 'To go']] as const).map(([label, Icon, hint]) => <button key={label} type="button" onClick={() => setType(label)} aria-pressed={type === label} className={`flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${type === label ? 'border-[#174d3c] bg-[#eef4ed] text-[#174d3c]' : 'border-[#e8e7e1] bg-white text-[#2b312d]'}`}><Icon className="size-5" /><span className="min-w-0"><span className="block text-sm font-semibold">{label}</span><span className="block text-xs text-[#76827c]">{hint}</span></span></button>)}</div></fieldset>
 
       {type === 'Dine in' && <div className="mt-4">{table && !changingTable
-        ? <div className="flex items-center justify-between rounded-2xl bg-[#f7f0e5] px-4 py-3"><span className="text-base font-semibold text-[#805b35]">Table {table}</span><button type="button" onClick={() => setChangingTable(true)} className="h-10 px-2 text-sm font-semibold text-[#b86f3c]">Change</button></div>
+        ? <div className="flex items-center justify-between rounded-2xl bg-[#f7f0e5] px-4 py-3"><span className="text-base font-semibold text-[#805b35]">Table {table}</span><button type="button" onClick={() => setChangingTable(true)} className="text-sm font-semibold text-[#805b35]">Change</button></div>
         : <><p className="mb-2 text-sm font-semibold text-[#5f6b62]">Your table number</p>{tables.length > 0
-          ? <div className="grid grid-cols-5 gap-2">{tables.map(t => <button key={t.number} type="button" aria-pressed={table === t.number} aria-label={`Table ${t.number}${t.name ? `, ${t.name}` : ''}`} onClick={() => { setTable(t.number); setChangingTable(false); setError('') }} className={`h-12 rounded-xl text-lg font-bold transition ${table === t.number ? 'bg-[#174d3c] text-white' : 'bg-[#f1f4f0] text-[#202521]'}`}>{t.number}</button>)}</div>
-          : <input type="number" inputMode="numeric" min={1} placeholder="e.g. 5" aria-label="Table number" value={table ?? ''} onChange={e => setTable(e.target.value ? Number(e.target.value) : null)} className="h-14 w-full rounded-2xl border border-[#e2e7e1] bg-[#fbfcfb] px-4 text-lg outline-none focus:border-[#8eaf9b]" />}</>}
+          ? <div className="grid grid-cols-5 gap-2">{tables.map(t => <button key={t.number} type="button" aria-pressed={table === t.number} aria-label={`Table ${t.number}${t.name ? `, ${t.name}` : ''}`} onClick={() => { setTable(t.number); setChangingTable(false) }} className={`rounded-xl border px-2 py-2 text-sm font-semibold ${table === t.number ? 'border-[#174d3c] bg-[#174d3c] text-white' : 'border-[#e8e7e1] bg-white text-[#2b312d]'}`}>{t.number}</button>)}</div>
+          : <input type="number" inputMode="numeric" min={1} placeholder="e.g. 5" aria-label="Table number" value={table ?? ''} onChange={e => setTable(e.target.value ? Number(e.target.value) : null)} className="w-full rounded-2xl border border-[#dfe2dd] bg-white px-4 py-3 text-base outline-none ring-0 placeholder:text-[#a3aba5] focus:border-[#174d3c]" />}</>}
       </div>}
 
       {type === 'Takeaway' && <div className="mt-4 grid gap-3">
-        <label className="block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Mobile number</span><input type="tel" inputMode="tel" autoComplete="tel" placeholder="01XXXXXXXXX" value={phone} onChange={e => setPhone(e.target.value)} className="h-14 w-full rounded-2xl border border-[#e2e7e1] bg-[#fbfcfb] px-4 text-lg tracking-wide outline-none focus:border-[#8eaf9b]" /></label>
-        <label className="block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Name <span className="font-normal text-[#a0aaa2]">(optional)</span></span><input autoComplete="name" value={name} onChange={e => setName(e.target.value)} className="h-12 w-full rounded-2xl border border-[#e2e7e1] bg-[#fbfcfb] px-4 text-base outline-none focus:border-[#8eaf9b]" /></label>
+        <label className="block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Mobile number</span><input type="tel" inputMode="tel" autoComplete="tel" placeholder="01XXXXXXXXX" value={phone} onChange={e => setPhone(e.target.value)} className="w-full rounded-2xl border border-[#dfe2dd] bg-white px-4 py-3 text-base outline-none placeholder:text-[#a3aba5] focus:border-[#174d3c]" /></label>
+        <label className="block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Name <span className="font-normal text-[#a0aaa2]">(optional)</span></span><input autoComplete="name" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="w-full rounded-2xl border border-[#dfe2dd] bg-white px-4 py-3 text-base outline-none placeholder:text-[#a3aba5] focus:border-[#174d3c]" /></label>
       </div>}
 
       {showNote
-        ? <label className="mt-4 block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Note for the kitchen</span><textarea autoFocus maxLength={200} rows={2} placeholder="e.g. less sugar, extra spicy" value={note} onChange={e => setNote(e.target.value)} className="w-full rounded-2xl border border-[#e2e7e1] bg-[#fbfcfb] px-4 py-3 text-base outline-none focus:border-[#8eaf9b]" /></label>
-        : <button type="button" onClick={() => setShowNote(true)} className="mt-3 flex h-11 items-center gap-1.5 text-sm font-semibold text-[#5f6b62]"><Plus className="size-4" /> Add a note (less sugar, extra spicy…)</button>}
+        ? <label className="mt-4 block"><span className="mb-2 block text-sm font-semibold text-[#5f6b62]">Note for the kitchen</span><textarea autoFocus maxLength={200} rows={2} placeholder="e.g. less spicy" value={note} onChange={e => setNote(e.target.value)} className="w-full rounded-2xl border border-[#dfe2dd] bg-white px-4 py-3 text-base outline-none placeholder:text-[#a3aba5] focus:border-[#174d3c]" /></label>
+        : <button type="button" onClick={() => setShowNote(true)} className="mt-3 flex h-11 items-center gap-1.5 text-sm font-semibold text-[#5f6b62]"><Plus className="size-4" /> Add a note (optional)</button>}
     </div>
 
     <div className="border-t border-[#eef0ec] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
       {error && <p role="alert" className="mb-3 rounded-xl bg-[#fdf0ec] px-4 py-3 text-sm font-medium text-[#b4472c]">{error}</p>}
       <div className="mb-3 flex items-baseline justify-between"><span className="text-base text-[#5f6b62]">Total</span><span className="text-3xl font-bold">{taka(total)}</span></div>
-      <button disabled={sending} className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#174d3c] text-lg font-bold text-white active:scale-[.99] disabled:opacity-70">{sending ? <Loader2 className="size-5 animate-spin" /> : null}{sending ? 'Placing order…' : 'Place order'}</button>
+      <button disabled={sending} className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#174d3c] text-lg font-bold text-white active:scale-[.99] disabled:opacity-70">{sending ? <><Loader2 className="size-5 animate-spin" /> Sending...</> : 'Place order'}</button>
       <p className="mt-2.5 text-center text-xs text-[#89938b]">Pay at the counter · Cash, bKash or Nagad</p>
     </div>
   </form>
@@ -253,19 +289,19 @@ function TrackSheet({ order, code, onClose }: { order: TrackedOrder | null; code
   const reached = order ? (order.status === 'Completed' ? steps.length - 1 : steps.indexOf(order.status)) : 0
 
   return <div className="flex min-h-0 flex-1 flex-col">
-    <div className="flex justify-end px-3 pt-2"><button aria-label="Close" onClick={onClose} className="flex size-11 items-center justify-center rounded-full hover:bg-[#f2f4f0]"><X className="size-6" /></button></div>
+    <div className="flex justify-end px-3 pt-2"><button aria-label="Close" onClick={onClose} className="flex size-11 items-center justify-center rounded-full hover:bg-[#f2f4f0]"><X className="size-5" /></button></div>
     <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 text-center">
-      <div className={`mx-auto flex size-16 items-center justify-center rounded-full ${order?.status === 'Cancelled' ? 'bg-[#fdf0ec] text-[#b4472c]' : 'bg-[#eef4ed] text-[#174d3c]'}`}>{order?.status === 'Cancelled' ? <X className="size-8" /> : <Check className="size-8" />}</div>
+      <div className={`mx-auto flex size-16 items-center justify-center rounded-full ${order?.status === 'Cancelled' ? 'bg-[#fdf0ec] text-[#b4472c]' : 'bg-[#eef4ed] text-[#174d3c]'}`}>{order?.status === 'Cancelled' ? '!' : <Check className="size-7" />}</div>
       <p className="mt-3 text-sm font-semibold uppercase tracking-[.14em] text-[#89938b]">Your order number</p>
       <p className="mt-1 font-serif text-5xl font-bold tracking-tight">{order?.code ?? code}</p>
       <p className="mt-2 text-base text-[#5f6b62]">{order ? (order.type === 'Dine in' ? `Table ${order.tableNumber}` : 'Takeaway') : ''}</p>
       <p className="mt-4 text-lg font-semibold text-[#174d3c]">{order ? statusLine(order) : <Loader2 className="mx-auto size-5 animate-spin" />}</p>
 
-      {order && order.status !== 'Cancelled' && <ol className="mt-5 flex items-start justify-between gap-1">{steps.map((step, i) => <li key={step} className="flex flex-1 flex-col items-center gap-1.5"><span className={`flex size-8 items-center justify-center rounded-full text-sm font-bold ${i <= reached ? 'bg-[#174d3c] text-white' : 'bg-[#eef0ec] text-[#a0aaa2]'}`}>{i < reached || order.status === 'Completed' ? <Check className="size-4" /> : i + 1}</span><span className={`text-xs font-semibold ${i <= reached ? 'text-[#174d3c]' : 'text-[#a0aaa2]'}`}>{labels[step]}</span></li>)}</ol>}
+      {order && order.status !== 'Cancelled' && <ol className="mt-5 flex items-start justify-between gap-1">{steps.map((step, i) => <li key={step} className="flex flex-1 flex-col items-center gap-2"><div className={`flex size-8 items-center justify-center rounded-full text-xs font-bold ${i <= reached ? 'bg-[#174d3c] text-white' : 'bg-[#edf0ee] text-[#71807a]'}`}>{i + 1}</div><span className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#5f6b62]">{labels[step]}</span></li>)}</ol>}
 
-      {order && <div className="mt-6 rounded-2xl bg-[#f7f8f6] p-4 text-left"><ul className="space-y-2">{order.items.map(i => <li key={i.name} className="flex justify-between gap-3 text-base"><span><span className="font-bold">{i.qty}×</span> {i.name}</span><span className="font-semibold">{taka(i.price * i.qty)}</span></li>)}</ul><div className="mt-3 flex items-baseline justify-between border-t border-[#e6e9e4] pt-3"><span className="text-[#5f6b62]">Total</span><span className="text-2xl font-bold">{taka(order.total)}</span></div></div>}
+      {order && <div className="mt-6 rounded-2xl bg-[#f7f8f6] p-4 text-left"><ul className="space-y-2">{order.items.map(i => <li key={i.name} className="flex justify-between gap-3 text-base"><span className="min-w-0 flex-1">{i.name} × {i.qty}</span><span className="font-semibold">{taka(i.price * i.qty)}</span></li>)}</ul><div className="mt-4 flex items-center justify-between border-t border-[#e9ece7] pt-3"><span className="text-base font-semibold text-[#2b312d]">Total</span><span className="text-xl font-bold">{taka(order.total)}</span></div></div>}
       <p className="mt-3 text-xs text-[#89938b]">This page updates by itself. Pay at the counter.</p>
     </div>
-    <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2"><button onClick={onClose} className="h-14 w-full rounded-2xl bg-[#eef4ed] text-lg font-bold text-[#174d3c]">Order something more</button></div>
+    <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2"><button onClick={onClose} className="h-14 w-full rounded-2xl bg-[#eef4ed] text-lg font-bold text-[#174d3c]">Back to menu</button></div>
   </div>
 }
