@@ -25,6 +25,8 @@ const SECTION_ACCESS: Record<string, readonly Role[]> = {
   'Kitchen display': ALL_STAFF,
   'Waiter order panel': ORDER_TAKERS,
   'QR ordering': MANAGERS,
+  Reports: MANAGERS,
+  Expenses: MANAGERS,
   Staff: ['admin'],
   Settings: MANAGERS,
 }

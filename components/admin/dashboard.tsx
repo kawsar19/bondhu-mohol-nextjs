@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ChartColumn,
   ChefHat,
   ClipboardList,
   ExternalLink,
@@ -13,17 +14,20 @@ import {
   QrCode,
   Settings,
   ShoppingBag,
+  ShoppingBasket,
   UserCog,
   Utensils,
   X,
 } from "lucide-react";
 import { canAccess } from "@/lib/permissions";
+import { ExpensesManager } from "./expenses-manager";
 import { KitchenDisplay } from "./kitchen-display";
 import { MenuManager } from "./menu-manager";
 import { OrdersManager } from "./orders-manager";
 import { OrderAlerts } from "./order-alerts";
 import { Overview } from "./overview";
 import { QrManager } from "./qr-manager";
+import { Reports } from "./reports";
 import { StaffManager } from "./staff-manager";
 import { TablesManager } from "./tables-manager";
 import { WaiterPanel } from "./waiter-panel";
@@ -36,6 +40,8 @@ const navItems = [
   { label: "Tables", icon: Grid2X2 },
   { label: "Menu", icon: Utensils },
   { label: "Kitchen display", icon: ChefHat },
+  { label: "Reports", icon: ChartColumn },
+  { label: "Expenses", icon: ShoppingBasket },
 ];
 const secondaryItems = [
   { label: "Waiter order panel", icon: ShoppingBag },
@@ -98,6 +104,10 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <WaiterPanel />
     ) : active === "QR ordering" ? (
       <QrManager onGoToTables={() => setActive("Tables")} />
+    ) : active === "Reports" ? (
+      <Reports />
+    ) : active === "Expenses" ? (
+      <ExpensesManager />
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
     ) : (
