@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { MenuManager } from "./menu-manager";
 import { OrdersManager } from "./orders-manager";
+import { OrderAlerts } from "./order-alerts";
 import { Overview } from "./overview";
 import { QrManager } from "./qr-manager";
 import { TablesManager } from "./tables-manager";
@@ -187,7 +188,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
               </h1>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders'} onOpenOrders={() => setActive('Orders')} />
             <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
               <div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">
                 {initials}

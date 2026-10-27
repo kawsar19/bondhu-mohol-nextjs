@@ -163,9 +163,9 @@
   }
 }
 
-/* QR code printing: only the print sheet is printed, on A4. */
+/* Printing: only the active print sheet (QR cards or a receipt) is printed. A4 by default; receipts set their own page size. */
 @media print {
   @page { size: A4; margin: 12mm; }
-  body > *:not(.qr-print-root) { display: none !important; }
+  body > *:not(.print-root) { display: none !important; }
   body { background: #fff !important; }
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Bike, ClipboardList, Loader2, MessageSquareText, Phone, RefreshCw, UserRound, Utensils, X } from 'lucide-react'
+import { Bike, ClipboardList, Loader2, MessageSquareText, Phone, Printer, RefreshCw, UserRound, Utensils, X } from 'lucide-react'
+import { PrintReceipt } from './receipt'
 
 type Status = 'Pending' | 'Preparing' | 'Ready' | 'Served' | 'Completed' | 'Cancelled'
 type Order = { _id: string; code: string; type: 'Dine in' | 'Takeaway'; tableNumber?: number; customerName: string; phone: string; note: string; items: { name: string; price: number; qty: number }[]; total: number; status: Status; paymentStatus: 'Unpaid' | 'Paid'; source?: 'Customer' | 'Staff'; takenBy?: string; createdAt: string }
@@ -45,6 +46,8 @@ export function OrdersManager() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null)
   const [, setTick] = useState(0)
+  const [printing, setPrinting] = useState<Order | null>(null)
+  const closePrint = useCallback(() => setPrinting(null), [])
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true)
@@ -97,9 +100,10 @@ export function OrdersManager() {
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold">{order.type === 'Dine in' ? <span className="flex items-center gap-1.5 rounded-lg bg-[#eaf2eb] px-2.5 py-1.5 text-[#174d3c]"><Utensils className="size-3.5" /> Table {order.tableNumber}</span> : <span className="flex items-center gap-1.5 rounded-lg bg-[#fff0df] px-2.5 py-1.5 text-[#a8622f]"><Bike className="size-3.5" /> Takeaway</span>}{order.source === 'Staff' && <span className="flex items-center gap-1.5 rounded-lg bg-[#eef0fb] px-2.5 py-1.5 text-[#4b5aa8]"><UserRound className="size-3.5" /> Waiter{order.takenBy ? `: ${order.takenBy}` : ''}</span>}{order.phone && <a href={`tel:${order.phone}`} className="flex items-center gap-1.5 rounded-lg bg-[#f1f4f0] px-2.5 py-1.5 text-[#5f6b62]"><Phone className="size-3.5" /> {order.customerName ? `${order.customerName} · ` : ''}{order.phone}</a>}</div>
         <ul className="mt-4 space-y-1.5 text-sm">{order.items.map(i => <li key={i.name} className="flex justify-between gap-3"><span><span className="font-bold">{i.qty}×</span> {i.name}</span><span className="text-[#68756b]">{taka(i.price * i.qty)}</span></li>)}</ul>
         {order.note && <p className="mt-3 flex gap-2 rounded-lg bg-[#fbf5ec] px-3 py-2 text-xs text-[#835a2c]"><MessageSquareText className="mt-0.5 size-3.5 shrink-0" />{order.note}</p>}
-        <div className="mt-4 flex items-center justify-between border-t border-[#eef0ec] pt-3"><span className="text-lg font-bold">{taka(order.total)}</span><button onClick={() => update(order, { paymentStatus: order.paymentStatus === 'Paid' ? 'Unpaid' : 'Paid' })} disabled={busy || order.status === 'Cancelled'} className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${order.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-[#f1f4f0] text-[#68756b] hover:bg-[#e7eee7]'}`}>{order.paymentStatus === 'Paid' ? '✓ Paid' : 'Mark paid'}</button></div>
+        <div className="mt-4 flex items-center justify-between border-t border-[#eef0ec] pt-3"><span className="text-lg font-bold">{taka(order.total)}</span><div className="flex items-center gap-1.5"><button onClick={() => setPrinting(order)} disabled={order.status === 'Cancelled'} className="flex items-center gap-1 rounded-full bg-[#f1f4f0] px-3 py-1 text-[11px] font-bold text-[#5f6b62] hover:bg-[#e7eee7] disabled:opacity-40"><Printer className="size-3" /> Print bill</button><button onClick={() => update(order, { paymentStatus: order.paymentStatus === 'Paid' ? 'Unpaid' : 'Paid' })} disabled={busy || order.status === 'Cancelled'} className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${order.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-[#f1f4f0] text-[#68756b] hover:bg-[#e7eee7]'}`}>{order.paymentStatus === 'Paid' ? '✓ Paid' : 'Mark paid'}</button></div></div>
         {(next || ACTIVE.includes(order.status)) && <div className="mt-4 flex gap-2">{next && <button onClick={() => update(order, { status: next.status })} disabled={busy} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#174d3c] text-sm font-semibold text-white hover:bg-[#123f31] disabled:opacity-70">{busy && <Loader2 className="size-4 animate-spin" />}{next.label}</button>}{ACTIVE.includes(order.status) && <button onClick={() => setConfirmCancel(order._id)} disabled={busy} aria-label={`Cancel ${order.code}`} className="flex size-11 items-center justify-center rounded-xl border border-[#e2e7e1] text-[#b4472c] hover:bg-[#fdf0ec]"><X className="size-4" /></button>}</div>}
         {confirmCancel === order._id && <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-[#fdf0ec] px-3 py-2.5"><p className="text-xs font-medium text-[#b4472c]">Cancel this order?</p><div className="flex gap-1.5"><button onClick={() => setConfirmCancel(null)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#68756b] hover:bg-white">Keep</button><button onClick={() => update(order, { status: 'Cancelled' })} className="rounded-lg bg-[#b4472c] px-2.5 py-1.5 text-xs font-semibold text-white">Cancel order</button></div></div>}
       </article> })}</div>}
+    {printing && <PrintReceipt order={printing} onDone={closePrint} />}
   </div>
 }

@@ -119,7 +119,7 @@ export function QrManager({ onGoToTables }: { onGoToTables: () => void }) {
       </div> })}</div>
     </>}
 
-    {printing && createPortal(<div className="qr-print-root hidden print:block"><div className="grid grid-cols-2 gap-[6mm]">{printing.map(target => <div key={target.key} className="break-inside-avoid rounded-[4mm] border border-dashed border-[#9aa39c] p-[6mm]"><QrCard target={target} svg={codes[target.key]} url={linkFor(base, target.table)} print /></div>)}</div></div>, document.body)}
+    {printing && createPortal(<div className="print-root hidden print:block"><div className="grid grid-cols-2 gap-[6mm]">{printing.map(target => <div key={target.key} className="break-inside-avoid rounded-[4mm] border border-dashed border-[#9aa39c] p-[6mm]"><QrCard target={target} svg={codes[target.key]} url={linkFor(base, target.table)} print /></div>)}</div></div>, document.body)}
   </div>
 }
 
