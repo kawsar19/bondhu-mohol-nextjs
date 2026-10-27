@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "seed:admin": "node --env-file=.env.local scripts/seed-admin.mjs",
-    "seed:menu": "node --env-file=.env.local scripts/seed-menu.mjs"
+    "seed:menu": "node --env-file=.env.local scripts/seed-menu.mjs",
+    "copy:atlas": "node --env-file=.env.local scripts/copy-to-atlas.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
