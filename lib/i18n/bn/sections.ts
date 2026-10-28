@@ -1,0 +1,37 @@
+import type { Messages } from '../types'
+import type { sections as En } from '../en/sections'
+
+export const sections: Messages<typeof En> = {
+  eyebrow: 'কিচেন',
+  title: 'সেকশন',
+  subtitle: 'প্রতিটা সেকশনের কিচেন স্টক আলাদা, আর প্রতিটা মেনু আইটেম কোনো একটা সেকশনের অধীনে বিক্রি হয়।',
+  refresh: 'সেকশন রিফ্রেশ করুন',
+  add: 'সেকশন যোগ করুন',
+  name: 'সেকশনের নাম',
+  namePlaceholder: 'যেমন: রুমালি রুটি, বার্গার, চা-কফি',
+  emptyTitle: 'এখনো কোনো সেকশন নেই',
+  emptyHint: 'কিচেনের কাউন্টারগুলো যোগ করুন, যেমন রুমালি রুটি বা চা-কফি।',
+  itemOne: '{count}টি মেনু আইটেম',
+  itemMany: '{count}টি মেনু আইটেম',
+  closed: 'বন্ধ',
+  rename: '{name} এর নাম বদলান',
+  open: '{name} আবার চালু করুন',
+  close: '{name} বন্ধ করুন',
+  openHint: 'মেনু আইটেমের জন্য আবার দেখান',
+  closeHint: 'নতুন মেনু আইটেমের জন্য আর দেখাবে না',
+  moveUp: '{name} উপরে নিন',
+  moveDown: '{name} নিচে নিন',
+  deleteLabel: '{name} ডিলিট করুন',
+  inUseCloseInstead: 'মেনু আইটেম এই সেকশনে আছে। ডিলিট না করে বন্ধ করুন।',
+  loadFailed: 'সেকশন লোড করা যায়নি',
+  api: {
+    notFound: 'সেকশন পাওয়া যায়নি',
+    nameRequired: 'সেকশনের নাম দিতে হবে',
+    nameMax: 'সেকশনের নাম সর্বোচ্চ {max} অক্ষরের হতে হবে',
+    exists: '"{name}" নামে একটা সেকশন আগেই আছে',
+    sortOrderInvalid: 'ক্রম অবশ্যই পূর্ণ সংখ্যা হতে হবে',
+    isActiveInvalid: 'isActive অবশ্যই true বা false হতে হবে',
+    inUseOne: '"{name}" এ {count}টি মেনু আইটেম আছে। সেটা অন্য সেকশনে সরান, অথবা এটা বন্ধ করুন।',
+    inUseMany: '"{name}" এ {count}টি মেনু আইটেম আছে। সেগুলো অন্য সেকশনে সরান, অথবা এটা বন্ধ করুন।',
+  },
+}

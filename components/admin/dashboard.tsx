@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChartColumn,
+  ChefHat,
   ClipboardList,
   Grid2X2,
   LayoutDashboard,
   LogOut,
+  Package,
   PanelLeft,
   Settings,
   SquarePen,
@@ -21,11 +23,13 @@ import { LanguageSwitch } from "@/components/language-switch";
 import type { MessageKey, TFunction } from "@/lib/i18n";
 import { canAccess, isRole } from "@/lib/permissions";
 import { ExpensesManager } from "./expenses-manager";
+import { IngredientsManager } from "./ingredients-manager";
 import { MenuManager } from "./menu-manager";
 import { OrderEntry } from "./order-entry";
 import { OrdersManager } from "./orders-manager";
 import { Overview } from "./overview";
 import { Reports } from "./reports";
+import { SectionsManager } from "./sections-manager";
 import { StaffManager } from "./staff-manager";
 import { TablesManager } from "./tables-manager";
 
@@ -42,6 +46,8 @@ const navItems: NavItem[] = [
 ];
 const secondaryItems: NavItem[] = [
   { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
+  { label: "Sections", key: "nav.sections.Sections", icon: ChefHat },
+  { label: "Ingredients", key: "nav.sections.Ingredients", icon: Package },
   { label: "Tables", key: "nav.sections.Tables", icon: Grid2X2 },
   { label: "Staff", key: "nav.sections.Staff", icon: UserCog },
   { label: "Settings", key: "nav.sections.Settings", icon: Settings },
@@ -107,6 +113,10 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <TablesManager />
     ) : active === "Menu" ? (
       <MenuManager />
+    ) : active === "Sections" ? (
+      <SectionsManager />
+    ) : active === "Ingredients" ? (
+      <IngredientsManager />
     ) : active === "Reports" ? (
       <Reports />
     ) : active === "Expenses" ? (

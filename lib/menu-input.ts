@@ -5,6 +5,7 @@ export type MenuInput = {
   description?: string
   price?: number
   category?: string
+  section?: string | null
   image?: string
   isAvailable?: boolean
   isPopular?: boolean
@@ -39,6 +40,13 @@ export function parseMenuInput(body: unknown, t: TFunction, partial = false): Re
   if (category.value !== undefined) {
     if (!category.value) return { error: t('menu.api.fieldRequired', { field: t('menu.api.fields.category') }) }
     data.category = category.value
+  }
+
+  // Whether the section exists is checked by the route, which has the database.
+  if (raw.section !== undefined) {
+    if (raw.section === null || raw.section === '') data.section = null
+    else if (typeof raw.section === 'string' && /^[a-f\d]{24}$/i.test(raw.section)) data.section = raw.section
+    else return { error: t('menu.api.sectionInvalid') }
   }
 
   const description = text(raw.description, t('menu.api.fields.description'), 300, false, t)

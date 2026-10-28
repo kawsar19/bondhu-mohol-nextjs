@@ -7,6 +7,8 @@ export const nav = {
     Orders: 'Orders',
     Tables: 'Tables',
     Menu: 'Menu',
+    Sections: 'Sections',
+    Ingredients: 'Ingredients',
     Reports: 'Reports',
     Expenses: 'Expenses',
     Staff: 'Staff',

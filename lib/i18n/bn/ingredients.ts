@@ -1,0 +1,34 @@
+import type { Messages } from '../types'
+import type { ingredients as En } from '../en/ingredients'
+
+export const ingredients: Messages<typeof En> = {
+  eyebrow: 'কিচেন',
+  title: 'কাঁচামাল',
+  subtitle: 'বাজার থেকে কেনা আর স্টকে রাখা সব মাল, কোন এককে গোনা হয় সেটাসহ।',
+  refresh: 'কাঁচামাল রিফ্রেশ করুন',
+  add: 'কাঁচামাল যোগ করুন',
+  name: 'নাম',
+  namePlaceholder: 'যেমন: ময়দা, চিনি, দুধ',
+  unit: 'একক',
+  units: { kg: 'কেজি', litre: 'লিটার', piece: 'পিস', packet: 'প্যাকেট' },
+  searchPlaceholder: 'কাঁচামাল খুঁজুন...',
+  emptyTitle: 'এখনো কোনো কাঁচামাল নেই',
+  emptyHint: 'যে মালগুলো কেনেন সেগুলো যোগ করুন, যেমন ময়দা, চিনি বা দুধ।',
+  noMatch: 'মিলে যায় এমন কাঁচামাল নেই।',
+  hidden: 'লুকানো',
+  edit: '{name} এডিট করুন',
+  show: '{name} দেখান',
+  hide: '{name} লুকান',
+  showHint: 'নতুন এন্ট্রিতে আবার দেখান',
+  hideHint: 'নতুন এন্ট্রিতে আর দেখাবে না',
+  deleteLabel: '{name} ডিলিট করুন',
+  loadFailed: 'কাঁচামাল লোড করা যায়নি',
+  api: {
+    notFound: 'কাঁচামাল পাওয়া যায়নি',
+    nameRequired: 'কাঁচামালের নাম দিতে হবে',
+    nameMax: 'কাঁচামালের নাম সর্বোচ্চ {max} অক্ষরের হতে হবে',
+    exists: '"{name}" নামে একটা কাঁচামাল আগেই আছে',
+    unitInvalid: 'একক বেছে নিন: কেজি, লিটার, পিস বা প্যাকেট',
+    isActiveInvalid: 'isActive অবশ্যই true বা false হতে হবে',
+  },
+}

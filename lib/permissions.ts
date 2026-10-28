@@ -14,6 +14,8 @@ const SECTION_ACCESS: Record<string, readonly Role[]> = {
   Orders: MANAGERS,
   Tables: MANAGERS,
   Menu: MANAGERS,
+  Sections: MANAGERS,
+  Ingredients: MANAGERS,
   Reports: REPORT_VIEWERS,
   Expenses: MANAGERS,
   Staff: ['admin'],

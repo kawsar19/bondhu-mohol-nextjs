@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db'
 import { getT } from '@/lib/i18n/server'
 import { parseMenuInput } from '@/lib/menu-input'
 import { MenuItem } from '@/lib/models/menu-item'
+import { Section } from '@/lib/models/section'
 
 type Context = { params: Promise<{ id: string }> }
 
@@ -27,10 +28,12 @@ export async function PATCH(request: Request, { params }: Context) {
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
-  const parsed = parseMenuInput(await request.json().catch(() => null), await getT(), true)
+  const t = await getT()
+  const parsed = parseMenuInput(await request.json().catch(() => null), t, true)
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
   await connectDB()
+  if (parsed.data.section && !(await Section.exists({ _id: parsed.data.section }))) return NextResponse.json({ error: t('menu.api.sectionInvalid') }, { status: 400 })
   const item = await MenuItem.findByIdAndUpdate(id, parsed.data, { new: true, runValidators: true })
   return item ? NextResponse.json({ item }) : notFound()
 }

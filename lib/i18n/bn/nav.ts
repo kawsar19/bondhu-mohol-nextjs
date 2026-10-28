@@ -8,6 +8,8 @@ export const nav: Messages<typeof En> = {
     Orders: 'অর্ডার',
     Tables: 'টেবিল',
     Menu: 'মেনু',
+    Sections: 'সেকশন',
+    Ingredients: 'কাঁচামাল',
     Reports: 'রিপোর্ট',
     Expenses: 'খরচ',
     Staff: 'স্টাফ',
