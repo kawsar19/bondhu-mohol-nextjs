@@ -1,28 +1,20 @@
 import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
-import { ALL_STAFF } from '@/lib/permissions'
+import { MANAGERS } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { Order, ORDER_STATUSES } from '@/lib/models/order'
-import { getT } from '@/lib/i18n/server'
 import { createOrder, OrderInputError } from '@/lib/orders'
-import { clientIp, hit } from '@/lib/rate-limit'
 import { startOfBusinessDay } from '@/lib/time'
 
-// Generous, because everyone on the shop's Wi-Fi shares one IP.
-const ORDERS_PER_IP = 12
-const ORDER_WINDOW_MS = 10 * 60 * 1000
-
-// Public: customers place orders from the menu page.
+// Manager: enter an order.
 export async function POST(request: Request) {
+  const { session, error } = await requireRole(MANAGERS)
+  if (error) return error
+
   const body = await request.json().catch(() => null)
   await connectDB()
-  const { ok, retryMinutes } = await hit(`order-ip:${clientIp(request)}`, ORDERS_PER_IP, ORDER_WINDOW_MS)
-  if (!ok) {
-    const t = await getT()
-    return NextResponse.json({ error: t(retryMinutes === 1 ? 'customer.server.rateLimitOne' : 'customer.server.rateLimitMany', { minutes: retryMinutes }) }, { status: 429 })
-  }
   try {
-    const order = await createOrder(body)
+    const order = await createOrder(body, { name: session.name })
     return NextResponse.json({ order }, { status: 201 })
   } catch (err) {
     if (err instanceof OrderInputError) return NextResponse.json({ error: err.message }, { status: 400 })
@@ -30,9 +22,9 @@ export async function POST(request: Request) {
   }
 }
 
-// Staff: list orders, newest first. ?status=Pending,Preparing&day=today
+// Manager: list orders, newest first. ?status=Cancelled&day=today
 export async function GET(request: Request) {
-  const { error } = await requireRole(ALL_STAFF)
+  const { error } = await requireRole(MANAGERS)
   if (error) return error
 
   const params = new URL(request.url).searchParams

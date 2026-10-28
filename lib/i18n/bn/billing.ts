@@ -7,11 +7,9 @@ export const billing: Messages<typeof En> = {
   dialogLabel: 'টেবিল {number}-এর বিল',
   ordersOne: '{count}টি অর্ডার: {codes}',
   ordersMany: '{count}টি অর্ডার: {codes}',
-  notServedOne: '{codes} এখনো কিচেনে আছে। পেমেন্ট হয়ে যাবে, তবে পরিবেশন না হওয়া পর্যন্ত অর্ডারটি খোলা থাকবে।',
-  notServedMany: '{codes} এখনো কিচেনে আছে। পেমেন্ট হয়ে যাবে, তবে পরিবেশন না হওয়া পর্যন্ত অর্ডারগুলো খোলা থাকবে।',
   printFirst: 'আগে বিল প্রিন্ট করুন',
   paidWith: 'পেমেন্টের মাধ্যম',
-  settleHint: 'সব অর্ডার পরিশোধিত হবে, পরিবেশিতগুলো বন্ধ হবে এবং রসিদ প্রিন্ট হবে।',
+  settleHint: 'সব অর্ডার পরিশোধিত হবে এবং রসিদ প্রিন্ট হবে।',
   payFailed: 'পেমেন্ট নেওয়া যায়নি',
   receipt: {
     order: 'অর্ডার',

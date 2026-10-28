@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin, requireRole } from '@/lib/auth'
-import { ORDER_TAKERS } from '@/lib/permissions'
+import { MANAGERS } from '@/lib/permissions'
 import { connectDB } from '@/lib/db'
 import { Table } from '@/lib/models/table'
 import { getT } from '@/lib/i18n/server'
 import { isDuplicateKeyError, parseTableInput } from '@/lib/table-input'
 
-// Also read by the waiter panel.
+// Also read by the order entry screen.
 export async function GET() {
-  const { error } = await requireRole(ORDER_TAKERS)
+  const { error } = await requireRole(MANAGERS)
   if (error) return error
 
   await connectDB()

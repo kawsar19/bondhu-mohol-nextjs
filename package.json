@@ -9,7 +9,8 @@
     "start": "next start",
     "seed:admin": "node --env-file=.env.local scripts/seed-admin.mjs",
     "seed:menu": "node --env-file=.env.local scripts/seed-menu.mjs",
-    "copy:atlas": "node --env-file=.env.local scripts/copy-to-atlas.mjs"
+    "copy:atlas": "node --env-file=.env.local scripts/copy-to-atlas.mjs",
+    "migrate:v2": "node --env-file=.env.local scripts/migrate-v2.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -21,7 +22,6 @@
     "lucide-react": "^1.16.0",
     "mongoose": "^9.11.1",
     "next": "16.4.0",
-    "qrcode": "^1.5.4",
     "react": "^19",
     "react-dom": "^19",
     "server-only": "^0.0.1",
@@ -32,7 +32,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24",
-    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",

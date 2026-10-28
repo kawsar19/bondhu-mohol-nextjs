@@ -9,14 +9,12 @@ import { USER_ROLES, type Role } from '@/lib/permissions'
 type StaffUser = { _id: string; name: string; email: string; role: Role; isActive?: boolean }
 type FormState = { name: string; email: string; password: string; role: Role }
 
-const emptyForm: FormState = { name: '', email: '', password: '', role: 'waiter' }
-const roleStyles: Record<Role, string> = { admin: 'bg-[#174d3c] text-white', manager: 'bg-[#eaf2eb] text-[#174d3c]', cashier: 'bg-blue-50 text-blue-700', waiter: 'bg-orange-50 text-orange-700', kitchen: 'bg-amber-50 text-amber-800' }
+const emptyForm: FormState = { name: '', email: '', password: '', role: 'manager' }
+const roleStyles: Record<Role, string> = { admin: 'bg-[#174d3c] text-white', manager: 'bg-[#eaf2eb] text-[#174d3c]', partner: 'bg-amber-50 text-amber-800' }
 const ROLE_KEYS = {
   admin: { label: 'staff.roles.admin.label', description: 'staff.roles.admin.description' },
   manager: { label: 'staff.roles.manager.label', description: 'staff.roles.manager.description' },
-  cashier: { label: 'staff.roles.cashier.label', description: 'staff.roles.cashier.description' },
-  waiter: { label: 'staff.roles.waiter.label', description: 'staff.roles.waiter.description' },
-  kitchen: { label: 'staff.roles.kitchen.label', description: 'staff.roles.kitchen.description' },
+  partner: { label: 'staff.roles.partner.label', description: 'staff.roles.partner.description' },
 } as const
 
 async function api<T>(t: TFunction, url: string, init?: RequestInit): Promise<T> {
@@ -87,7 +85,7 @@ export function StaffManager({ currentUserId }: { currentUserId: string }) {
   return <div>
     <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">{t('staff.eyebrow')}</p><h2 className="font-serif text-3xl font-bold tracking-tight">{t('staff.title')}</h2><p className="mt-1 text-xs text-[#89938b]">{t('staff.subtitle')}</p></div><div className="flex gap-2"><button onClick={load} aria-label={t('staff.refreshAria')} className="flex size-10 items-center justify-center rounded-xl border border-[#e0e5df] bg-white text-[#68756b] hover:bg-[#f5f7f4]"><RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} /></button><button onClick={() => setEditing('new')} className="flex items-center gap-2 rounded-xl bg-[#174d3c] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#123f31]"><Plus className="size-4" /> {t('staff.addStaff')}</button></div></div>
 
-    <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">{USER_ROLES.map(role => <div key={role} className="rounded-2xl border border-[#e3e8e1] bg-white p-4"><div className="flex items-center justify-between"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${roleStyles[role]}`}>{t(ROLE_KEYS[role].label)}</span><span className="font-serif text-xl font-bold">{users.filter(u => u.role === role).length}</span></div><p className="mt-2 text-[11px] leading-snug text-[#87928a]">{t(ROLE_KEYS[role].description)}</p></div>)}</section>
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">{USER_ROLES.map(role => <div key={role} className="rounded-2xl border border-[#e3e8e1] bg-white p-4"><div className="flex items-center justify-between"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${roleStyles[role]}`}>{t(ROLE_KEYS[role].label)}</span><span className="font-serif text-xl font-bold">{users.filter(u => u.role === role).length}</span></div><p className="mt-2 text-[11px] leading-snug text-[#87928a]">{t(ROLE_KEYS[role].description)}</p></div>)}</section>
 
     {error && <p role="alert" className="mt-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p>}
 

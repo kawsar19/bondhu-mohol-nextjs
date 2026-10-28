@@ -32,10 +32,8 @@ export const staff = {
   cantChangeOwnRoleHint: "(you can't change your own)",
   roles: {
     admin: { label: 'Admin', description: 'Everything, including staff accounts' },
-    manager: { label: 'Manager', description: 'Everything except staff accounts' },
-    cashier: { label: 'Cashier', description: 'Orders, payments and the waiter panel' },
-    waiter: { label: 'Waiter', description: 'Takes orders and sees the kitchen board' },
-    kitchen: { label: 'Kitchen', description: 'Kitchen display only' },
+    manager: { label: 'Manager', description: 'All entries and reports, but not staff accounts' },
+    partner: { label: 'Partner', description: 'Sees the overview and every report' },
   },
   errors: {
     notFound: 'Staff member not found',

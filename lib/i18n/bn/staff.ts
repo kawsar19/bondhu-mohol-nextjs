@@ -34,10 +34,8 @@ export const staff: Messages<typeof En> = {
   cantChangeOwnRoleHint: '(নিজের পদ বদলানো যাবে না)',
   roles: {
     admin: { label: 'অ্যাডমিন', description: 'সবকিছু, স্টাফ অ্যাকাউন্টসহ' },
-    manager: { label: 'ম্যানেজার', description: 'স্টাফ অ্যাকাউন্ট ছাড়া সবকিছু' },
-    cashier: { label: 'ক্যাশিয়ার', description: 'অর্ডার, পেমেন্ট আর ওয়েটার প্যানেল' },
-    waiter: { label: 'ওয়েটার', description: 'অর্ডার নেন আর কিচেন বোর্ড দেখেন' },
-    kitchen: { label: 'কিচেন', description: 'শুধু কিচেন ডিসপ্লে' },
+    manager: { label: 'ম্যানেজার', description: 'সব এন্ট্রি আর রিপোর্ট, শুধু স্টাফ অ্যাকাউন্ট ছাড়া' },
+    partner: { label: 'পার্টনার', description: 'সারসংক্ষেপ আর সব রিপোর্ট দেখেন' },
   },
   errors: {
     notFound: 'স্টাফ পাওয়া যায়নি',

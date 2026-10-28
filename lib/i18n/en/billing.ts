@@ -6,11 +6,9 @@ export const billing = {
   dialogLabel: 'Bill for table {number}',
   ordersOne: '{count} order: {codes}',
   ordersMany: '{count} orders: {codes}',
-  notServedOne: '{codes} is still in the kitchen. It will be marked paid but stay open until served.',
-  notServedMany: '{codes} are still in the kitchen. They will be marked paid but stay open until served.',
   printFirst: 'Print bill first',
   paidWith: 'Paid with',
-  settleHint: 'Marks every order paid, closes the served ones and prints the receipt.',
+  settleHint: 'Marks every order paid and prints the receipt.',
   payFailed: 'Could not take the payment',
   receipt: {
     order: 'Order',

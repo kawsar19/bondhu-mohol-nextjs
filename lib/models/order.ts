@@ -2,11 +2,11 @@ import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
 
 export const ORDER_TYPES = ['Dine in', 'Takeaway'] as const
-export const ORDER_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served', 'Completed', 'Cancelled'] as const
+// The manager enters orders after the fact, so there is no kitchen workflow: an order counts
+// as sold unless it was cancelled. Older orders were moved to Completed by scripts/migrate-v2.mjs.
+export const ORDER_STATUSES = ['Completed', 'Cancelled'] as const
 export const PAYMENT_STATUSES = ['Unpaid', 'Paid'] as const
 export const PAYMENT_METHODS = ['Cash', 'bKash', 'Nagad', 'Card'] as const
-export const OPEN_STATUSES = ['Pending', 'Preparing', 'Ready', 'Served'] as const
-export const ORDER_SOURCES = ['Customer', 'Staff'] as const
 
 const orderItemSchema = new Schema(
   {
@@ -25,19 +25,18 @@ const orderSchema = new Schema(
     type: { type: String, enum: ORDER_TYPES, required: true },
     tableNumber: { type: Number, min: 1 },
     customerName: { type: String, trim: true, default: '' },
+    // Only on orders guests placed from the old QR menu.
     phone: { type: String, trim: true, default: '' },
     note: { type: String, trim: true, default: '' },
     items: { type: [orderItemSchema], required: true },
     total: { type: Number, required: true, min: 0 },
-    status: { type: String, enum: ORDER_STATUSES, default: 'Pending' },
+    status: { type: String, enum: ORDER_STATUSES, default: 'Completed' },
     paymentStatus: { type: String, enum: PAYMENT_STATUSES, default: 'Unpaid' },
     // How it was paid; empty while unpaid (and on orders paid before this was recorded).
     paymentMethod: { type: String, enum: [...PAYMENT_METHODS, ''], default: '' },
     paidAt: { type: Date },
-    // Who placed it: the guest from their phone, or a staff member on their behalf.
-    source: { type: String, enum: ORDER_SOURCES, default: 'Customer' },
+    // Name of the staff member who entered it.
     takenBy: { type: String, trim: true, default: '' },
-    trackingToken: { type: String, required: true, select: false },
   },
   { timestamps: true },
 )

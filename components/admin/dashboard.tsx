@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChartColumn,
-  ChefHat,
   ClipboardList,
-  ExternalLink,
   Grid2X2,
   LayoutDashboard,
   LogOut,
   PanelLeft,
-  QrCode,
   Settings,
-  ShoppingBag,
+  SquarePen,
   ShoppingBasket,
   UserCog,
   Utensils,
@@ -24,16 +21,13 @@ import { LanguageSwitch } from "@/components/language-switch";
 import type { MessageKey, TFunction } from "@/lib/i18n";
 import { canAccess, isRole } from "@/lib/permissions";
 import { ExpensesManager } from "./expenses-manager";
-import { KitchenDisplay } from "./kitchen-display";
 import { MenuManager } from "./menu-manager";
+import { OrderEntry } from "./order-entry";
 import { OrdersManager } from "./orders-manager";
-import { OrderAlerts } from "./order-alerts";
 import { Overview } from "./overview";
-import { QrManager } from "./qr-manager";
 import { Reports } from "./reports";
 import { StaffManager } from "./staff-manager";
 import { TablesManager } from "./tables-manager";
-import { WaiterPanel } from "./waiter-panel";
 
 export type AdminUser = { id: string; name: string; email: string; role: string };
 type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
@@ -41,16 +35,14 @@ type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
 // `label` is the section ID (used for permissions and navigation); `key` is its display name.
 const navItems: NavItem[] = [
   { label: "Overview", key: "nav.sections.Overview", icon: LayoutDashboard },
+  { label: "New order", key: "nav.sections.New order", icon: SquarePen },
   { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
-  { label: "Tables", key: "nav.sections.Tables", icon: Grid2X2 },
-  { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
-  { label: "Kitchen display", key: "nav.sections.Kitchen display", icon: ChefHat },
   { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
   { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
 ];
 const secondaryItems: NavItem[] = [
-  { label: "Waiter order panel", key: "nav.sections.Waiter order panel", icon: ShoppingBag },
-  { label: "QR ordering", key: "nav.sections.QR ordering", icon: QrCode },
+  { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
+  { label: "Tables", key: "nav.sections.Tables", icon: Grid2X2 },
   { label: "Staff", key: "nav.sections.Staff", icon: UserCog },
   { label: "Settings", key: "nav.sections.Settings", icon: Settings },
 ];
@@ -59,9 +51,7 @@ const sectionName = (t: TFunction, label: string) => (sectionKeys[label] ? t(sec
 const ROLE_KEY = {
   admin: "staff.roles.admin.label",
   manager: "staff.roles.manager.label",
-  cashier: "staff.roles.cashier.label",
-  waiter: "staff.roles.waiter.label",
-  kitchen: "staff.roles.kitchen.label",
+  partner: "staff.roles.partner.label",
 } as const;
 
 function greeting(t: TFunction, hour: number) {
@@ -89,7 +79,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   // Each role only sees the sections it is allowed to open; the APIs enforce the same rules.
   const mainItems = navItems.filter((item) => canAccess(user.role, item.label));
   const operationItems = secondaryItems.filter((item) => canAccess(user.role, item.label));
-  const [active, setActive] = useState(() => [...mainItems, ...operationItems][0]?.label ?? "Kitchen display");
+  const [active, setActive] = useState(() => [...mainItems, ...operationItems][0]?.label ?? "Overview");
   const [mobileNav, setMobileNav] = useState(false);
   const selectNav = (label: string) => {
     setActive(label);
@@ -108,19 +98,15 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     !canAccess(user.role, active) ? (
       <ComingSoon title={sectionName(t, active)} />
     ) : active === "Overview" ? (
-      <Overview onNavigate={setActive} />
+      <Overview onNavigate={setActive} canOpen={(section) => canAccess(user.role, section)} />
+    ) : active === "New order" ? (
+      <OrderEntry />
     ) : active === "Orders" ? (
-      <OrdersManager />
+      <OrdersManager onNewOrder={() => setActive("New order")} />
     ) : active === "Tables" ? (
       <TablesManager />
     ) : active === "Menu" ? (
       <MenuManager />
-    ) : active === "Kitchen display" ? (
-      <KitchenDisplay />
-    ) : active === "Waiter order panel" ? (
-      <WaiterPanel />
-    ) : active === "QR ordering" ? (
-      <QrManager onGoToTables={() => setActive("Tables")} />
     ) : active === "Reports" ? (
       <Reports />
     ) : active === "Expenses" ? (
@@ -168,14 +154,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             setActive={selectNav}
           />
         </div>
-        <a
-          href="/"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2 rounded-2xl bg-[#f0f5f0] p-3.5 text-xs font-semibold text-[#174d3c] hover:bg-[#e6efe7]"
-        >
-          <ExternalLink className="size-4" /> {t("nav.openCustomerMenu")}
-        </a>
         <div className="mt-4 flex items-center gap-3 border-t border-[#e8ece7] px-2 pt-4">
           <div className="flex size-9 items-center justify-center rounded-full bg-[#ead8b6] text-xs font-bold text-[#714b17]">
             {initials}
@@ -222,7 +200,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
               </h1>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3"><OrderAlerts userName={user.name} ordersOpen={active === 'Orders' || active === 'Kitchen display'} onOpenOrders={() => setActive(canAccess(user.role, 'Orders') ? 'Orders' : 'Kitchen display')} />
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitch />
             <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
               <div className="flex size-7 items-center justify-center rounded-full bg-[#ead8b6] text-[10px] font-bold text-[#714b17]">

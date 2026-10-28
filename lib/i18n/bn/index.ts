@@ -1,20 +1,16 @@
 import type { Dictionary } from '../en'
 import { common } from './common'
-import { customer } from './customer'
 import { auth } from './auth'
 import { nav } from './nav'
 import { overview } from './overview'
 import { staff } from './staff'
-import { alerts } from './alerts'
 import { orders } from './orders'
-import { kitchen } from './kitchen'
-import { waiter } from './waiter'
+import { entry } from './entry'
 import { billing } from './billing'
 import { tables } from './tables'
 import { menu } from './menu'
-import { qr } from './qr'
 import { reports } from './reports'
 import { expenses } from './expenses'
 import { dates } from './dates'
 
-export const bn: Dictionary = { common, customer, auth, nav, overview, staff, alerts, orders, kitchen, waiter, billing, tables, menu, qr, reports, expenses, dates }
+export const bn: Dictionary = { common, auth, nav, overview, staff, orders, entry, billing, tables, menu, reports, expenses, dates }

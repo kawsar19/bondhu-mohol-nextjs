@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 import { parseDateRange } from '@/lib/date-range'
 import { connectDB } from '@/lib/db'
 import { getT } from '@/lib/i18n/server'
 import { Expense } from '@/lib/models/expense'
 import { Order } from '@/lib/models/order'
+import { REPORT_VIEWERS } from '@/lib/permissions'
 
 const TZ = 'Asia/Dhaka'
 const byDay = (field: string) => ({ $dateToString: { format: '%Y-%m-%d', date: field, timezone: TZ } })
 
-// Admin: sales, spending and profit for ?from=YYYY-MM-DD&to=YYYY-MM-DD (Bangladesh dates, inclusive).
+// Admins, managers and partners: sales, spending and profit for ?from=YYYY-MM-DD&to=YYYY-MM-DD (Bangladesh dates, inclusive).
 // Sales count every order that wasn't cancelled, paid or not; unpaid is shown separately.
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireRole(REPORT_VIEWERS)
   if (error) return error
 
   const t = await getT()

@@ -31,7 +31,8 @@ export async function setSessionCookie(payload: SessionPayload) {
   const store = await cookies()
   store.set(SESSION_COOKIE, await signSession(payload), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    // Secure cookies are dropped over plain HTTP, so only require them when the site is served over HTTPS.
+    secure: process.env.NODE_ENV === 'production' && (process.env.NEXT_PUBLIC_SITE_URL ?? '').startsWith('https://'),
     sameSite: 'lax',
     path: '/',
     maxAge: SESSION_MAX_AGE,

@@ -38,7 +38,6 @@ export function TableBill({ table, orders, onClose, onPrint, onSettled }: { tabl
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const bill = combineOrders(orders)
-  const notServed = orders.filter(o => ['Pending', 'Preparing'].includes(o.status))
 
   const settle = async (method: PaymentMethod) => {
     setSaving(true)
@@ -61,7 +60,6 @@ export function TableBill({ table, orders, onClose, onPrint, onSettled }: { tabl
       <ul className="flex-1 divide-y divide-[#f0f2ef] overflow-y-auto px-6 text-sm">{bill.items.map(i => <li key={`${i.name}|${i.price}`} className="flex justify-between gap-3 py-2"><span><span className="font-bold">{i.qty}×</span> {i.name}</span><span className="text-[#5f6b62]">{taka(i.price * i.qty)}</span></li>)}</ul>
       <div className="border-t border-[#eef1ed] p-6 pt-4">
         <div className="flex items-baseline justify-between"><span className="text-sm text-[#68756b]">{t('common.total')}</span><span className="font-serif text-3xl font-bold">{taka(bill.total)}</span></div>
-        {notServed.length > 0 && <p className="mt-2 rounded-lg bg-[#fff6e8] px-3 py-2 text-[11px] text-[#8a5a24]">{t(notServed.length === 1 ? 'billing.notServedOne' : 'billing.notServedMany', { codes: notServed.map(o => o.code).join(', ') })}</p>}
         {error && <p role="alert" className="mt-3 rounded-lg bg-[#fdf0ec] px-3 py-2 text-xs font-medium text-[#b4472c]">{error}</p>}
         <button onClick={() => onPrint(bill)} className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#e2e7e1] text-sm font-semibold text-[#5f6b62] hover:bg-[#f5f7f4]"><Printer className="size-4" /> {t('billing.printFirst')}</button>
         <p className="mb-2 mt-4 flex items-center gap-2 text-xs font-semibold text-[#5f6b62]">{t('billing.paidWith')} {saving && <Loader2 className="size-3.5 animate-spin" />}</p>

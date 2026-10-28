@@ -4,13 +4,11 @@ import { requireRole } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import { getT } from '@/lib/i18n/server'
 import { Order, PAYMENT_METHODS } from '@/lib/models/order'
-import { releaseTableIfIdle } from '@/lib/orders'
-import { PAYMENT_HANDLERS } from '@/lib/permissions'
+import { MANAGERS } from '@/lib/permissions'
 
-// Cashier: one payment for several orders, e.g. everything a table ordered.
-// Orders already served (or ready) are completed too, which frees the table.
+// Manager: one payment for several orders, e.g. everything a table ordered.
 export async function POST(request: Request) {
-  const { error } = await requireRole(PAYMENT_HANDLERS)
+  const { error } = await requireRole(MANAGERS)
   if (error) return error
 
   const t = await getT()
@@ -25,10 +23,6 @@ export async function POST(request: Request) {
   const blocked = orders.find(o => o.status === 'Cancelled' || o.paymentStatus === 'Paid')
   if (blocked) return NextResponse.json({ error: t(blocked.status === 'Cancelled' ? 'billing.api.alreadyCancelled' : 'billing.api.alreadyPaid', { code: blocked.code }) }, { status: 409 })
 
-  const paidAt = new Date()
-  await Order.updateMany({ _id: { $in: ids } }, { $set: { paymentStatus: 'Paid', paymentMethod: body.paymentMethod, paidAt } })
-  if (body?.complete !== false) await Order.updateMany({ _id: { $in: ids }, status: { $in: ['Ready', 'Served'] } }, { $set: { status: 'Completed' } })
-  for (const table of new Set(orders.map(o => o.tableNumber))) await releaseTableIfIdle(table)
-
+  await Order.updateMany({ _id: { $in: ids } }, { $set: { paymentStatus: 'Paid', paymentMethod: body.paymentMethod, paidAt: new Date() } })
   return NextResponse.json({ orders: await Order.find({ _id: { $in: ids } }) })
 }

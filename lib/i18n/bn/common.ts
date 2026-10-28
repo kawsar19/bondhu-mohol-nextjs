@@ -19,7 +19,7 @@ export const common: Messages<typeof En> = {
   invalidRequest: 'অনুরোধটি সঠিক নয়',
   notSignedIn: 'লগইন করা নেই',
   roleNotAllowed: 'আপনার পদে এই কাজের অনুমতি নেই',
-  orderStatus: { Pending: 'অপেক্ষমাণ', Preparing: 'তৈরি হচ্ছে', Ready: 'রেডি', Served: 'পরিবেশিত', Completed: 'সম্পন্ন', Cancelled: 'বাতিল' },
+  orderStatus: { Completed: 'সম্পন্ন', Cancelled: 'বাতিল' },
   orderType: { 'Dine in': 'দোকানে খাবেন', Takeaway: 'নিয়ে যাবেন' },
   tableStatus: { Available: 'খালি', Occupied: 'ব্যস্ত', Reserved: 'সংরক্ষিত' },
   paymentStatus: { Paid: 'পরিশোধিত', Unpaid: 'বাকি' },

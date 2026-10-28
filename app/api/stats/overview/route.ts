@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
-import { OPEN_STATUSES, Order } from '@/lib/models/order'
-import { Table } from '@/lib/models/table'
+import { Expense } from '@/lib/models/expense'
+import { Order } from '@/lib/models/order'
+import { REPORT_VIEWERS } from '@/lib/permissions'
 import { DAY_MS, startOfBusinessDay } from '@/lib/time'
 
 type Totals = { orders: number; sales: number; unpaid: number }
@@ -17,9 +18,9 @@ async function totalsBetween(from: Date, to: Date): Promise<Totals> {
   return { orders: row?.orders ?? 0, sales: row?.sales ?? 0, unpaid: row?.unpaid ?? 0 }
 }
 
-// Admin: live numbers for the dashboard overview.
+// Admins, managers and partners: live numbers for the dashboard overview.
 export async function GET() {
-  const { error } = await requireAdmin()
+  const { error } = await requireRole(REPORT_VIEWERS)
   if (error) return error
 
   await connectDB()
@@ -27,12 +28,13 @@ export async function GET() {
   const today = startOfBusinessDay(now)
   const weekStart = new Date(today.getTime() - 6 * DAY_MS)
 
-  const [todayTotals, yesterdayTotals, openRows, recent, popular, tableRows] = await Promise.all([
+  const [todayTotals, yesterdayTotals, [spent], recent, popular] = await Promise.all([
     totalsBetween(today, now),
     // Compare with yesterday up to the same time of day, so mornings aren't measured against a full day.
     totalsBetween(new Date(today.getTime() - DAY_MS), new Date(now.getTime() - DAY_MS)),
-    Order.aggregate([{ $match: { status: { $in: OPEN_STATUSES } } }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
-    Order.find().sort({ createdAt: -1 }).limit(6).select('code type tableNumber customerName items total status source takenBy createdAt').lean(),
+    // Expenses are dated by day, not time, so today's are everything dated today.
+    Expense.aggregate([{ $match: { date: today } }, { $group: { _id: null, amount: { $sum: '$amount' }, count: { $sum: 1 } } }]),
+    Order.find().sort({ createdAt: -1 }).limit(6).select('code type tableNumber customerName items total status takenBy createdAt').lean(),
     Order.aggregate([
       { $match: { createdAt: { $gte: weekStart }, ...notCancelled } },
       { $unwind: '$items' },
@@ -41,18 +43,13 @@ export async function GET() {
       { $limit: 5 },
       { $lookup: { from: 'menuitems', localField: '_id', foreignField: '_id', as: 'menu' } },
     ]),
-    Table.aggregate([{ $match: { isActive: true } }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
   ])
-
-  const open = Object.fromEntries(OPEN_STATUSES.map(s => [s, openRows.find(r => r._id === s)?.count ?? 0]))
-  const tables = Object.fromEntries(['Available', 'Occupied', 'Reserved'].map(s => [s, tableRows.find(r => r._id === s)?.count ?? 0]))
 
   return NextResponse.json({
     today: todayTotals,
     yesterday: yesterdayTotals,
-    open,
-    tables,
-    recent: recent.map(o => ({ id: o._id.toString(), code: o.code, type: o.type, tableNumber: o.tableNumber ?? null, customerName: o.customerName ?? '', items: o.items.map(i => `${i.qty}× ${i.name}`).join(', '), total: o.total, status: o.status, source: o.source ?? 'Customer', takenBy: o.takenBy ?? '', createdAt: o.createdAt })),
+    expenses: { amount: spent?.amount ?? 0, count: spent?.count ?? 0 },
+    recent: recent.map(o => ({ id: o._id.toString(), code: o.code, type: o.type, tableNumber: o.tableNumber ?? null, customerName: o.customerName ?? '', items: o.items.map(i => `${i.qty}× ${i.name}`).join(', '), total: o.total, status: o.status, takenBy: o.takenBy ?? '', createdAt: o.createdAt })),
     popular: popular.map(p => ({ id: String(p._id), name: p.menu[0]?.name ?? p.name, image: p.menu[0]?.image ?? '', qty: p.qty, revenue: p.revenue })),
     updatedAt: now,
   })

@@ -1,6 +1,6 @@
 import { SHOP } from '@/lib/shop'
 
-// Install manifest for the staff dashboard only; the customer menu is not an app.
+// Install manifest for the staff dashboard.
 // Linked from app/admin/layout.tsx rather than app/manifest.ts, which would apply site-wide.
 export function GET() {
   return Response.json(
@@ -8,7 +8,7 @@ export function GET() {
       id: '/admin',
       name: `${SHOP.name} Admin`,
       short_name: SHOP.name,
-      description: 'Orders, kitchen, tables, menu and reports',
+      description: 'Orders, expenses, menu and reports',
       start_url: '/admin',
       scope: '/admin',
       display: 'standalone',
