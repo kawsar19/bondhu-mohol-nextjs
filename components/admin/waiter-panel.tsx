@@ -111,7 +111,7 @@ export function WaiterPanel() {
     {loadError && <p role="alert" className="mb-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{loadError}</p>}
 
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <section>
+      <section className="min-w-0">
         <div className="relative"><Search className="absolute left-3 top-3 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('waiter.searchPlaceholder')} aria-label={t('waiter.searchLabel')} className="h-10 w-full rounded-xl border border-[#e2e7e1] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#8eaf9b]" /></div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{categories.map(c => <button key={c} onClick={() => setCategory(c)} className={`h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${category === c ? 'bg-[#174d3c] text-white' : 'bg-white text-[#5f6b62] ring-1 ring-inset ring-[#e3e8e1]'}`}>{c === 'All' ? t('waiter.all') : c}</button>)}</div>
 

@@ -78,14 +78,14 @@ export function Overview({ onNavigate }: { onNavigate: (tab: string) => void }) 
     {header}
     {error && <p role="alert" className="mb-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{t('overview.refreshError', { error })}</p>}
 
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       <Metric icon={ClipboardList} label={t('overview.todaysOrders')} value={String(today.orders)} note={ordersCmp.text} tone={ordersCmp.tone} />
       <Metric icon={CircleDollarSign} label={t('overview.todaysSales')} value={taka(today.sales)} note={salesCmp.text} tone={salesCmp.tone} />
       <Metric icon={Clock3} label={t('overview.waitingForKitchen')} value={String(open.Pending)} note={t('overview.kitchenNote', { preparing: open.Preparing, ready: open.Ready })} tone={open.Pending > 0 ? 'warn' : 'muted'} onClick={() => onNavigate('Orders')} />
       <Metric icon={Wallet} label={t('overview.unpaidToday')} value={taka(today.unpaid)} note={today.unpaid > 0 ? t('overview.stillToCollect') : t('overview.allCollected')} tone={today.unpaid > 0 ? 'warn' : 'muted'} onClick={() => onNavigate('Orders')} />
     </section>
 
-    <div className="mt-7 grid gap-6 xl:grid-cols-[1.55fr_1fr]">
+    <div className="mt-7 grid grid-cols-1 gap-6 xl:grid-cols-[1.55fr_1fr]">
       <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between"><div><h3 className="font-serif text-lg font-bold">{t('overview.recentOrders')}</h3><p className="mt-0.5 text-xs text-[#87928a]">{t('overview.recentHint')}</p></div><button onClick={() => onNavigate('Orders')} className="text-xs font-semibold text-[#b86f3c] hover:underline">{t('overview.viewAllOrders')} <ArrowUpRight className="ml-1 inline size-3.5" /></button></div>
         {recent.length === 0 ? <div className="flex flex-col items-center py-10 text-center"><ClipboardList className="size-9 text-[#c7d1c7]" /><p className="mt-3 text-sm font-semibold">{t('overview.noOrdersYet')}</p><p className="mt-1 text-xs text-[#89938b]">{t('overview.noOrdersHint')}</p></div>
@@ -121,8 +121,8 @@ export function Overview({ onNavigate }: { onNavigate: (tab: string) => void }) 
 
 function Metric({ icon: Icon, label, value, note, tone, onClick }: { icon: typeof ClipboardList; label: string; value: string; note: string; tone: 'up' | 'down' | 'warn' | 'muted'; onClick?: () => void }) {
   const toneClass = { up: 'text-[#2f8a5b]', down: 'text-[#b4472c]', warn: 'text-[#c7773d]', muted: 'text-[#9aa39c]' }[tone]
-  const body = <><div className={`flex size-9 items-center justify-center rounded-xl ${tone === 'warn' ? 'bg-[#fff0df] text-[#c7773d]' : 'bg-[#eaf2eb] text-[#174d3c]'}`}><Icon className="size-[18px]" /></div><p className="mt-4 text-xs font-medium text-[#87928a]">{label}</p><p className="mt-1 font-serif text-2xl font-bold tracking-tight">{value}</p><p className={`mt-1 text-[11px] font-semibold ${toneClass}`}>{note}</p></>
+  const body = <><div className={`flex size-9 items-center justify-center rounded-xl ${tone === 'warn' ? 'bg-[#fff0df] text-[#c7773d]' : 'bg-[#eaf2eb] text-[#174d3c]'}`}><Icon className="size-[18px]" /></div><p className="mt-3 text-xs font-medium text-[#87928a] sm:mt-4">{label}</p><p className="mt-1 font-serif text-xl font-bold tracking-tight sm:text-2xl">{value}</p><p className={`mt-1 text-[11px] font-semibold ${toneClass}`}>{note}</p></>
   return onClick
-    ? <button onClick={onClick} className="rounded-2xl border border-[#e3e8e1] bg-white p-5 text-left transition hover:border-[#c9d6cb]">{body}</button>
-    : <div className="rounded-2xl border border-[#e3e8e1] bg-white p-5">{body}</div>
+    ? <button onClick={onClick} className="rounded-2xl border border-[#e3e8e1] bg-white p-4 text-left sm:p-5 transition hover:border-[#c9d6cb]">{body}</button>
+    : <div className="rounded-2xl border border-[#e3e8e1] bg-white p-4 sm:p-5">{body}</div>
 }

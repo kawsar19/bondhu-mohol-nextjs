@@ -142,6 +142,6 @@ function Ticket({ order, busy, action, onMove }: { order: KitchenOrder; busy: bo
 
     {action
       ? <button onClick={() => onMove(action.to)} disabled={busy} className={`mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl text-base font-bold text-white disabled:opacity-70 ${action.to === 'Ready' ? 'bg-teal-700 hover:bg-teal-800' : 'bg-[#174d3c] hover:bg-[#123f31]'}`}>{busy && <Loader2 className="size-5 animate-spin" />}{t(action.label)}</button>
-      : <div className="mt-4 flex items-center justify-between gap-2 rounded-xl bg-teal-50 px-3 py-2.5"><p className="text-xs font-semibold text-teal-800">{t('kitchen.waitingForWaiter')}</p><button onClick={() => onMove('Preparing')} disabled={busy} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-[#5f6b62] hover:bg-white disabled:opacity-60"><Undo2 className="size-3.5" /> {t('kitchen.undo')}</button></div>}
+      : <div className="mt-4 flex items-center justify-between gap-2 rounded-xl bg-teal-50 px-3 py-2.5"><p className="text-xs font-semibold text-teal-800">{t('kitchen.waitingForWaiter')}</p><button onClick={() => onMove('Preparing')} disabled={busy} className="flex min-h-9 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-[#5f6b62] hover:bg-white disabled:opacity-60"><Undo2 className="size-3.5" /> {t('kitchen.undo')}</button></div>}
   </article>
 }

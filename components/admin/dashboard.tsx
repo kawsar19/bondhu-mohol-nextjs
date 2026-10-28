@@ -205,7 +205,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b border-[#e6eae4] bg-[#f7f8f6]/95 px-5 backdrop-blur-md sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-[#89938b]">
+              <p className="truncate text-xs font-medium text-[#89938b]">
                 {now
                   ? now.toLocaleDateString(intlLocale, {
                       weekday: "long",
@@ -215,7 +215,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
                     })
                   : " "}
               </p>
-              <h1 className="truncate font-serif text-xl font-bold tracking-tight">
+              <h1 className="truncate font-serif text-lg font-bold tracking-tight sm:text-xl">
                 {now ? greeting(t, now.getHours()) : t("nav.hello")},{" "}
                 {user.name.split(" ")[0]}
                 <span className="text-[#c48545]">.</span>
@@ -237,7 +237,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
               onClick={logout}
               aria-label={t("nav.logOut")}
               title={t("nav.logOut")}
-              className="flex size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white text-[#68756b] hover:text-[#b4472c]"
+              className="hidden size-9 items-center justify-center rounded-full border border-[#e0e5df] bg-white text-[#68756b] hover:text-[#b4472c] sm:flex"
             >
               <LogOut className="size-4" />
             </button>
@@ -249,7 +249,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         onClick={() => setMobileNav((open) => !open)}
         aria-label={mobileNav ? t("nav.closeMenu") : t("nav.openMenu")}
         aria-expanded={mobileNav}
-        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-50 flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl lg:hidden"
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-[35] flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl lg:hidden"
       >
         {mobileNav ? <X className="size-6" /> : <PanelLeft className="size-6" />}
       </button>

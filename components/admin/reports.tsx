@@ -82,14 +82,14 @@ export function Reports() {
     {error && <p role="alert" className="mt-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p>}
 
     {!report || !t ? (loading && <div className="mt-10 flex justify-center text-[#87928a]"><Loader2 className="size-6 animate-spin" /></div>) : <div className={loading ? 'opacity-60 transition' : 'transition'}>
-      <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Tile icon={CircleDollarSign} label={tr('reports.sales')} value={taka(t.sales)} note={`${tr('reports.salesNote', { count: t.orders })}${t.orders ? tr('reports.avg', { amount: taka(Math.round(t.sales / t.orders)) }) : ''}`} />
         <Tile icon={ShoppingBasket} label={tr('reports.expenses')} value={taka(t.expenses)} note={tr('reports.entriesNote', { count: report.expensesByCategory.reduce((n, c) => n + c.count, 0) })} warm />
         <Tile icon={t.profit >= 0 ? TrendingUp : TrendingDown} label={t.profit >= 0 ? tr('reports.profit') : tr('reports.loss')} value={taka(t.profit)} note={tr('reports.profitNote')} tone={t.profit >= 0 ? 'good' : 'bad'} />
         <Tile icon={Wallet} label={tr('reports.unpaid')} value={taka(t.unpaid)} note={tr(t.cancelled === 1 ? 'reports.cancelledNoteOne' : 'reports.cancelledNoteMany', { count: t.cancelled })} warm={t.unpaid > 0} />
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_1fr]">
         <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6">
           <h3 className="font-serif text-lg font-bold">{multiDay ? tr('reports.dayByDay') : tr('reports.byOrderType')}</h3>
           {multiDay ? (report.daily.length === 0 ? <Empty text={tr('reports.noActivity')} /> : <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
@@ -97,7 +97,7 @@ export function Reports() {
             <tbody className="divide-y divide-[#f3f5f2]">{report.daily.map(d => <tr key={d.date}><td className="py-2.5 font-medium">{formatDay(d.date, locale)}</td><td className="py-2.5 text-right text-[#5f6b62]">{d.orders}</td><td className="py-2.5 text-right">{taka(d.sales)}</td><td className="py-2.5 text-right text-[#b4472c]">{d.expenses ? taka(d.expenses) : '–'}</td><td className={`py-2.5 text-right font-semibold ${d.profit < 0 ? 'text-[#b4472c]' : 'text-[#2f8a5b]'}`}>{taka(d.profit)}</td></tr>)}</tbody>
             <tfoot><tr className="border-t-2 border-[#e3e8e1] font-bold"><td className="py-2.5">{tr('common.total')}</td><td className="py-2.5 text-right">{t.orders}</td><td className="py-2.5 text-right">{taka(t.sales)}</td><td className="py-2.5 text-right text-[#b4472c]">{taka(t.expenses)}</td><td className={`py-2.5 text-right ${t.profit < 0 ? 'text-[#b4472c]' : 'text-[#2f8a5b]'}`}>{taka(t.profit)}</td></tr></tfoot>
           </table></div>)
-            : report.byType.length === 0 ? <Empty text={tr('reports.noSalesDay')} /> : <div className="mt-4 grid gap-3 sm:grid-cols-2">{report.byType.map(row => <div key={row.type} className="rounded-xl bg-[#f7f8f6] p-4"><p className="text-xs font-medium text-[#87928a]">{label(tr, row.type)}</p><p className="mt-1 font-serif text-xl font-bold">{taka(row.sales)}</p><p className="text-[11px] text-[#9aa39c]">{tr('reports.salesNote', { count: row.orders })}</p></div>)}</div>}
+            : report.byType.length === 0 ? <Empty text={tr('reports.noSalesDay')} /> : <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">{report.byType.map(row => <div key={row.type} className="rounded-xl bg-[#f7f8f6] p-4"><p className="text-xs font-medium text-[#87928a]">{label(tr, row.type)}</p><p className="mt-1 font-serif text-xl font-bold">{taka(row.sales)}</p><p className="text-[11px] text-[#9aa39c]">{tr('reports.salesNote', { count: row.orders })}</p></div>)}</div>}
         </section>
 
         <div className="flex flex-col gap-6">
@@ -148,5 +148,5 @@ function Empty({ text }: { text: string }) {
 
 function Tile({ icon: Icon, label, value, note, warm, tone }: { icon: typeof ClipboardList; label: string; value: string; note: string; warm?: boolean; tone?: 'good' | 'bad' }) {
   const valueColor = tone === 'good' ? 'text-[#2f8a5b]' : tone === 'bad' ? 'text-[#b4472c]' : ''
-  return <div className="rounded-2xl border border-[#e3e8e1] bg-white p-5"><div className={`flex size-9 items-center justify-center rounded-xl ${warm ? 'bg-[#fff0df] text-[#c7773d]' : 'bg-[#eaf2eb] text-[#174d3c]'}`}><Icon className="size-[18px]" /></div><p className="mt-4 text-xs font-medium text-[#87928a]">{label}</p><p className={`mt-1 font-serif text-2xl font-bold tracking-tight ${valueColor}`}>{value}</p><p className="mt-1 text-[11px] text-[#9aa39c]">{note}</p></div>
+  return <div className="rounded-2xl border border-[#e3e8e1] bg-white p-4 sm:p-5"><div className={`flex size-9 items-center justify-center rounded-xl ${warm ? 'bg-[#fff0df] text-[#c7773d]' : 'bg-[#eaf2eb] text-[#174d3c]'}`}><Icon className="size-[18px]" /></div><p className="mt-3 text-xs font-medium text-[#87928a] sm:mt-4">{label}</p><p className={`mt-1 font-serif text-xl font-bold tracking-tight sm:text-2xl ${valueColor}`}>{value}</p><p className="mt-1 text-[11px] text-[#9aa39c]">{note}</p></div>
 }
