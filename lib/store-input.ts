@@ -42,3 +42,30 @@ export function parsePurchaseInput(body: unknown, t: TFunction): Result {
     },
   }
 }
+
+export type TransferInput = { date: Date; section: string; items: { ingredient: string; quantity: number }[]; note: string }
+
+/** Validates one send from the mother store to a section, with one or more items. Stock is checked by the route. */
+export function parseTransferInput(body: unknown, t: TFunction): { data: TransferInput; error?: never } | { data?: never; error: string } {
+  if (!body || typeof body !== 'object') return { error: t('common.invalidRequest') }
+  const raw = body as Record<string, unknown>
+
+  const date = parseBusinessDate(raw.date)
+  if (!date) return { error: t('store.api.invalidDate') }
+  if (date.getTime() > Date.now()) return { error: t('store.api.futureDate') }
+
+  if (typeof raw.section !== 'string' || !isValidObjectId(raw.section)) return { error: t('store.api.chooseSection') }
+
+  if (!Array.isArray(raw.items) || raw.items.length === 0) return { error: t('store.api.noItems') }
+  if (raw.items.length > 50) return { error: t('store.api.tooManyItems', { max: 50 }) }
+  const items: TransferInput['items'] = []
+  for (const item of raw.items as Record<string, unknown>[]) {
+    if (!item || typeof item.ingredient !== 'string' || !isValidObjectId(item.ingredient)) return { error: t('store.api.chooseIngredient') }
+    const quantity = Number(item.quantity)
+    if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 100000) return { error: t('store.api.quantityPositive') }
+    if (items.some(i => i.ingredient === item.ingredient)) return { error: t('store.api.duplicateItem') }
+    items.push({ ingredient: item.ingredient, quantity: Math.round(quantity * 1000) / 1000 })
+  }
+
+  return { data: { date, section: raw.section, items, note: text(raw.note, 200) } }
+}

@@ -30,6 +30,7 @@ export const sections = {
     sortOrderInvalid: 'Order must be a whole number',
     isActiveInvalid: 'isActive must be true or false',
     inUseOne: '{count} menu item is in "{name}". Move it to another section or close this one instead.',
+    hasStock: '"{name}" has kitchen stock entries. Close it instead.',
     inUseMany: '{count} menu items are in "{name}". Move them to another section or close this one instead.',
   },
 }

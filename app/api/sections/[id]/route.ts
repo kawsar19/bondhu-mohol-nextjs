@@ -6,6 +6,7 @@ import { getT } from '@/lib/i18n/server'
 import { parseSectionInput } from '@/lib/kitchen-input'
 import { MenuItem } from '@/lib/models/menu-item'
 import { Section } from '@/lib/models/section'
+import { StockMovement } from '@/lib/models/stock-movement'
 import { isDuplicateKeyError } from '@/lib/table-input'
 
 type Context = { params: Promise<{ id: string }> }
@@ -48,6 +49,7 @@ export async function DELETE(_request: Request, { params }: Context) {
   // Menu items point at the section, so it can only be closed while any use it.
   const used = await MenuItem.countDocuments({ section: section._id })
   if (used > 0) return NextResponse.json({ error: (await getT())(used === 1 ? 'sections.api.inUseOne' : 'sections.api.inUseMany', { count: used, name: section.name }) }, { status: 409 })
+  if (await StockMovement.exists({ section: section._id })) return NextResponse.json({ error: (await getT())('sections.api.hasStock', { name: section.name }) }, { status: 409 })
   await section.deleteOne()
   return NextResponse.json({ ok: true })
 }

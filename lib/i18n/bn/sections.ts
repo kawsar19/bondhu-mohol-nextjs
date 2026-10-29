@@ -32,6 +32,7 @@ export const sections: Messages<typeof En> = {
     sortOrderInvalid: 'ক্রম অবশ্যই পূর্ণ সংখ্যা হতে হবে',
     isActiveInvalid: 'isActive অবশ্যই true বা false হতে হবে',
     inUseOne: '"{name}" এ {count}টি মেনু আইটেম আছে। সেটা অন্য সেকশনে সরান, অথবা এটা বন্ধ করুন।',
+    hasStock: '"{name}"-এ কিচেন স্টকের এন্ট্রি আছে। ডিলিট না করে বন্ধ করে দিন।',
     inUseMany: '"{name}" এ {count}টি মেনু আইটেম আছে। সেগুলো অন্য সেকশনে সরান, অথবা এটা বন্ধ করুন।',
   },
 }
