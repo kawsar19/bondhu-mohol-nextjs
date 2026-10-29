@@ -69,3 +69,22 @@ export function parseTransferInput(body: unknown, t: TFunction): { data: Transfe
 
   return { data: { date, section: raw.section, items, note: text(raw.note, 200) } }
 }
+
+export type CountInput = { items: { ingredient: string; counted: number }[]; note: string }
+
+/** Validates a hand count of the mother store: what was actually found for one or more ingredients. */
+export function parseCountInput(body: unknown, t: TFunction): { data: CountInput; error?: never } | { data?: never; error: string } {
+  if (!body || typeof body !== 'object') return { error: t('common.invalidRequest') }
+  const raw = body as Record<string, unknown>
+  if (!Array.isArray(raw.items) || raw.items.length === 0) return { error: t('store.api.noItems') }
+  if (raw.items.length > 200) return { error: t('store.api.tooManyItems', { max: 200 }) }
+  const items: CountInput['items'] = []
+  for (const item of raw.items as Record<string, unknown>[]) {
+    if (!item || typeof item.ingredient !== 'string' || !isValidObjectId(item.ingredient)) return { error: t('store.api.chooseIngredient') }
+    const counted = Number(item.counted)
+    if (item.counted === '' || item.counted === null || !Number.isFinite(counted) || counted < 0 || counted > 100000) return { error: t('store.api.countInvalid') }
+    if (items.some(i => i.ingredient === item.ingredient)) return { error: t('store.api.duplicateItem') }
+    items.push({ ingredient: item.ingredient, counted: Math.round(counted * 1000) / 1000 })
+  }
+  return { data: { items, note: text(raw.note, 200) } }
+}

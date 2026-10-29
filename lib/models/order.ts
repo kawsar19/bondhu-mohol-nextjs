@@ -15,6 +15,9 @@ const orderItemSchema = new Schema(
     // Price at the time of ordering, so later menu price changes don't rewrite history.
     price: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1 },
+    // Section that made it, at the time of ordering, so moving a menu item later doesn't move its old sales.
+    // Unset on orders from before this was recorded; reports fall back to the item's current section.
+    section: { type: Schema.Types.ObjectId, ref: 'Section', default: null },
   },
   { _id: false },
 )

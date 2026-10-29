@@ -15,11 +15,11 @@ async function nextOrderCode() {
   return `BM-${1000 + counter.seq}`
 }
 
-type PricedItem = { menuItem: Types.ObjectId; name: string; price: number; qty: number }
+type PricedItem = { menuItem: Types.ObjectId; name: string; price: number; qty: number; section?: Types.ObjectId | null }
 
 /**
  * Turns [{ id, qty }] into priced order lines. Lines already on the order (`existing`) keep the
- * name and price they were ordered at; anything new is priced from the menu and must be available.
+ * name, price and section they were ordered at; anything new is priced from the menu and must be available.
  */
 export async function priceItems(rawItems: unknown, existing: PricedItem[] = []): Promise<PricedItem[]> {
   const t = await getT()
@@ -36,11 +36,11 @@ export async function priceItems(rawItems: unknown, existing: PricedItem[] = [])
   const newIds = [...wanted.keys()].filter(id => !kept.has(id))
   const menuItems = newIds.length ? await MenuItem.find({ _id: { $in: newIds }, isAvailable: true }).lean() : []
   if (menuItems.length !== newIds.length) throw new OrderInputError(t('orders.server.unavailableItems'))
-  const fresh = new Map(menuItems.map(m => [m._id.toString(), { menuItem: m._id, name: m.name, price: m.price }]))
+  const fresh = new Map(menuItems.map(m => [m._id.toString(), { menuItem: m._id, name: m.name, price: m.price, section: m.section ?? null }]))
 
   return [...wanted.entries()].map(([id, qty]) => {
     const base = kept.get(id) ?? fresh.get(id)!
-    return { menuItem: base.menuItem, name: base.name, price: base.price, qty }
+    return { menuItem: base.menuItem, name: base.name, price: base.price, section: base.section ?? null, qty }
   })
 }
 

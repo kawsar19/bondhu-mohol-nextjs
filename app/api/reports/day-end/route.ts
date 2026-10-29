@@ -30,12 +30,12 @@ export async function GET(request: Request) {
   const [[totals], byPayment, bySection, [expenses], uses, days, sections, ingredients, mother, kitchens] = await Promise.all([
     Order.aggregate([{ $match: sold }, { $group: { _id: null, orders: { $sum: 1 }, sales: { $sum: '$total' }, unpaid: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Unpaid'] }, '$total', 0] } } } }]),
     Order.aggregate([{ $match: { ...sold, paymentStatus: 'Paid' } }, { $group: { _id: '$paymentMethod', amount: { $sum: '$total' } } }, { $sort: { amount: -1 } }]),
-    // Orders don't record a section, so each line goes to the section its menu item is in now.
+    // Each line goes to the section recorded when it was ordered; older orders have none, so they use the item's current section.
     Order.aggregate([
       { $match: sold },
       { $unwind: '$items' },
       { $lookup: { from: 'menuitems', localField: 'items.menuItem', foreignField: '_id', as: 'menu', pipeline: [{ $project: { section: 1 } }] } },
-      { $group: { _id: { $ifNull: [{ $first: '$menu.section' }, null] }, sales: { $sum: { $multiply: ['$items.price', '$items.qty'] } }, qty: { $sum: '$items.qty' } } },
+      { $group: { _id: { $ifNull: ['$items.section', { $first: '$menu.section' }, null] }, sales: { $sum: { $multiply: ['$items.price', '$items.qty'] } }, qty: { $sum: '$items.qty' } } },
     ]),
     Expense.aggregate([{ $match: { date: start } }, { $group: { _id: null, amount: { $sum: '$amount' }, bazar: { $sum: { $cond: [{ $ne: [{ $ifNull: ['$purchase', null] }, null] }, '$amount', 0] } } } }]),
     StockMovement.aggregate([{ $match: { type: 'use', date: start } }, { $group: { _id: { section: '$section', ingredient: '$ingredient' }, quantity: { $sum: '$quantity' } } }]),
