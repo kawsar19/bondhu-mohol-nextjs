@@ -10,6 +10,7 @@ import { ExpenseCategory } from '@/lib/models/expense-category'
 type Context = { params: Promise<{ id: string }> }
 
 const notFound = async () => NextResponse.json({ error: (await getT())('expenses.errors.notFound') }, { status: 404 })
+const storeOwned = async () => NextResponse.json({ error: (await getT())('expenses.errors.fromStore') }, { status: 409 })
 
 export async function PATCH(request: Request, { params }: Context) {
   const { error } = await requireAdmin()
@@ -23,7 +24,9 @@ export async function PATCH(request: Request, { params }: Context) {
 
   await connectDB()
   if (parsed.data.category && !(await ExpenseCategory.exists({ name: parsed.data.category }))) return NextResponse.json({ error: t('expenses.errors.categoryGone') }, { status: 400 })
-  const expense = await Expense.findByIdAndUpdate(id, parsed.data, { new: true, runValidators: true })
+  // Purchase expenses only change with their mother store entry, so the stock and money agree.
+  const expense = await Expense.findOneAndUpdate({ _id: id, purchase: null }, parsed.data, { new: true, runValidators: true })
+  if (!expense && (await Expense.exists({ _id: id }))) return storeOwned()
   return expense ? NextResponse.json({ expense }) : notFound()
 }
 
@@ -34,6 +37,7 @@ export async function DELETE(_request: Request, { params }: Context) {
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const expense = await Expense.findByIdAndDelete(id)
+  const expense = await Expense.findOneAndDelete({ _id: id, purchase: null })
+  if (!expense && (await Expense.exists({ _id: id }))) return storeOwned()
   return expense ? NextResponse.json({ ok: true }) : notFound()
 }

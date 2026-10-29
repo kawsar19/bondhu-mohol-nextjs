@@ -30,5 +30,6 @@ export const ingredients: Messages<typeof En> = {
     exists: '"{name}" নামে একটা কাঁচামাল আগেই আছে',
     unitInvalid: 'একক বেছে নিন: কেজি, লিটার, পিস বা প্যাকেট',
     isActiveInvalid: 'isActive অবশ্যই true বা false হতে হবে',
+    inUse: 'এই কাঁচামালের স্টক এন্ট্রি আছে। ডিলিট না করে লুকিয়ে রাখুন।',
   },
 }

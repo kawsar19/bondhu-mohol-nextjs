@@ -24,6 +24,8 @@ export const expenses: Messages<typeof En> = {
   noMatch: 'কিছু মেলেনি।',
   clearFilters: 'ফিল্টার মুছুন',
   addedBy: 'লিখেছেন {name}',
+  fromStore: 'মাদার স্টোর',
+  fromStoreHint: 'মাদার স্টোরের বাজার থেকে এসেছে। বদলাতে বা মুছতে মাদার স্টোরে যান।',
   editExpense: 'খরচ এডিট',
   newExpense: 'নতুন খরচ',
   whatBought: 'কী কিনলেন?',
@@ -87,6 +89,7 @@ export const expenses: Messages<typeof En> = {
     amountRequired: 'টাকার পরিমাণ দিন',
     nameRequired: 'ক্যাটাগরির একটা নাম দিন',
     isHiddenBoolean: 'isHidden true বা false হতে হবে',
+    fromStore: 'এটা মাদার স্টোরের বাজার থেকে এসেছে। বদলাতে বা মুছতে মাদার স্টোরে যান।',
   },
   fields: { category: 'ক্যাটাগরি', item: 'জিনিস', quantity: 'পরিমাণ', paidTo: 'দোকান', note: 'নোট', name: 'নাম', hint: 'বিবরণ' },
 }

@@ -14,6 +14,8 @@ const expenseSchema = new Schema(
     paidTo: { type: String, trim: true, default: '', maxlength: 60 },
     note: { type: String, trim: true, default: '', maxlength: 200 },
     addedBy: { type: String, trim: true, default: '' },
+    // Set when this was written by a mother store purchase; it is edited and deleted from there.
+    purchase: { type: Schema.Types.ObjectId, ref: 'StockMovement', default: null },
   },
   { timestamps: true },
 )

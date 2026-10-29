@@ -6,6 +6,8 @@ export type Role = (typeof USER_ROLES)[number]
 export const MANAGERS: readonly Role[] = ['admin', 'manager']
 // Partners own the shop: they read every report but leave day-to-day entry to the manager.
 export const REPORT_VIEWERS: readonly Role[] = ['admin', 'manager', 'partner']
+// Partners often do the bazar themselves, so they may write mother store purchases too.
+export const STORE_KEEPERS: readonly Role[] = ['admin', 'manager', 'partner']
 
 // Dashboard sections each role can open, keyed by nav label.
 const SECTION_ACCESS: Record<string, readonly Role[]> = {
@@ -16,6 +18,7 @@ const SECTION_ACCESS: Record<string, readonly Role[]> = {
   Menu: MANAGERS,
   Sections: MANAGERS,
   Ingredients: MANAGERS,
+  'Mother store': STORE_KEEPERS,
   Reports: REPORT_VIEWERS,
   Expenses: MANAGERS,
   Staff: ['admin'],

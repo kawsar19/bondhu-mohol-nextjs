@@ -22,6 +22,8 @@ export const expenses = {
   noMatch: 'Nothing matches.',
   clearFilters: 'Clear filters',
   addedBy: 'by {name}',
+  fromStore: 'Mother store',
+  fromStoreHint: 'Entered as a mother store purchase. Change or delete it from Mother store.',
   // Expense form
   editExpense: 'Edit expense',
   newExpense: 'New expense',
@@ -88,6 +90,7 @@ export const expenses = {
     amountRequired: 'Amount is required',
     nameRequired: 'Give the category a name',
     isHiddenBoolean: 'isHidden must be true or false',
+    fromStore: 'This came from a mother store purchase. Change or delete it from Mother store.',
   },
   // Field names used inside the errors above.
   fields: { category: 'Category', item: 'Item', quantity: 'Quantity', paidTo: 'Paid to', note: 'Note', name: 'Name', hint: 'Hint' },

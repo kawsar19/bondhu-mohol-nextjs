@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db'
 import { getT } from '@/lib/i18n/server'
 import { parseIngredientInput } from '@/lib/kitchen-input'
 import { Ingredient } from '@/lib/models/ingredient'
+import { StockMovement } from '@/lib/models/stock-movement'
 import { isDuplicateKeyError } from '@/lib/table-input'
 
 type Context = { params: Promise<{ id: string }> }
@@ -31,7 +32,7 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 }
 
-// Stock entries don't exist yet; once they do, an ingredient that has any must be hidden instead.
+// An ingredient with stock entries keeps its history, so it must be hidden instead.
 export async function DELETE(_request: Request, { params }: Context) {
   const { error } = await requireAdmin()
   if (error) return error
@@ -39,6 +40,7 @@ export async function DELETE(_request: Request, { params }: Context) {
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
+  if (await StockMovement.exists({ ingredient: id })) return NextResponse.json({ error: (await getT())('ingredients.api.inUse') }, { status: 409 })
   const ingredient = await Ingredient.findByIdAndDelete(id)
   return ingredient ? NextResponse.json({ ok: true }) : notFound()
 }

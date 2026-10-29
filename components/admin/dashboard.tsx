@@ -16,6 +16,7 @@ import {
   ShoppingBasket,
   UserCog,
   Utensils,
+  Warehouse,
   X,
 } from "lucide-react";
 import { useIntlLocale, useT } from "@/components/i18n-provider";
@@ -31,6 +32,7 @@ import { Overview } from "./overview";
 import { Reports } from "./reports";
 import { SectionsManager } from "./sections-manager";
 import { StaffManager } from "./staff-manager";
+import { StoreManager } from "./store-manager";
 import { TablesManager } from "./tables-manager";
 
 export type AdminUser = { id: string; name: string; email: string; role: string };
@@ -43,6 +45,7 @@ const navItems: NavItem[] = [
   { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
   { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
   { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
+  { label: "Mother store", key: "nav.sections.Mother store", icon: Warehouse },
 ];
 const secondaryItems: NavItem[] = [
   { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
@@ -121,6 +124,8 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <Reports />
     ) : active === "Expenses" ? (
       <ExpensesManager />
+    ) : active === "Mother store" ? (
+      <StoreManager />
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
     ) : (

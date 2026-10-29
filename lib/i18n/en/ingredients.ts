@@ -28,5 +28,6 @@ export const ingredients = {
     exists: 'An ingredient named "{name}" already exists',
     unitInvalid: 'Choose a unit: kg, litre, piece or packet',
     isActiveInvalid: 'isActive must be true or false',
+    inUse: 'This ingredient has stock entries. Hide it instead.',
   },
 }

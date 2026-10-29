@@ -10,7 +10,8 @@ export async function GET() {
   if (error) return error
 
   await connectDB()
-  const since = { date: { $gte: new Date(Date.now() - 90 * DAY_MS) } }
+  // Mother store purchases are entered from there, so they aren't offered here.
+  const since = { date: { $gte: new Date(Date.now() - 90 * DAY_MS) }, purchase: null }
   const [items, vendors] = await Promise.all([
     Expense.aggregate([
       { $match: since },

@@ -7,7 +7,7 @@ import type { MessageKey, TFunction } from '@/lib/i18n'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
 import { addDays, DateRangePicker, describeRange, formatDay, PRESETS, type DateRange } from './date-range-picker'
 
-type Expense = { _id: string; date: string; category: string; item: string; quantity: string; amount: number; paidTo: string; note: string; addedBy: string }
+type Expense = { _id: string; date: string; category: string; item: string; quantity: string; amount: number; paidTo: string; note: string; addedBy: string; purchase?: string | null }
 type Category = { _id: string; name: string; hint: string; isHidden: boolean; count: number }
 type Suggestion = { item: string; category: string; quantity: string; amount: number; paidTo: string; count: number }
 type Suggestions = { items: Suggestion[]; vendors: string[] }
@@ -118,10 +118,10 @@ export function ExpensesManager() {
       : visible.length === 0 ? <p className="mt-8 text-center text-sm text-[#89938b]">{t('expenses.noMatch')} <button onClick={() => { setSearch(''); setCategoryFilter(null) }} className="font-semibold text-[#174d3c] underline">{t('expenses.clearFilters')}</button></p>
       : <div className="mt-5 flex flex-col gap-5">{byDay.map(([day, items]) => <section key={day} className="overflow-hidden rounded-2xl border border-[#e3e8e1] bg-white">
         <div className="flex items-center justify-between border-b border-[#eef1ed] bg-[#fafbf9] px-5 py-3"><h3 className="text-sm font-semibold">{formatDay(day, locale, true)}</h3><span className="text-sm font-bold text-[#b4472c]">{taka(items.reduce((sum, e) => sum + e.amount, 0))}</span></div>
-        <ul className="divide-y divide-[#f0f2ef]">{items.map(e => <li key={e._id}><button onClick={() => setEditing(e)} className="group flex w-full items-start gap-3 px-5 py-3 text-left hover:bg-[#fafbf9]">
-          <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{e.item}{e.quantity && <span className="ml-1.5 font-normal text-[#68756b]">· {e.quantity}</span>}</p><p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#89938b]"><span className="rounded-full bg-[#f3efe6] px-2 py-0.5 font-semibold text-[#8a5a24]">{e.category}</span>{e.paidTo && <span>{e.paidTo}</span>}{e.addedBy && <span>{t('expenses.addedBy', { name: e.addedBy })}</span>}</p>{e.note && <p className="mt-1 text-xs text-[#68756b]">{e.note}</p>}</div>
+        <ul className="divide-y divide-[#f0f2ef]">{items.map(e => <li key={e._id}><button onClick={() => !e.purchase && setEditing(e)} title={e.purchase ? t('expenses.fromStoreHint') : undefined} className={`group flex w-full items-start gap-3 px-5 py-3 text-left ${e.purchase ? 'cursor-default' : 'hover:bg-[#fafbf9]'}`}>
+          <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{e.item}{e.quantity && <span className="ml-1.5 font-normal text-[#68756b]">· {e.quantity}</span>}</p><p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#89938b]"><span className="rounded-full bg-[#f3efe6] px-2 py-0.5 font-semibold text-[#8a5a24]">{e.category}</span>{e.purchase && <span className="rounded-full bg-[#eaf2eb] px-2 py-0.5 font-semibold text-[#174d3c]">{t('expenses.fromStore')}</span>}{e.paidTo && <span>{e.paidTo}</span>}{e.addedBy && <span>{t('expenses.addedBy', { name: e.addedBy })}</span>}</p>{e.note && <p className="mt-1 text-xs text-[#68756b]">{e.note}</p>}</div>
           <span className="shrink-0 text-sm font-bold">{taka(e.amount)}</span>
-          <Pencil className="mt-0.5 size-3.5 shrink-0 text-[#b5bdb6] opacity-0 transition group-hover:opacity-100" aria-hidden />
+          {!e.purchase && <Pencil className="mt-0.5 size-3.5 shrink-0 text-[#b5bdb6] opacity-0 transition group-hover:opacity-100" aria-hidden />}
         </button></li>)}</ul>
       </section>)}</div>}
 

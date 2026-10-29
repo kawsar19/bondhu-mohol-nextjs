@@ -10,6 +10,7 @@ export const nav: Messages<typeof En> = {
     Menu: 'মেনু',
     Sections: 'সেকশন',
     Ingredients: 'কাঁচামাল',
+    'Mother store': 'মাদার স্টোর',
     Reports: 'রিপোর্ট',
     Expenses: 'খরচ',
     Staff: 'স্টাফ',
