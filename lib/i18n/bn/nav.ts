@@ -11,6 +11,7 @@ export const nav: Messages<typeof En> = {
     Sections: 'সেকশন',
     Ingredients: 'কাঁচামাল',
     'Mother store': 'মাদার স্টোর',
+    'Daily entry': 'দৈনিক হিসাব',
     Reports: 'রিপোর্ট',
     Expenses: 'খরচ',
     Staff: 'স্টাফ',

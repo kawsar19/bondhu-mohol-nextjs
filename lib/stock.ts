@@ -1,6 +1,7 @@
 import 'server-only'
 import { Types } from 'mongoose'
 import { StockMovement } from './models/stock-movement'
+import { DAY_MS } from './time'
 
 // Movements that change the mother store, and by how much: purchases and hand counts there add
 // (an adjust is already signed), transfers out to a section take away.
@@ -47,4 +48,28 @@ export async function sectionStock(filter?: { section: Types.ObjectId | string; 
     bySection.get(section)!.set(String(r._id.ingredient), Math.round(r.stock * 1000) / 1000)
   }
   return bySection
+}
+
+export type DayBalance = { opening: number; received: number; available: number }
+
+/**
+ * Per ingredient, a section's stock for one day before its daily entry: what was left from earlier days,
+ * what was sent in that day, and what there should be at the end of it before any use is taken off.
+ * The day's own entry is left out, so saving it again starts from the same numbers.
+ */
+export async function sectionDayBalances(section: Types.ObjectId | string, day: Date, exclude?: Types.ObjectId | null) {
+  const end = new Date(day.getTime() + DAY_MS)
+  const rows: { _id: Types.ObjectId; opening: number; received: number; available: number }[] = await StockMovement.aggregate([
+    { $match: { section: new Types.ObjectId(String(section)), date: { $lt: end }, type: { $in: ['transfer', 'use', 'adjust'] }, ...(exclude ? { sectionDay: { $ne: exclude } } : {}) } },
+    {
+      $group: {
+        _id: '$ingredient',
+        opening: { $sum: { $cond: [{ $lt: ['$date', day] }, SECTION_DELTA, 0] } },
+        received: { $sum: { $cond: [{ $and: [{ $gte: ['$date', day] }, { $eq: ['$type', 'transfer'] }] }, '$quantity', 0] } },
+        available: { $sum: SECTION_DELTA },
+      },
+    },
+  ])
+  const round = (n: number) => Math.round(n * 1000) / 1000
+  return new Map<string, DayBalance>(rows.map(r => [String(r._id), { opening: round(r.opening), received: round(r.received), available: round(r.available) }]))
 }

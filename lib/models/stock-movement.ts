@@ -21,6 +21,8 @@ const stockMovementSchema = new Schema(
     // Purchases only: total taka paid, and the expense entry made for it.
     cost: { type: Number, min: 0, default: 0 },
     expense: { type: Schema.Types.ObjectId, ref: 'Expense', default: null },
+    // Use and hand-count lines written by a section's daily entry; replaced when that entry is saved again.
+    sectionDay: { type: Schema.Types.ObjectId, ref: 'SectionDay', default: null },
     paidTo: { type: String, trim: true, default: '', maxlength: 60 },
     note: { type: String, trim: true, default: '', maxlength: 200 },
     addedBy: { type: String, trim: true, default: '' },
@@ -30,6 +32,7 @@ const stockMovementSchema = new Schema(
 
 stockMovementSchema.index({ type: 1, date: -1 })
 stockMovementSchema.index({ ingredient: 1, section: 1 })
+stockMovementSchema.index({ sectionDay: 1 }, { partialFilterExpression: { sectionDay: { $type: 'objectId' } } })
 
 export type StockMovementDoc = InferSchemaType<typeof stockMovementSchema>
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ChartColumn,
   ChefHat,
+  ClipboardCheck,
   ClipboardList,
   Grid2X2,
   LayoutDashboard,
@@ -30,6 +31,7 @@ import { OrderEntry } from "./order-entry";
 import { OrdersManager } from "./orders-manager";
 import { Overview } from "./overview";
 import { Reports } from "./reports";
+import { SectionDayEntry } from "./section-day-entry";
 import { SectionsManager } from "./sections-manager";
 import { StaffManager } from "./staff-manager";
 import { StoreManager } from "./store-manager";
@@ -46,6 +48,7 @@ const navItems: NavItem[] = [
   { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
   { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
   { label: "Mother store", key: "nav.sections.Mother store", icon: Warehouse },
+  { label: "Daily entry", key: "nav.sections.Daily entry", icon: ClipboardCheck },
 ];
 const secondaryItems: NavItem[] = [
   { label: "Menu", key: "nav.sections.Menu", icon: Utensils },
@@ -126,6 +129,8 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <ExpensesManager />
     ) : active === "Mother store" ? (
       <StoreManager />
+    ) : active === "Daily entry" ? (
+      <SectionDayEntry />
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
     ) : (

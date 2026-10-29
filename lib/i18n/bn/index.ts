@@ -12,8 +12,9 @@ import { menu } from './menu'
 import { sections } from './sections'
 import { ingredients } from './ingredients'
 import { store } from './store'
+import { daily } from './daily'
 import { reports } from './reports'
 import { expenses } from './expenses'
 import { dates } from './dates'
 
-export const bn: Dictionary = { common, auth, nav, overview, staff, orders, entry, billing, tables, menu, sections, ingredients, store, reports, expenses, dates }
+export const bn: Dictionary = { common, auth, nav, overview, staff, orders, entry, billing, tables, menu, sections, ingredients, store, daily, reports, expenses, dates }
