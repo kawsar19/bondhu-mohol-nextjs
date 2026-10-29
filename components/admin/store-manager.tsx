@@ -30,9 +30,14 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 
 const errorText = (err: unknown, t: TFunction, fallback: MessageKey) => err instanceof Error ? err.message || t('common.somethingWentWrong') : t(fallback)
 
-export function StoreManager() {
+type Tab = 'stock' | 'purchases' | 'transfers' | 'counts'
+// Everything that moves stock in or out of the mother store is done from its page; the kitchen store page only shows each section's stock.
+const TABS: Record<'mother' | 'kitchen', Tab[]> = { mother: ['stock', 'purchases', 'transfers', 'counts'], kitchen: ['stock'] }
+
+export function StoreManager({ view }: { view: 'mother' | 'kitchen' }) {
   const t = useT()
-  const [tab, setTab] = useState<'stock' | 'purchases' | 'transfers' | 'counts'>('stock')
+  const kitchen = view === 'kitchen'
+  const [tab, setTab] = useState<Tab>('stock')
   const [items, setItems] = useState<StockItem[]>([])
   const [sections, setSections] = useState<SectionInfo[]>([])
   const [categories, setCategories] = useState<string[]>([])
@@ -69,16 +74,16 @@ export function StoreManager() {
   const tabClass = (on: boolean) => `h-10 rounded-lg px-4 text-sm font-semibold transition ${on ? 'bg-white text-[#174d3c] shadow-sm' : 'text-[#7d897f] hover:text-[#174d3c]'}`
 
   return <div className="pb-20 sm:pb-0">
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">{t('store.eyebrow')}</p><h2 className="font-serif text-3xl font-bold tracking-tight">{t('store.title')}</h2><p className="mt-1 max-w-xl text-xs text-[#89938b]">{t('store.subtitle')}</p></div><div className="flex gap-2"><button onClick={changed} aria-label={t('store.refresh')} className="flex size-10 items-center justify-center rounded-xl border border-[#e0e5df] bg-white text-[#68756b] hover:bg-[#f5f7f4]"><RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} /></button><button onClick={() => setCounting(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl border border-[#e0e5df] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#5f6b62] hover:bg-[#f5f7f4] disabled:opacity-50 sm:flex"><ClipboardCheck className="size-4" /> {t('store.countStock')}</button><button onClick={() => setSending(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl border border-[#e0e5df] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#5f6b62] hover:bg-[#f5f7f4] disabled:opacity-50 sm:flex"><Send className="size-4" /> {t('store.sendToSection')}</button><button onClick={() => setAdding(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl bg-[#174d3c] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#123f31] disabled:opacity-50 sm:flex"><Plus className="size-4" /> {t('store.addPurchase')}</button></div></div>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[.17em] text-[#bc7843]">{t(kitchen ? 'store.kitchen.eyebrow' : 'store.eyebrow')}</p><h2 className="font-serif text-3xl font-bold tracking-tight">{t(kitchen ? 'store.kitchen.title' : 'store.title')}</h2><p className="mt-1 max-w-xl text-xs text-[#89938b]">{t(kitchen ? 'store.kitchen.subtitle' : 'store.subtitle')}</p></div><div className="flex gap-2"><button onClick={changed} aria-label={t('store.refresh')} className="flex size-10 items-center justify-center rounded-xl border border-[#e0e5df] bg-white text-[#68756b] hover:bg-[#f5f7f4]"><RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} /></button>{!kitchen && <><button onClick={() => setCounting(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl border border-[#e0e5df] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#5f6b62] hover:bg-[#f5f7f4] disabled:opacity-50 sm:flex"><ClipboardCheck className="size-4" /> {t('store.countStock')}</button><button onClick={() => setSending(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl border border-[#e0e5df] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#5f6b62] hover:bg-[#f5f7f4] disabled:opacity-50 sm:flex"><Send className="size-4" /> {t('store.sendToSection')}</button><button onClick={() => setAdding(true)} disabled={items.length === 0} className="hidden items-center gap-2 rounded-xl bg-[#174d3c] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#123f31] disabled:opacity-50 sm:flex"><Plus className="size-4" /> {t('store.addPurchase')}</button></>}</div></div>
 
-    <div role="tablist" className="inline-flex max-w-full overflow-x-auto rounded-xl bg-[#eef1ed] p-1">{(['stock', 'purchases', 'transfers', 'counts'] as const).map(id => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={tabClass(tab === id)}>{t(`store.tabs.${id}`)}</button>)}</div>
+    {TABS[view].length > 1 && <div role="tablist" className="inline-flex max-w-full overflow-x-auto rounded-xl bg-[#eef1ed] p-1">{TABS[view].map(id => <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={tabClass(tab === id)}>{t(`store.tabs.${id}`)}</button>)}</div>}
 
     {error && <p role="alert" className="mt-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p>}
 
-    {tab === 'stock' ? <StockList items={items} sections={sections} loading={loading} /> : tab === 'purchases' ? <PurchaseList version={version} onDeleted={changed} /> : tab === 'transfers' ? <TransferList version={version} onDeleted={changed} /> : <CountList version={version} onDeleted={changed} />}
+    {tab === 'stock' ? <StockList view={view} items={items} sections={sections} loading={loading} /> : tab === 'purchases' ? <PurchaseList version={version} onDeleted={changed} /> : tab === 'transfers' ? <TransferList version={version} onDeleted={changed} /> : <CountList version={version} onDeleted={changed} />}
 
     {/* On phones the round button does what the open tab is about. */}
-    {items.length > 0 && <button onClick={() => (tab === 'transfers' ? setSending(true) : tab === 'counts' ? setCounting(true) : setAdding(true))} aria-label={tab === 'transfers' ? t('store.sendToSection') : tab === 'counts' ? t('store.countStock') : t('store.addPurchase')} className="fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom))+4.5rem)] right-4 z-30 flex size-14 items-center justify-center rounded-full bg-[#c48545] text-white shadow-xl sm:hidden">{tab === 'transfers' ? <Send className="size-6" /> : tab === 'counts' ? <ClipboardCheck className="size-6" /> : <Plus className="size-6" />}</button>}
+    {!kitchen && items.length > 0 && <button onClick={() => (tab === 'transfers' ? setSending(true) : tab === 'counts' ? setCounting(true) : setAdding(true))} aria-label={tab === 'transfers' ? t('store.sendToSection') : tab === 'counts' ? t('store.countStock') : t('store.addPurchase')} className="fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom))+4.5rem)] right-4 z-30 flex size-14 items-center justify-center rounded-full bg-[#c48545] text-white shadow-xl sm:hidden">{tab === 'transfers' ? <Send className="size-6" /> : tab === 'counts' ? <ClipboardCheck className="size-6" /> : <Plus className="size-6" />}</button>}
 
     {adding && <PurchaseForm items={items} categories={categories} onClose={() => setAdding(false)} onSaved={another => { if (!another) setAdding(false); changed() }} />}
     {counting && <CountForm items={items} onClose={() => setCounting(false)} onSaved={changed} />}
@@ -86,14 +91,14 @@ export function StoreManager() {
   </div>
 }
 
-function StockList({ items, sections, loading }: { items: StockItem[]; sections: SectionInfo[]; loading: boolean }) {
+function StockList({ view, items, sections, loading }: { view: 'mother' | 'kitchen'; items: StockItem[]; sections: SectionInfo[]; loading: boolean }) {
   const t = useT()
   const [search, setSearch] = useState('')
-  // null is the mother store; otherwise a section id.
+  // The section picked on the kitchen store page; the first one until the user picks another.
   const [place, setPlace] = useState<string | null>(null)
   // Closed sections only show while they still hold something.
   const places = sections.filter(s => s.isActive || Object.values(s.stock).some(q => q !== 0))
-  const section = places.find(s => s._id === place) ?? null
+  const section = view === 'kitchen' ? places.find(s => s._id === place) ?? places[0] ?? null : null
   // A section lists what it has ever had; the mother store lists every ingredient, hidden ones only while some is left.
   // Average price is the mother store's, so section stock is valued the same way.
   const shown = useMemo(() => section
@@ -109,11 +114,12 @@ function StockList({ items, sections, loading }: { items: StockItem[]; sections:
   if (loading && items.length === 0) return <div className="mt-10 flex justify-center text-[#87928a]"><Loader2 className="size-6 animate-spin" /></div>
   if (items.length === 0) return <div className="mt-6 flex max-w-2xl flex-col items-center rounded-2xl border border-dashed border-[#d9e0d8] bg-white px-6 py-14 text-center"><Package className="size-10 text-[#c7d1c7]" /><p className="mt-4 font-semibold">{t('store.noIngredientsTitle')}</p><p className="mt-1 text-xs text-[#89938b]">{t('store.noIngredientsHint')}</p></div>
 
+  if (view === 'kitchen' && places.length === 0) return <p className="mt-8 text-sm text-[#89938b]">{t('store.noSections')}</p>
+
   const chip = (on: boolean) => `h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${on ? 'bg-[#174d3c] text-white' : 'border border-[#e2e7e1] bg-white text-[#5f6b62] hover:bg-[#f5f7f4]'}`
 
   return <>
-    {places.length > 0 && <div className="mt-5 flex max-w-3xl flex-wrap items-center gap-1.5" role="group" aria-label={t('store.stockAt')}>
-      <button onClick={() => setPlace(null)} aria-pressed={!section} className={`${chip(!section)} flex items-center gap-1.5`}><Warehouse className="size-3.5" /> {t('store.motherStore')}</button>
+    {view === 'kitchen' && places.length > 0 && <div className="mt-5 flex max-w-3xl flex-wrap items-center gap-1.5" role="group" aria-label={t('store.stockAt')}>
       {places.map(s => <button key={s._id} onClick={() => setPlace(s._id)} aria-pressed={section?._id === s._id} className={chip(section?._id === s._id)}>{s.name}{!s.isActive && <span className="ml-1 font-normal opacity-70">({t('store.closed')})</span>}</button>)}
     </div>}
 

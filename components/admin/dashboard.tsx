@@ -7,6 +7,7 @@ import {
   ChefHat,
   ClipboardCheck,
   ClipboardList,
+  CookingPot,
   FileText,
   Grid2X2,
   LayoutDashboard,
@@ -51,6 +52,7 @@ const navItems: NavItem[] = [
   { label: "Day end", key: "nav.sections.Day end", icon: FileText },
   { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
   { label: "Mother store", key: "nav.sections.Mother store", icon: Warehouse },
+  { label: "Kitchen store", key: "nav.sections.Kitchen store", icon: CookingPot },
   { label: "Daily entry", key: "nav.sections.Daily entry", icon: ClipboardCheck },
 ];
 const secondaryItems: NavItem[] = [
@@ -133,7 +135,9 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     ) : active === "Expenses" ? (
       <ExpensesManager />
     ) : active === "Mother store" ? (
-      <StoreManager />
+      <StoreManager key="mother" view="mother" />
+    ) : active === "Kitchen store" ? (
+      <StoreManager key="kitchen" view="kitchen" />
     ) : active === "Daily entry" ? (
       <SectionDayEntry />
     ) : active === "Staff" ? (

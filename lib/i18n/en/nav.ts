@@ -10,6 +10,7 @@ export const nav = {
     Sections: 'Sections',
     Ingredients: 'Ingredients',
     'Mother store': 'Mother store',
+    'Kitchen store': 'Kitchen store',
     'Daily entry': 'Daily entry',
     Reports: 'Reports',
     'Day end': 'Day-end report',

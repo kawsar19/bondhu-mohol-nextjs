@@ -2,7 +2,12 @@
 export const store = {
   eyebrow: 'Stock',
   title: 'Mother store',
-  subtitle: 'What comes in from the bazar, what goes to each section, and what is left. Every purchase is also added to Expenses.',
+  subtitle: 'What comes in from the bazar, what goes out to the sections, and what is left. Every purchase is also added to Expenses.',
+  kitchen: {
+    eyebrow: 'Stock',
+    title: 'Kitchen store',
+    subtitle: 'What each section has right now. Goods are sent to a section from the Mother store page.',
+  },
   refresh: 'Refresh mother store',
   addPurchase: 'Bazar entry',
   sendToSection: 'Send to section',
