@@ -13,7 +13,7 @@ export async function GET() {
   if (error) return error
 
   await connectDB()
-  const items = await MenuItem.find().sort({ category: 1, name: 1 })
+  const items = await MenuItem.find().sort({ name: 1 })
   return NextResponse.json({ items })
 }
 

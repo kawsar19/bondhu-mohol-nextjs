@@ -1,20 +1,19 @@
-// Admin menu screen and the /api/menu messages. Item names and categories are data and stay as typed.
+// Admin menu screen and the /api/menu messages. Item and section names are data and stay as typed.
 export const menu = {
   eyebrow: 'Menu',
   title: 'Manage menu',
   refresh: 'Refresh menu',
   add: 'Add item',
-  stats: { items: 'Menu items', available: 'Available', out: 'Out of stock', categories: 'Categories' },
+  stats: { items: 'Menu items', available: 'Available', out: 'Out of stock', sections: 'Sections' },
   searchPlaceholder: 'Search items...',
   searchLabel: 'Search menu items',
-  allCategories: 'All',
   allSections: 'All sections',
   noSection: 'No section',
   sectionFilterLabel: 'Filter by section',
   emptyTitle: 'Your menu is empty',
   emptyHint: 'Add your first dish or drink so guests can order it.',
   noMatchTitle: 'No items match',
-  noMatchHint: 'Try another category or search.',
+  noMatchHint: 'Try another section or search.',
   popular: 'Popular',
   outOfStock: 'Out of stock',
   availableLabel: '{name} available',
@@ -34,8 +33,6 @@ export const menu = {
     name: 'Name',
     namePlaceholder: 'e.g. Dudh cha, Kacchi Biryani',
     price: 'Price (৳)',
-    category: 'Category',
-    categoryPlaceholder: 'e.g. Biryani, Tea, Snacks',
     section: 'Section',
     chooseSection: 'Choose a section',
     noSectionsYet: 'Add sections first from the Sections page.',
@@ -46,7 +43,7 @@ export const menu = {
   },
   api: {
     notFound: 'Menu item not found',
-    fields: { name: 'Name', category: 'Category', description: 'Description', image: 'Image URL' },
+    fields: { name: 'Name', description: 'Description', image: 'Image URL' },
     fieldRequired: '{field} is required',
     fieldText: '{field} must be text',
     fieldMax: '{field} must be {max} characters or less',
@@ -55,5 +52,6 @@ export const menu = {
     imageInvalid: 'Image must be an http(s) URL or a path starting with /',
     flagInvalid: '{key} must be true or false',
     sectionInvalid: 'Choose a section from the list',
+    sectionRequired: 'Choose which section makes this item',
   },
 }

@@ -6,14 +6,15 @@ import { useT } from '@/components/i18n-provider'
 import type { TFunction } from '@/lib/i18n'
 import { methodLabel, PAYMENT_METHODS, type PaymentMethod } from './payment'
 
-type MenuItem = { _id: string; name: string; price: number; category: string; image: string; isAvailable: boolean }
+type MenuItem = { _id: string; name: string; price: number; section: string | null; image: string; isAvailable: boolean }
 type DiningTable = { _id: string; number: number; name: string; isActive: boolean }
 type OrderType = 'Dine in' | 'Takeaway'
 
 const taka = (n: number) => `৳ ${n.toLocaleString('en-IN')}`
 const TYPE_KEY = { 'Dine in': 'common.orderType.Dine in', Takeaway: 'common.orderType.Takeaway' } as const
 // Tea and coffee items without a photo get a cup icon.
-const isTea = (category: string) => /\b(tea|cha|chai|coffee)\b|চা|কফি/i.test(category)
+// Placeholder picture when an item has no photo, guessed from its name or section.
+const isTea = (text: string) => /\b(tea|cha|chai|coffee)\b|চা|কফি/i.test(text)
 
 async function api<T>(t: TFunction, url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...init, cache: 'no-store', headers: { 'Content-Type': 'application/json', ...init?.headers } })
@@ -31,7 +32,9 @@ export function OrderEntry() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('All')
+  // 'All' or a section id.
+  const [section, setSection] = useState('All')
+  const [sections, setSections] = useState<{ _id: string; name: string }[]>([])
   const [cart, setCart] = useState<Record<string, number>>({})
   const [type, setType] = useState<OrderType>('Dine in')
   const [table, setTable] = useState<number | null>(null)
@@ -47,8 +50,9 @@ export function OrderEntry() {
     setLoading(true)
     setLoadError('')
     try {
-      const [m, tb] = await Promise.all([api<{ items: MenuItem[] }>(t, '/api/menu'), api<{ tables: DiningTable[] }>(t, '/api/tables')])
+      const [m, tb, s] = await Promise.all([api<{ items: MenuItem[] }>(t, '/api/menu'), api<{ tables: DiningTable[] }>(t, '/api/tables'), api<{ sections: { _id: string; name: string }[] }>(t, '/api/sections')])
       setMenu(m.items.filter(i => i.isAvailable))
+      setSections(s.sections)
       setTables(tb.tables.filter(x => x.isActive))
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : t('entry.loadMenuFailed'))
@@ -65,11 +69,13 @@ export function OrderEntry() {
     return () => clearTimeout(timer)
   }, [sent])
 
-  const categories = useMemo(() => ['All', ...new Set(menu.map(i => i.category))], [menu])
+  // Only sections that have something on sale today, in the kitchen's own order.
+  const sectionChips = useMemo(() => sections.filter(s => menu.some(i => i.section === s._id)), [sections, menu])
+  const sectionName = useMemo(() => new Map(sections.map(s => [s._id, s.name])), [sections])
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return menu.filter(i => (category === 'All' || i.category === category) && (!q || i.name.toLowerCase().includes(q)))
-  }, [menu, category, search])
+    return menu.filter(i => (section === 'All' || i.section === section) && (!q || i.name.toLowerCase().includes(q)))
+  }, [menu, section, search])
 
   // Count from the latest state so quick repeated taps are never lost.
   const change = (id: string, delta: number) => setCart(current => {
@@ -115,13 +121,13 @@ export function OrderEntry() {
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <section className="min-w-0">
         <div className="relative"><Search className="absolute left-3 top-3 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('entry.searchPlaceholder')} aria-label={t('entry.searchLabel')} className="h-10 w-full rounded-xl border border-[#e2e7e1] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#8eaf9b]" /></div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{categories.map(c => <button key={c} onClick={() => setCategory(c)} className={`h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${category === c ? 'bg-[#174d3c] text-white' : 'bg-white text-[#5f6b62] ring-1 ring-inset ring-[#e3e8e1]'}`}>{c === 'All' ? t('entry.all') : c}</button>)}</div>
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{[{ _id: 'All', name: t('entry.all') }, ...sectionChips].map(c => <button key={c._id} onClick={() => setSection(c._id)} aria-pressed={section === c._id} className={`h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${section === c._id ? 'bg-[#174d3c] text-white' : 'bg-white text-[#5f6b62] ring-1 ring-inset ring-[#e3e8e1]'}`}>{c.name}</button>)}</div>
 
         {loading ? <div className="mt-10 flex justify-center text-[#87928a]"><Loader2 className="size-6 animate-spin" /></div>
           : visible.length === 0 ? <p className="mt-10 text-center text-sm text-[#89938b]">{menu.length === 0 ? t('entry.noMenu') : t('entry.noMatch')}</p>
           : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{visible.map(item => { const qty = cart[item._id] ?? 0; return <div key={item._id} className={`relative overflow-hidden rounded-2xl border bg-white transition ${qty ? 'border-[#174d3c] ring-2 ring-[#174d3c]' : 'border-[#e3e8e1]'}`}>
             <button onClick={() => change(item._id, 1)} aria-label={t('entry.addItem', { name: item.name })} className="block w-full text-left active:scale-[.98]">
-              {item.image ? <img src={item.image} alt="" className="h-24 w-full object-cover" /> : <div className="flex h-24 items-center justify-center bg-[#f5f1e8] text-[#d2b893]">{isTea(item.category) ? <Coffee className="size-8" /> : <ImageOff className="size-7" />}</div>}
+              {item.image ? <img src={item.image} alt="" className="h-24 w-full object-cover" /> : <div className="flex h-24 items-center justify-center bg-[#f5f1e8] text-[#d2b893]">{isTea(`${item.name} ${item.section ? sectionName.get(item.section) ?? '' : ''}`) ? <Coffee className="size-8" /> : <ImageOff className="size-7" />}</div>}
               <div className="p-3"><p className="line-clamp-2 min-h-10 text-sm font-semibold leading-snug">{item.name}</p><p className="mt-1 text-base font-bold text-[#b86f3c]">{taka(item.price)}</p></div>
             </button>
             {qty > 0 && <><span className="absolute right-2 top-2 flex size-9 items-center justify-center rounded-full bg-[#174d3c] text-base font-bold text-white shadow">{qty}</span><button onClick={() => change(item._id, -1)} aria-label={t('entry.removeOne', { name: item.name })} className="absolute left-2 top-2 flex size-9 items-center justify-center rounded-full bg-white text-[#174d3c] shadow"><Minus className="size-4" /></button></>}

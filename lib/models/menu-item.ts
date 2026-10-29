@@ -6,8 +6,8 @@ const menuItemSchema = new Schema(
     name: { type: String, required: true, trim: true, maxlength: 80 },
     description: { type: String, trim: true, default: '', maxlength: 300 },
     price: { type: Number, required: true, min: 0, max: 100000 },
-    category: { type: String, required: true, trim: true, maxlength: 40 },
-    // Which kitchen section makes it, so sales can be counted per section. Unset on items from before sections.
+    // Which kitchen section makes it, so sales can be counted per section. The menu is grouped by it too.
+    // Required for new items; items from before sections have none until they are edited.
     section: { type: Schema.Types.ObjectId, ref: 'Section', default: null },
     image: { type: String, trim: true, default: '' },
     isAvailable: { type: Boolean, default: true },
@@ -16,7 +16,7 @@ const menuItemSchema = new Schema(
   { timestamps: true },
 )
 
-menuItemSchema.index({ category: 1, name: 1 })
+menuItemSchema.index({ section: 1, name: 1 })
 
 export type MenuItemDoc = InferSchemaType<typeof menuItemSchema>
 

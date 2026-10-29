@@ -5,7 +5,7 @@ import { Loader2, Minus, Plus, Search, Trash2, X } from 'lucide-react'
 import { useT } from '@/components/i18n-provider'
 
 type Line = { menuItem: string; name: string; price: number; qty: number }
-type MenuItem = { _id: string; name: string; price: number; category: string; isAvailable: boolean }
+type MenuItem = { _id: string; name: string; price: number; isAvailable: boolean }
 export type EditableOrder = { _id: string; code: string; items: Line[] }
 
 const taka = (n: number) => `৳ ${n.toLocaleString('en-IN')}`
@@ -26,7 +26,7 @@ export function OrderEditor({ order, onClose, onSaved }: { order: EditableOrder;
   const setQty = (id: string, qty: number) => setLines(ls => qty <= 0 ? ls.filter(l => l.menuItem !== id) : ls.map(l => l.menuItem === id ? { ...l, qty: Math.min(50, qty) } : l))
   const add = (m: MenuItem) => setLines(ls => ls.some(l => l.menuItem === m._id) ? ls.map(l => l.menuItem === m._id ? { ...l, qty: Math.min(50, l.qty + 1) } : l) : [...ls, { menuItem: m._id, name: m.name, price: m.price, qty: 1 }])
   const total = lines.reduce((sum, l) => sum + l.price * l.qty, 0)
-  const matches = useMemo(() => { const q = search.trim().toLowerCase(); return q ? menu.filter(m => m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)).slice(0, 8) : [] }, [menu, search])
+  const matches = useMemo(() => { const q = search.trim().toLowerCase(); return q ? menu.filter(m => m.name.toLowerCase().includes(q)).slice(0, 8) : [] }, [menu, search])
 
   const save = async () => {
     if (lines.length === 0) return setError(t('orders.editor.needOneItem'))
@@ -54,7 +54,7 @@ export function OrderEditor({ order, onClose, onSaved }: { order: EditableOrder;
         </li>)}</ul>
         {lines.length === 0 && <p className="py-4 text-center text-xs text-[#89938b]">{t('orders.editor.noItems')}</p>}
         <div className="mt-3"><label className="sr-only" htmlFor="oe-search">{t('orders.editor.addLabel')}</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#a0aaa2]" /><input id="oe-search" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('orders.editor.addPlaceholder')} className="h-11 w-full rounded-xl border border-[#e2e7e1] bg-[#fbfcfb] pl-9 pr-3 text-sm outline-none focus:border-[#8eaf9b]" /></div>
-          {matches.length > 0 && <ul className="mt-1.5 overflow-hidden rounded-xl border border-[#e2e7e1]">{matches.map(m => <li key={m._id}><button onClick={() => { add(m); setSearch('') }} className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-[#f5f7f4]"><span>{m.name} <span className="text-[11px] text-[#9aa39c]">{m.category}</span></span><span className="flex items-center gap-2 text-xs font-semibold">{taka(m.price)}<Plus className="size-3.5 text-[#174d3c]" /></span></button></li>)}</ul>}
+          {matches.length > 0 && <ul className="mt-1.5 overflow-hidden rounded-xl border border-[#e2e7e1]">{matches.map(m => <li key={m._id}><button onClick={() => { add(m); setSearch('') }} className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-[#f5f7f4]"><span>{m.name}</span><span className="flex items-center gap-2 text-xs font-semibold">{taka(m.price)}<Plus className="size-3.5 text-[#174d3c]" /></span></button></li>)}</ul>}
           {search.trim() && matches.length === 0 && <p className="mt-2 text-xs text-[#89938b]">{t('orders.editor.noMatch')}</p>}
         </div>
       </div>

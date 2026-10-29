@@ -4,8 +4,7 @@ export type MenuInput = {
   name?: string
   description?: string
   price?: number
-  category?: string
-  section?: string | null
+  section?: string
   image?: string
   isAvailable?: boolean
   isPopular?: boolean
@@ -35,19 +34,12 @@ export function parseMenuInput(body: unknown, t: TFunction, partial = false): Re
     data.name = name.value
   }
 
-  const category = text(raw.category, t('menu.api.fields.category'), 40, !partial, t)
-  if (category.error) return { error: category.error }
-  if (category.value !== undefined) {
-    if (!category.value) return { error: t('menu.api.fieldRequired', { field: t('menu.api.fields.category') }) }
-    data.category = category.value
-  }
-
-  // Whether the section exists is checked by the route, which has the database.
+  // Every item belongs to a section, which is how the menu is grouped. Whether it exists is checked by the route.
   if (raw.section !== undefined) {
-    if (raw.section === null || raw.section === '') data.section = null
-    else if (typeof raw.section === 'string' && /^[a-f\d]{24}$/i.test(raw.section)) data.section = raw.section
-    else return { error: t('menu.api.sectionInvalid') }
-  }
+    if (raw.section === null || raw.section === '') return { error: t('menu.api.sectionRequired') }
+    if (typeof raw.section !== 'string' || !/^[a-f\d]{24}$/i.test(raw.section)) return { error: t('menu.api.sectionInvalid') }
+    data.section = raw.section
+  } else if (!partial) return { error: t('menu.api.sectionRequired') }
 
   const description = text(raw.description, t('menu.api.fields.description'), 300, false, t)
   if (description.error) return { error: description.error }
