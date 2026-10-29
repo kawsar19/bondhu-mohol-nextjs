@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowRight, ClipboardCheck, Loader2, Package, Plus, RefreshCw, Search, Send, ShoppingBasket, Trash2, Warehouse, X } from 'lucide-react'
+import { ArrowDown, ArrowRight, ChefHat, ClipboardCheck, Loader2, Package, Plus, RefreshCw, Search, Send, ShoppingBasket, Trash2, Warehouse, X } from 'lucide-react'
 import { businessDateString } from '@/lib/time'
 import type { MessageKey, TFunction } from '@/lib/i18n'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
@@ -27,6 +27,10 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   if (!res.ok) throw new Error(data.error ?? '')
   return data as T
 }
+
+// Each section keeps one colour everywhere on the page, picked by its place in the section list, so it is recognised at a glance.
+const SECTION_TONES = ['bg-[#e3efe7] text-[#174d3c]', 'bg-[#f6ead9] text-[#8a5a24]', 'bg-[#e6ecf6] text-[#2f4f7f]', 'bg-[#f5e5ea] text-[#8a3450]', 'bg-[#ecefdc] text-[#5b6420]', 'bg-[#ebe6f5] text-[#4f3f86]']
+const sectionTone = (sections: SectionInfo[], id: string | undefined) => SECTION_TONES[Math.max(0, sections.findIndex(s => s._id === id)) % SECTION_TONES.length]
 
 const errorText = (err: unknown, t: TFunction, fallback: MessageKey) => err instanceof Error ? err.message || t('common.somethingWentWrong') : t(fallback)
 
@@ -80,7 +84,7 @@ export function StoreManager({ view }: { view: 'mother' | 'kitchen' }) {
 
     {error && <p role="alert" className="mt-5 rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p>}
 
-    {tab === 'stock' ? <StockList view={view} items={items} sections={sections} loading={loading} /> : tab === 'purchases' ? <PurchaseList version={version} onDeleted={changed} /> : tab === 'transfers' ? <TransferList version={version} onDeleted={changed} /> : <CountList version={version} onDeleted={changed} />}
+    {tab === 'stock' ? <StockList view={view} items={items} sections={sections} loading={loading} version={version} onOpen={setTab} /> : tab === 'purchases' ? <PurchaseList version={version} onDeleted={changed} /> : tab === 'transfers' ? <TransferList allSections={sections} version={version} onDeleted={changed} /> : <CountList version={version} onDeleted={changed} />}
 
     {/* On phones the round button does what the open tab is about. */}
     {!kitchen && items.length > 0 && <button onClick={() => (tab === 'transfers' ? setSending(true) : tab === 'counts' ? setCounting(true) : setAdding(true))} aria-label={tab === 'transfers' ? t('store.sendToSection') : tab === 'counts' ? t('store.countStock') : t('store.addPurchase')} className="fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom))+4.5rem)] right-4 z-30 flex size-14 items-center justify-center rounded-full bg-[#c48545] text-white shadow-xl sm:hidden">{tab === 'transfers' ? <Send className="size-6" /> : tab === 'counts' ? <ClipboardCheck className="size-6" /> : <Plus className="size-6" />}</button>}
@@ -91,7 +95,43 @@ export function StoreManager({ view }: { view: 'mother' | 'kitchen' }) {
   </div>
 }
 
-function StockList({ view, items, sections, loading }: { view: 'mother' | 'kitchen'; items: StockItem[]; sections: SectionInfo[]; loading: boolean }) {
+// Bazar → mother store → sections, so the way goods move through the shop reads in one line.
+function FlowStrip({ items, sections, version, onOpen }: { items: StockItem[]; sections: SectionInfo[]; version: number; onOpen: (tab: Tab) => void }) {
+  const t = useT()
+  const [today, setToday] = useState<{ spent: number; entries: number; sections: number } | null>(null)
+
+  useEffect(() => {
+    const day = businessDateString()
+    let live = true
+    Promise.all([
+      api<{ purchases: Purchase[] }>(`/api/store/purchases?from=${day}&to=${day}`),
+      api<{ transfers: Transfer[] }>(`/api/store/transfers?from=${day}&to=${day}`),
+    ]).then(([p, tr]) => {
+      if (live) setToday({ spent: p.purchases.reduce((sum, x) => sum + x.cost, 0), entries: p.purchases.length, sections: new Set(tr.transfers.map(x => x.section?._id ?? '')).size })
+    }).catch(() => { if (live) setToday(null) })
+    return () => { live = false }
+  }, [version])
+
+  const price = new Map(items.map(i => [i._id, i.avgPrice ?? 0]))
+  const worth = (stock: Record<string, number>) => Object.entries(stock).reduce((sum, [id, q]) => sum + (q > 0 ? q * (price.get(id) ?? 0) : 0), 0)
+  const motherValue = worth(Object.fromEntries(items.map(i => [i._id, i.stock])))
+  const sectionValue = sections.reduce((sum, s) => sum + worth(s.stock), 0)
+  const shown = items.filter(i => i.isActive || i.stock !== 0)
+
+  const tile = 'flex min-w-0 flex-1 items-center gap-3 rounded-2xl border p-4 text-left'
+  const arrow = <span aria-hidden className="flex justify-center text-[#b5bdb6]"><ArrowRight className="hidden size-4 sm:block" /><ArrowDown className="size-4 sm:hidden" /></span>
+  const text = (label: string, big: string, small: string) => <span className="min-w-0"><span className="block text-[11px] font-medium text-[#87928a]">{label}</span><span className="block text-lg font-bold tracking-tight">{big}</span><span className="block truncate text-[11px] text-[#9aa39c]">{small}</span></span>
+
+  return <section className="mt-5 flex max-w-3xl flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+    <button onClick={() => onOpen('purchases')} className={`${tile} border-[#e3e8e1] bg-white transition hover:border-[#c9d6cc]`}><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#fbeee6] text-[#b4472c]"><ShoppingBasket className="size-5" /></span>{text(t('store.flow.bazarToday'), today ? taka(today.spent) : '—', today ? t(today.entries === 1 ? 'store.entryOne' : 'store.entryMany', { count: today.entries }) : '')}</button>
+    {arrow}
+    <div className={`${tile} border-[#174d3c]/25 bg-[#f4f8f5]`}><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#174d3c] text-white"><Warehouse className="size-5" /></span>{text(t('store.flow.motherNow'), taka(Math.round(motherValue)), t('store.inStock', { count: shown.filter(i => i.stock > 0).length, total: shown.length }))}</div>
+    {arrow}
+    <button onClick={() => onOpen('transfers')} className={`${tile} border-[#e3e8e1] bg-white transition hover:border-[#c9d6cc]`}><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f3efe6] text-[#8a5a24]"><ChefHat className="size-5" /></span>{text(t('store.flow.sectionsNow'), taka(Math.round(sectionValue)), today ? (today.sections > 0 ? t('store.flow.sentToday', { count: today.sections }) : t('store.flow.nothingSentToday')) : '')}</button>
+  </section>
+}
+
+function StockList({ view, items, sections, loading, version, onOpen }: { view: 'mother' | 'kitchen'; items: StockItem[]; sections: SectionInfo[]; loading: boolean; version: number; onOpen: (tab: Tab) => void }) {
   const t = useT()
   const [search, setSearch] = useState('')
   // The section picked on the kitchen store page; the first one until the user picks another.
@@ -116,17 +156,31 @@ function StockList({ view, items, sections, loading }: { view: 'mother' | 'kitch
 
   if (view === 'kitchen' && places.length === 0) return <p className="mt-8 text-sm text-[#89938b]">{t('store.noSections')}</p>
 
-  const chip = (on: boolean) => `h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${on ? 'bg-[#174d3c] text-white' : 'border border-[#e2e7e1] bg-white text-[#5f6b62] hover:bg-[#f5f7f4]'}`
+  // One card per section: what it holds, what that is worth, and what has run out.
+  const cardStats = (s: SectionInfo) => {
+    const held = items.filter(i => i._id in s.stock && (s.stock[i._id] !== 0 || i.isActive))
+    return {
+      have: held.filter(i => s.stock[i._id] > 0).length,
+      out: held.filter(i => s.stock[i._id] <= 0).length,
+      value: held.reduce((sum, i) => sum + (s.stock[i._id] > 0 && i.avgPrice ? s.stock[i._id] * i.avgPrice : 0), 0),
+    }
+  }
 
   return <>
-    {view === 'kitchen' && places.length > 0 && <div className="mt-5 flex max-w-3xl flex-wrap items-center gap-1.5" role="group" aria-label={t('store.stockAt')}>
-      {places.map(s => <button key={s._id} onClick={() => setPlace(s._id)} aria-pressed={section?._id === s._id} className={chip(section?._id === s._id)}>{s.name}{!s.isActive && <span className="ml-1 font-normal opacity-70">({t('store.closed')})</span>}</button>)}
-    </div>}
+    {view === 'mother' ? <FlowStrip items={items} sections={sections} version={version} onOpen={onOpen} />
+      : <div className="mt-5 grid max-w-3xl grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label={t('store.stockAt')}>
+        {places.map(s => {
+          const on = section?._id === s._id
+          const { have, out, value: worth } = cardStats(s)
+          return <button key={s._id} onClick={() => setPlace(s._id)} aria-pressed={on} className={`min-w-0 rounded-2xl border p-4 text-left transition ${on ? 'border-[#174d3c] bg-[#f4f8f5] ring-1 ring-[#174d3c]' : 'border-[#e3e8e1] bg-white hover:border-[#c9d6cc]'}`}>
+            <span className="flex flex-wrap items-center gap-1.5"><span className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-bold ${sectionTone(sections, s._id)}`}>{s.name}</span>{!s.isActive && <span className="text-[11px] text-[#a0aaa2]">{t('store.closed')}</span>}</span>
+            <span className="mt-2.5 block text-lg font-bold tracking-tight">{taka(Math.round(worth))}</span>
+            <span className="block text-[11px] text-[#89938b]">{t('store.sectionCard.items', { count: have })}{out > 0 && <span className="font-semibold text-[#b4472c]"> · {t('store.sectionCard.out', { count: out })}</span>}</span>
+          </button>
+        })}
+      </div>}
 
-    <section className="mt-5 grid max-w-3xl gap-4 sm:grid-cols-2">
-      <div className="rounded-2xl border border-[#e3e8e1] bg-white p-5"><p className="text-xs font-medium text-[#87928a]">{t('store.stockValue')}</p><p className="mt-1 font-serif text-3xl font-bold tracking-tight text-[#174d3c]">{taka(Math.round(value))}</p><p className="mt-1 text-[11px] text-[#9aa39c]">{t('store.stockValueHint')}</p></div>
-      <div className="flex items-center gap-4 rounded-2xl border border-[#e3e8e1] bg-white p-5"><div className="flex size-12 items-center justify-center rounded-xl bg-[#f3efe6] text-[#8a5a24]"><Warehouse className="size-6" /></div><p className="text-sm font-semibold">{t('store.inStock', { count: inStock, total: shown.length })}</p></div>
-    </section>
+    {view === 'kitchen' && section && <p className="mt-5 text-[11px] text-[#9aa39c]">{t('store.inStock', { count: inStock, total: shown.length })} · {t('store.stockValue')} {taka(Math.round(value))} ({t('store.stockValueHint')})</p>}
 
     {shown.length > 8 && <div className="relative mt-5 max-w-xs"><Search className="absolute left-3 top-2.5 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('store.searchPlaceholder')} aria-label={t('store.searchPlaceholder')} className="h-9 w-full rounded-lg border border-[#e2e7e1] bg-white pl-9 pr-3 text-xs outline-none focus:border-[#8eaf9b]" /></div>}
 
@@ -134,8 +188,12 @@ function StockList({ view, items, sections, loading }: { view: 'mother' | 'kitch
       : visible.length === 0 ? <p className="mt-8 text-sm text-[#89938b]">{t('store.noMatch')}</p>
       : <ul className="mt-5 max-w-3xl divide-y divide-[#f0f2ef] rounded-2xl border border-[#e3e8e1] bg-white px-5">{visible.map(i => {
         const unit = t(`ingredients.units.${i.unit}`)
-        return <li key={i._id} className={`flex items-center gap-3 py-3.5 ${i.stock > 0 ? '' : 'opacity-60'}`}>
-          <div className="min-w-0 flex-1"><p className="flex items-center gap-2 truncate text-sm font-semibold">{i.name}{!i.isActive && <span className="text-[11px] font-medium text-[#a0aaa2]">{t('store.hidden')}</span>}</p><p className="mt-0.5 text-[11px] text-[#89938b]">{i.avgPrice === null ? t('store.noPurchaseYet') : t('store.avgPrice', { price: amount(i.avgPrice, 2), unit })}</p></div>
+        // On the mother store page, also where the rest of it sits in the kitchen.
+        const spread = section ? [] : sections.filter(s => (s.stock[i._id] ?? 0) > 0)
+        return <li key={i._id} className="flex items-center gap-3 py-3.5">
+          <span aria-hidden className={`size-2 shrink-0 rounded-full ${i.stock > 0 ? 'bg-[#3f9a6b]' : i.stock < 0 ? 'bg-[#b4472c]' : 'bg-[#d3d9d3]'}`} />
+          <div className={`min-w-0 flex-1 ${i.stock > 0 ? '' : 'opacity-70'}`}><p className="flex items-center gap-2 truncate text-sm font-semibold">{i.name}{!i.isActive && <span className="text-[11px] font-medium text-[#a0aaa2]">{t('store.hidden')}</span>}</p><p className="mt-0.5 text-[11px] text-[#89938b]">{i.avgPrice === null ? t('store.noPurchaseYet') : t('store.avgPrice', { price: amount(i.avgPrice, 2), unit })}</p>
+            {spread.length > 0 && <p className="mt-1.5 flex flex-wrap items-center gap-1"><span className="text-[10px] font-medium text-[#9aa39c]">{t('store.atSections')}</span>{spread.map(s => <span key={s._id} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${sectionTone(sections, s._id)}`}>{s.name} · {amount(s.stock[i._id])} {unit}</span>)}</p>}</div>
           <div className="text-right">{i.stock > 0 ? <><p className="text-base font-bold">{amount(i.stock)} <span className="text-xs font-semibold text-[#68756b]">{unit}</span></p>{i.avgPrice !== null && <p className="text-[11px] text-[#89938b]">{taka(Math.round(i.stock * i.avgPrice))}</p>}</>
             : <p className={`text-xs font-semibold ${i.stock < 0 ? 'text-[#b4472c]' : 'text-[#a0aaa2]'}`}>{i.stock < 0 ? `${amount(i.stock)} ${unit}` : t('store.outOfStock')}</p>}</div>
         </li>
@@ -291,7 +349,7 @@ function PurchaseForm({ items, categories, onClose, onSaved }: { items: StockIte
   </div>
 }
 
-function TransferList({ version, onDeleted }: { version: number; onDeleted: () => void }) {
+function TransferList({ allSections, version, onDeleted }: { allSections: SectionInfo[]; version: number; onDeleted: () => void }) {
   const t = useT()
   const locale = useIntlLocale()
   const [range, setRange] = useState<DateRange>(() => PRESETS.find(p => p.id === 'today')!.range())
@@ -354,11 +412,11 @@ function TransferList({ version, onDeleted }: { version: number; onDeleted: () =
       : transfers.length === 0 ? <div className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-[#d9e0d8] bg-white px-6 py-14 text-center"><Send className="size-10 text-[#c7d1c7]" /><p className="mt-4 font-semibold">{t('store.transferEmptyTitle')}</p><p className="mt-1 text-xs text-[#89938b]">{t('store.transferEmptyHint')}</p></div>
       : <div className="mt-5 flex flex-col gap-5">{byDay.map(([day, sections]) => <section key={day} className="overflow-hidden rounded-2xl border border-[#e3e8e1] bg-white">
         <div className="border-b border-[#eef1ed] bg-[#fafbf9] px-5 py-3"><h3 className="text-sm font-semibold">{formatDay(day, locale, true)}</h3></div>
-        {sections.map(([name, list]) => <div key={name} className="border-b border-[#f0f2ef] last:border-b-0">
-          <p className="flex items-center gap-1.5 px-5 pt-3 text-xs font-bold text-[#174d3c]"><ArrowRight className="size-3.5" /> {name}</p>
-          <ul className="divide-y divide-[#f5f6f4]">{list.map(m => {
+        {sections.map(([name, list]) => <div key={name} className="px-5 py-3.5">
+          <p className="flex flex-wrap items-center gap-2 text-xs"><span className="font-medium text-[#89938b]">{t('store.motherStore')}</span><ArrowRight aria-hidden className="size-3.5 text-[#b5bdb6]" /><span className={`rounded-full px-2.5 py-1 font-bold ${sectionTone(allSections, list[0].section?._id)}`}>{name}</span><span className="ml-auto text-[11px] text-[#9aa39c]">{t('store.sectionCard.items', { count: list.length })}</span></p>
+          <ul className="mt-2 divide-y divide-[#f5f6f4] rounded-xl border border-[#eef1ed]">{list.map(m => {
             const unit = m.ingredient ? t(`ingredients.units.${m.ingredient.unit}`) : ''
-            return <li key={m._id} className="flex items-start gap-3 px-5 py-2.5">
+            return <li key={m._id} className="flex items-start gap-3 py-2.5 pl-4 pr-3">
               <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{m.ingredient?.name ?? t('store.deletedIngredient')}</p>{(m.addedBy || m.note) && <p className="mt-0.5 text-[11px] text-[#89938b]">{m.addedBy && t('store.addedBy', { name: m.addedBy })}{m.addedBy && m.note && ' · '}{m.note}</p>}</div>
               {confirmDelete === m._id ? <div className="flex shrink-0 flex-col items-end gap-1.5"><p className="text-[11px] font-medium text-[#b4472c]">{t('store.confirmDeleteTransfer')}</p><div className="flex gap-1.5"><button onClick={() => setConfirmDelete(null)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#68756b] hover:bg-[#f5f7f4]">{t('common.cancel')}</button><button onClick={() => remove(m)} disabled={busyId === m._id} className="rounded-lg bg-[#b4472c] px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60">{t('common.delete')}</button></div></div>
                 : <><span className="shrink-0 text-sm font-bold">{amount(m.quantity)} <span className="text-xs font-semibold text-[#68756b]">{unit}</span></span><button onClick={() => setConfirmDelete(m._id)} aria-label={t('store.deleteTransferLabel')} className="-mr-2 flex size-8 shrink-0 items-center justify-center rounded-lg text-[#b5bdb6] hover:bg-[#fdf0ec] hover:text-[#b4472c]"><Trash2 className="size-3.5" /></button></>}

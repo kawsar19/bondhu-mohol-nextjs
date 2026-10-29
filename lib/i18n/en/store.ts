@@ -42,6 +42,15 @@ export const store = {
   deleteLabel: 'Delete this purchase',
   confirmDelete: 'Delete? Its expense goes too.',
   deleteFailed: 'Could not delete the purchase',
+  atSections: 'In sections:',
+  flow: {
+    bazarToday: 'Bazar today',
+    motherNow: 'In the mother store',
+    sectionsNow: 'In the sections',
+    sentToday: 'Sent to {count} sections today',
+    nothingSentToday: 'Nothing sent today',
+  },
+  sectionCard: { items: '{count} items', out: '{count} run out' },
   // Transfers tab
   totalSent: 'Sent in this period',
   transferEmptyTitle: 'Nothing sent in this period',
