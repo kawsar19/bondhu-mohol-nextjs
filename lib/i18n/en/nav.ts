@@ -12,6 +12,7 @@ export const nav = {
     'Mother store': 'Mother store',
     'Daily entry': 'Daily entry',
     Reports: 'Reports',
+    'Day end': 'Day-end report',
     Expenses: 'Expenses',
     Staff: 'Staff',
     Settings: 'Settings',

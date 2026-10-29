@@ -13,6 +13,7 @@ export const nav: Messages<typeof En> = {
     'Mother store': 'মাদার স্টোর',
     'Daily entry': 'দৈনিক হিসাব',
     Reports: 'রিপোর্ট',
+    'Day end': 'দিনশেষের রিপোর্ট',
     Expenses: 'খরচ',
     Staff: 'স্টাফ',
     Settings: 'সেটিংস',

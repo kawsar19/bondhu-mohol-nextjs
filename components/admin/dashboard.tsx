@@ -7,6 +7,7 @@ import {
   ChefHat,
   ClipboardCheck,
   ClipboardList,
+  FileText,
   Grid2X2,
   LayoutDashboard,
   LogOut,
@@ -24,6 +25,7 @@ import { useIntlLocale, useT } from "@/components/i18n-provider";
 import { LanguageSwitch } from "@/components/language-switch";
 import type { MessageKey, TFunction } from "@/lib/i18n";
 import { canAccess, isRole } from "@/lib/permissions";
+import { DayEndReport } from "./day-end-report";
 import { ExpensesManager } from "./expenses-manager";
 import { IngredientsManager } from "./ingredients-manager";
 import { MenuManager } from "./menu-manager";
@@ -46,6 +48,7 @@ const navItems: NavItem[] = [
   { label: "New order", key: "nav.sections.New order", icon: SquarePen },
   { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
   { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
+  { label: "Day end", key: "nav.sections.Day end", icon: FileText },
   { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
   { label: "Mother store", key: "nav.sections.Mother store", icon: Warehouse },
   { label: "Daily entry", key: "nav.sections.Daily entry", icon: ClipboardCheck },
@@ -125,6 +128,8 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <IngredientsManager />
     ) : active === "Reports" ? (
       <Reports />
+    ) : active === "Day end" ? (
+      <DayEndReport />
     ) : active === "Expenses" ? (
       <ExpensesManager />
     ) : active === "Mother store" ? (
