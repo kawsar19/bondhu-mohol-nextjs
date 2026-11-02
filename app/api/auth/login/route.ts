@@ -4,6 +4,7 @@ import { setSessionCookie } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import type { TFunction } from '@/lib/i18n'
 import { getT } from '@/lib/i18n/server'
+import { Shop } from '@/lib/models/shop'
 import { User } from '@/lib/models/user'
 import { clientIp, hit, isBlocked, reset } from '@/lib/rate-limit'
 
@@ -31,15 +32,17 @@ export async function POST(request: Request) {
     if (blocked) return tooMany(t, retryMinutes)
   }
 
-  const user = await User.findOne({ email }).select('+passwordHash')
+  // Emails are unique across shops, so the email alone finds the account and its shop.
+  const user = await User.findOne({ email }, null, { skipTenant: true }).select('+passwordHash')
   const valid = user ? await bcrypt.compare(password, user.passwordHash) : false
   if (!user || !valid) {
     await Promise.all([hit(ipKey, MAX_FAILS_PER_IP, WINDOW_MS), hit(emailKey, MAX_FAILS_PER_EMAIL, WINDOW_MS)])
     return NextResponse.json({ error: t('auth.wrongCredentials') }, { status: 401 })
   }
   if (user.isActive === false) return NextResponse.json({ error: t('auth.accountDisabled') }, { status: 403 })
+  if (!(await Shop.exists({ _id: user.shop, isActive: true }))) return NextResponse.json({ error: t('auth.shopDisabled') }, { status: 403 })
 
   await reset(emailKey, WINDOW_MS)
-  await setSessionCookie({ userId: user._id.toString(), name: user.name, email: user.email, role: user.role ?? 'admin', sv: user.sessionVersion ?? 0 })
+  await setSessionCookie({ userId: user._id.toString(), shopId: String(user.shop), name: user.name, email: user.email, role: user.role ?? 'admin', sv: user.sessionVersion ?? 0 })
   return NextResponse.json({ ok: true })
 }

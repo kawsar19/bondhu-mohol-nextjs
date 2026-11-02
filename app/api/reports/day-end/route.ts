@@ -17,7 +17,7 @@ const money = (n: number) => Math.round(n * 100) / 100
 // Admins, managers and partners: everything about one day. ?date=YYYY-MM-DD
 // Ingredient use is valued at the average purchase price up to the end of that day.
 export async function GET(request: Request) {
-  const { error } = await requireRole(REPORT_VIEWERS)
+  const { session, error } = await requireRole(REPORT_VIEWERS)
   if (error) return error
 
   const t = await getT()
@@ -26,7 +26,8 @@ export async function GET(request: Request) {
   const end = new Date(start.getTime() + DAY_MS)
 
   await connectDB()
-  const sold = { createdAt: { $gte: start, $lt: end }, status: { $ne: 'Cancelled' } }
+  const shop = session.shop
+  const sold = { shop, createdAt: { $gte: start, $lt: end }, status: { $ne: 'Cancelled' } }
   const [[totals], byPayment, bySection, [expenses], uses, days, sections, ingredients, mother, kitchens] = await Promise.all([
     Order.aggregate([{ $match: sold }, { $group: { _id: null, orders: { $sum: 1 }, sales: { $sum: '$total' }, unpaid: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Unpaid'] }, '$total', 0] } } } }]),
     Order.aggregate([{ $match: { ...sold, paymentStatus: 'Paid' } }, { $group: { _id: '$paymentMethod', amount: { $sum: '$total' } } }, { $sort: { amount: -1 } }]),
@@ -37,13 +38,13 @@ export async function GET(request: Request) {
       { $lookup: { from: 'menuitems', localField: 'items.menuItem', foreignField: '_id', as: 'menu', pipeline: [{ $project: { section: 1 } }] } },
       { $group: { _id: { $ifNull: ['$items.section', { $first: '$menu.section' }, null] }, sales: { $sum: { $multiply: ['$items.price', '$items.qty'] } }, qty: { $sum: '$items.qty' } } },
     ]),
-    Expense.aggregate([{ $match: { date: start } }, { $group: { _id: null, amount: { $sum: '$amount' }, bazar: { $sum: { $cond: [{ $ne: [{ $ifNull: ['$purchase', null] }, null] }, '$amount', 0] } } } }]),
-    StockMovement.aggregate([{ $match: { type: 'use', date: start } }, { $group: { _id: { section: '$section', ingredient: '$ingredient' }, quantity: { $sum: '$quantity' } } }]),
-    SectionDay.find({ date: start }),
-    Section.find().sort({ sortOrder: 1, name: 1 }),
-    Ingredient.find().sort({ name: 1 }),
-    motherStoreStock(undefined, end),
-    sectionStock(undefined, end),
+    Expense.aggregate([{ $match: { shop, date: start } }, { $group: { _id: null, amount: { $sum: '$amount' }, bazar: { $sum: { $cond: [{ $ne: [{ $ifNull: ['$purchase', null] }, null] }, '$amount', 0] } } } }]),
+    StockMovement.aggregate([{ $match: { shop, type: 'use', date: start } }, { $group: { _id: { section: '$section', ingredient: '$ingredient' }, quantity: { $sum: '$quantity' } } }]),
+    SectionDay.find({ shop, date: start }),
+    Section.find({ shop }).sort({ sortOrder: 1, name: 1 }),
+    Ingredient.find({ shop }).sort({ name: 1 }),
+    motherStoreStock(shop, undefined, end),
+    sectionStock(shop, undefined, end),
   ])
 
   const info = new Map(ingredients.map(i => [i.id, i]))

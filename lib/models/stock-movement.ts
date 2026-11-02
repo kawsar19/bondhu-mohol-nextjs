@@ -1,5 +1,6 @@
 import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 export const MOVEMENT_TYPES = ['purchase', 'transfer', 'use', 'adjust'] as const
 export type MovementType = (typeof MOVEMENT_TYPES)[number]
@@ -11,6 +12,7 @@ export type MovementType = (typeof MOVEMENT_TYPES)[number]
 //   adjust:   counted by hand; `quantity` is the signed correction at `section` (null = mother store)
 const stockMovementSchema = new Schema(
   {
+    shop: shopField,
     // Bangladesh midnight of the day it happened.
     date: { type: Date, required: true },
     type: { type: String, enum: MOVEMENT_TYPES, required: true },
@@ -30,9 +32,10 @@ const stockMovementSchema = new Schema(
   { timestamps: true },
 )
 
-stockMovementSchema.index({ type: 1, date: -1 })
-stockMovementSchema.index({ ingredient: 1, section: 1 })
-stockMovementSchema.index({ sectionDay: 1 }, { partialFilterExpression: { sectionDay: { $type: 'objectId' } } })
+stockMovementSchema.plugin(tenantPlugin)
+stockMovementSchema.index({ shop: 1, type: 1, date: -1 })
+stockMovementSchema.index({ shop: 1, ingredient: 1, section: 1 })
+stockMovementSchema.index({ shop: 1, sectionDay: 1 }, { partialFilterExpression: { sectionDay: { $type: 'objectId' } } })
 
 export type StockMovementDoc = InferSchemaType<typeof stockMovementSchema>
 

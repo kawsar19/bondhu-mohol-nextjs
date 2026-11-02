@@ -1,10 +1,12 @@
-import { Schema, type InferSchemaType } from 'mongoose'
+import { Schema, type InferSchemaType, type Types } from 'mongoose'
 import { DEFAULT_EXPENSE_CATEGORIES } from '../expense-categories'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 const expenseCategorySchema = new Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true, maxlength: 40 },
+    shop: shopField,
+    name: { type: String, required: true, trim: true, maxlength: 40 },
     // A short example of what goes here, shown under the picker.
     hint: { type: String, trim: true, default: '', maxlength: 80 },
     // Hidden categories stay on old entries and in reports but aren't offered for new ones.
@@ -14,17 +16,20 @@ const expenseCategorySchema = new Schema(
   { timestamps: true },
 )
 
+expenseCategorySchema.plugin(tenantPlugin)
+expenseCategorySchema.index({ shop: 1, name: 1 }, { unique: true })
+
 export type ExpenseCategoryDoc = InferSchemaType<typeof expenseCategorySchema>
 
 export const ExpenseCategory = defineModel<ExpenseCategoryDoc>('ExpenseCategory', expenseCategorySchema)
 
-/** All categories in display order, creating the starter set the first time. */
-export async function listExpenseCategories() {
-  if ((await ExpenseCategory.estimatedDocumentCount()) === 0) {
-    // On a new database two screens can ask at the same moment. Waiting for the unique name index
-    // makes the second insert fail instead of saving every category twice.
+/** A shop's categories in display order, creating the starter set the first time. */
+export async function listExpenseCategories(shop: Types.ObjectId) {
+  if ((await ExpenseCategory.countDocuments({ shop })) === 0) {
+    // Two screens can ask at the same moment for a new shop. Waiting for the unique { shop, name }
+    // index makes the second insert fail instead of saving every category twice.
     await ExpenseCategory.init()
-    await ExpenseCategory.insertMany(DEFAULT_EXPENSE_CATEGORIES.map((c, i) => ({ ...c, sortOrder: i })), { ordered: false }).catch(() => {})
+    await ExpenseCategory.insertMany(DEFAULT_EXPENSE_CATEGORIES.map((c, i) => ({ ...c, shop, sortOrder: i })), { ordered: false }).catch(() => {})
   }
-  return ExpenseCategory.find().sort({ sortOrder: 1, name: 1 })
+  return ExpenseCategory.find({ shop }).sort({ sortOrder: 1, name: 1 })
 }

@@ -1,6 +1,7 @@
-// Adds the Bondhu Mohol menu when the menu is empty. Photos live in public/menu/.
-// Usage: npm run seed:menu   (reads MONGODB_URI from .env.local)
+// Adds the Bondhu Mohol menu to a shop whose menu is empty. Photos live in public/menu/.
+// Usage: npm run seed:menu   (reads MONGODB_URI from .env.local; SHOP_ID picks the shop when there are several)
 import mongoose from 'mongoose'
+import { pickShop } from './lib/pick-shop.mjs'
 
 const { MONGODB_URI } = process.env
 if (!MONGODB_URI) {
@@ -34,13 +35,17 @@ const items = [
 ]
 
 await mongoose.connect(MONGODB_URI)
+const shop = await pickShop(mongoose.connection).catch(err => {
+  console.error(err.message)
+  process.exit(1)
+})
 const menu = mongoose.connection.collection('menuitems')
-const existing = await menu.countDocuments()
+const existing = await menu.countDocuments({ shop: shop._id })
 if (existing > 0) {
   console.log(`Menu already has ${existing} items, nothing added.`)
 } else {
   const now = new Date()
-  await menu.insertMany(items.map(item => ({ description: '', image: '', isAvailable: true, isPopular: false, ...item, createdAt: now, updatedAt: now, __v: 0 })))
-  console.log(`Added ${items.length} menu items.`)
+  await menu.insertMany(items.map(item => ({ description: '', image: '', isAvailable: true, isPopular: false, ...item, shop: shop._id, createdAt: now, updatedAt: now, __v: 0 })))
+  console.log(`Added ${items.length} menu items to "${shop.name}".`)
 }
 await mongoose.disconnect()

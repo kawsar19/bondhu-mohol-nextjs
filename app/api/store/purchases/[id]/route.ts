@@ -14,19 +14,19 @@ const notFound = async () => NextResponse.json({ error: (await getT())('store.ap
 
 // Undoes a wrong purchase entry together with its expense. A mistake is fixed by deleting and entering it again.
 export async function DELETE(_request: Request, { params }: Context) {
-  const { error } = await requireRole(STORE_KEEPERS)
+  const { session, error } = await requireRole(STORE_KEEPERS)
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const purchase = await StockMovement.findOne({ _id: id, type: 'purchase' })
+  const purchase = await StockMovement.findOne({ _id: id, shop: session.shop, type: 'purchase' })
   if (!purchase) return notFound()
 
   // Refuse if some of it has already been sent on, or the mother store would go below zero.
-  const stock = (await motherStoreStock(purchase.ingredient)).get(String(purchase.ingredient))?.stock ?? 0
+  const stock = (await motherStoreStock(session.shop, purchase.ingredient)).get(String(purchase.ingredient))?.stock ?? 0
   if (stock - purchase.quantity < -0.0005) return NextResponse.json({ error: (await getT())('store.api.alreadyUsed') }, { status: 409 })
 
-  await Promise.all([StockMovement.deleteOne({ _id: purchase._id }), Expense.deleteOne({ purchase: purchase._id })])
+  await Promise.all([StockMovement.deleteOne({ _id: purchase._id, shop: session.shop }), Expense.deleteOne({ shop: session.shop, purchase: purchase._id })])
   return NextResponse.json({ ok: true })
 }

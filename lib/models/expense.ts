@@ -1,9 +1,11 @@
 import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 // Money spent by the shop: daily bazar, groceries, wages, bills and so on.
 const expenseSchema = new Schema(
   {
+    shop: shopField,
     // Bangladesh midnight of the day the purchase was made.
     date: { type: Date, required: true },
     // Name of an ExpenseCategory; renaming a category updates these too.
@@ -20,8 +22,9 @@ const expenseSchema = new Schema(
   { timestamps: true },
 )
 
-expenseSchema.index({ date: -1, createdAt: -1 })
-expenseSchema.index({ category: 1 })
+expenseSchema.plugin(tenantPlugin)
+expenseSchema.index({ shop: 1, date: -1, createdAt: -1 })
+expenseSchema.index({ shop: 1, category: 1 })
 
 export type ExpenseDoc = InferSchemaType<typeof expenseSchema>
 

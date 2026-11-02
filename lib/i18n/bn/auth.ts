@@ -11,6 +11,7 @@ export const auth: Messages<typeof En> = {
   required: 'ইমেইল আর পাসওয়ার্ড দিন',
   wrongCredentials: 'ইমেইল বা পাসওয়ার্ড ভুল',
   accountDisabled: 'এই অ্যাকাউন্ট বন্ধ করা আছে। অ্যাডমিনকে বলুন।',
+  shopDisabled: 'এই দোকানের অ্যাকাউন্ট বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।',
   tooManyOne: 'অনেকবার ভুল চেষ্টা হয়েছে। {minutes} মিনিট পর আবার চেষ্টা করুন।',
   tooManyMany: 'অনেকবার ভুল চেষ্টা হয়েছে। {minutes} মিনিট পর আবার চেষ্টা করুন।',
 }

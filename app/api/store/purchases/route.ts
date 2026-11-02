@@ -15,7 +15,7 @@ type Populated = { _id: Types.ObjectId; name: string; unit: string } | null
 
 // Bazar purchases into the mother store in a date range. ?from=YYYY-MM-DD&to=YYYY-MM-DD
 export async function GET(request: Request) {
-  const { error } = await requireRole(STORE_KEEPERS)
+  const { session, error } = await requireRole(STORE_KEEPERS)
   if (error) return error
 
   const t = await getT()
@@ -23,10 +23,10 @@ export async function GET(request: Request) {
   if (range.error) return NextResponse.json({ error: range.error }, { status: 400 })
 
   await connectDB()
-  const purchases = await StockMovement.find({ type: 'purchase', date: { $gte: range.start, $lt: range.end } })
+  const purchases = await StockMovement.find({ shop: session.shop, type: 'purchase', date: { $gte: range.start, $lt: range.end } })
     .sort({ date: -1, createdAt: -1 })
     .limit(2000)
-    .populate<{ ingredient: Populated }>('ingredient', 'name unit')
+    .populate<{ ingredient: Populated }>({ path: 'ingredient', select: 'name unit', match: { shop: session.shop } })
   return NextResponse.json({
     purchases: purchases.map(p => ({
       _id: p.id,
@@ -52,13 +52,14 @@ export async function POST(request: Request) {
   const { date, ingredient: ingredientId, quantity, cost, category, paidTo, note } = parsed.data
 
   await connectDB()
-  const [ingredient, categoryExists] = await Promise.all([Ingredient.findById(ingredientId), ExpenseCategory.exists({ name: category })])
+  const [ingredient, categoryExists] = await Promise.all([Ingredient.findOne({ _id: ingredientId, shop: session.shop }), ExpenseCategory.exists({ shop: session.shop, name: category })])
   if (!ingredient || !ingredient.isActive) return NextResponse.json({ error: t('store.api.ingredientGone') }, { status: 400 })
   if (!categoryExists) return NextResponse.json({ error: t('expenses.errors.categoryGone') }, { status: 400 })
 
   // Without a replica set there are no transactions, so the expense is undone by hand if the movement fails.
   const purchaseId = new Types.ObjectId()
   const expense = await Expense.create({
+    shop: session.shop,
     date,
     category,
     item: ingredient.name,
@@ -70,9 +71,9 @@ export async function POST(request: Request) {
     purchase: purchaseId,
   })
   try {
-    await StockMovement.create({ _id: purchaseId, date, type: 'purchase', ingredient: ingredient._id, section: null, quantity, cost, expense: expense._id, paidTo, note, addedBy: session.name })
+    await StockMovement.create({ _id: purchaseId, shop: session.shop, date, type: 'purchase', ingredient: ingredient._id, section: null, quantity, cost, expense: expense._id, paidTo, note, addedBy: session.name })
   } catch (err) {
-    await Expense.deleteOne({ _id: expense._id })
+    await Expense.deleteOne({ _id: expense._id, shop: session.shop })
     throw err
   }
   return NextResponse.json({ ok: true }, { status: 201 })

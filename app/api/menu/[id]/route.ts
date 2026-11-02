@@ -12,18 +12,18 @@ type Context = { params: Promise<{ id: string }> }
 const notFound = async () => NextResponse.json({ error: (await getT())('menu.api.notFound') }, { status: 404 })
 
 export async function GET(_request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const item = await MenuItem.findById(id)
+  const item = await MenuItem.findOne({ _id: id, shop: session.shop })
   return item ? NextResponse.json({ item }) : notFound()
 }
 
 export async function PATCH(request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
@@ -33,18 +33,18 @@ export async function PATCH(request: Request, { params }: Context) {
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
   await connectDB()
-  if (parsed.data.section && !(await Section.exists({ _id: parsed.data.section }))) return NextResponse.json({ error: t('menu.api.sectionInvalid') }, { status: 400 })
-  const item = await MenuItem.findByIdAndUpdate(id, parsed.data, { new: true, runValidators: true })
+  if (parsed.data.section && !(await Section.exists({ _id: parsed.data.section, shop: session.shop }))) return NextResponse.json({ error: t('menu.api.sectionInvalid') }, { status: 400 })
+  const item = await MenuItem.findOneAndUpdate({ _id: id, shop: session.shop }, parsed.data, { new: true, runValidators: true })
   return item ? NextResponse.json({ item }) : notFound()
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const item = await MenuItem.findByIdAndDelete(id)
+  const item = await MenuItem.findOneAndDelete({ _id: id, shop: session.shop })
   return item ? NextResponse.json({ ok: true }) : notFound()
 }

@@ -1,13 +1,16 @@
 import 'server-only'
 import { cookies } from 'next/headers'
+import type { Types } from 'mongoose'
 import { NextResponse } from 'next/server'
 import { connectDB } from './db'
+import { Shop } from './models/shop'
 import { User } from './models/user'
 import { getT } from './i18n/server'
 import { MANAGERS, type Role } from './permissions'
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, verifySession, type SessionPayload } from './session'
 
-export type CurrentUser = SessionPayload & { role: Role }
+// `shop` scopes every query the user makes; see lib/models/tenant.ts.
+export type CurrentUser = SessionPayload & { role: Role; shopId: string; shop: Types.ObjectId }
 
 export async function getSession() {
   const store = await cookies()
@@ -16,15 +19,18 @@ export async function getSession() {
 
 /**
  * The signed-in user as stored now, not as it was at login. Returns null when the account
- * was deleted, disabled, or had its password reset since the cookie was issued.
+ * was deleted, disabled, or had its password reset since the cookie was issued, or when
+ * their shop has been switched off.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await getSession()
   if (!session) return null
   await connectDB()
-  const user = await User.findById(session.userId).select('name email role isActive sessionVersion').lean()
+  // Looked up by id alone: the shop comes from this record, not from the cookie.
+  const user = await User.findOne({ _id: session.userId }, null, { skipTenant: true }).select('shop name email role isActive sessionVersion').lean()
   if (!user || user.isActive === false || (user.sessionVersion ?? 0) !== (session.sv ?? 0)) return null
-  return { userId: session.userId, name: user.name, email: user.email, role: (user.role ?? 'admin') as Role, sv: session.sv }
+  if (!(await Shop.exists({ _id: user.shop, isActive: true }))) return null
+  return { userId: session.userId, shopId: String(user.shop), shop: user.shop, name: user.name, email: user.email, role: (user.role ?? 'admin') as Role, sv: session.sv }
 }
 
 export async function setSessionCookie(payload: SessionPayload) {

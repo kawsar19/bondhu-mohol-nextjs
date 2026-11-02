@@ -1,4 +1,4 @@
-import { SHOP } from '@/lib/shop'
+import { APP_NAME } from '@/lib/shop'
 
 // Install manifest for the staff dashboard.
 // Linked from app/admin/layout.tsx rather than app/manifest.ts, which would apply site-wide.
@@ -6,8 +6,8 @@ export function GET() {
   return Response.json(
     {
       id: '/admin',
-      name: `${SHOP.name} Admin`,
-      short_name: SHOP.name,
+      name: APP_NAME,
+      short_name: APP_NAME,
       description: 'Orders, expenses, menu and reports',
       start_url: '/admin',
       scope: '/admin',

@@ -15,7 +15,7 @@ const badRequest = (error: string, status = 400) => NextResponse.json({ error },
 
 // Manager: cancel or restore an order, change its payment, or fix its items.
 export async function PATCH(request: Request, { params }: Context) {
-  const { error } = await requireRole(MANAGERS)
+  const { session, error } = await requireRole(MANAGERS)
   if (error) return error
   const t = await getT()
   const { id } = await params
@@ -45,12 +45,12 @@ export async function PATCH(request: Request, { params }: Context) {
 
   await connectDB()
   if (editingItems) {
-    const current = await Order.findById(id)
+    const current = await Order.findOne({ _id: id, shop: session.shop })
     if (!current) return notFound(t)
     if (current.status === 'Cancelled') return badRequest(t('orders.api.itemsLocked'))
     if (current.paymentStatus === 'Paid' && changes.paymentStatus !== 'Unpaid') return badRequest(t('orders.api.alreadyPaid'))
     try {
-      const items = await priceItems(body.items, current.items)
+      const items = await priceItems(session.shop, body.items, current.items)
       changes.items = items
       changes.total = orderTotal(items)
     } catch (err) {
@@ -59,6 +59,6 @@ export async function PATCH(request: Request, { params }: Context) {
     }
   }
 
-  const order = await Order.findByIdAndUpdate(id, { $set: changes, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { new: true, runValidators: true })
+  const order = await Order.findOneAndUpdate({ _id: id, shop: session.shop }, { $set: changes, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { new: true, runValidators: true })
   return order ? NextResponse.json({ order }) : notFound(t)
 }

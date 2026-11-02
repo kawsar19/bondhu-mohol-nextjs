@@ -1,5 +1,6 @@
 import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 export const ORDER_TYPES = ['Dine in', 'Takeaway'] as const
 // The manager enters orders after the fact, so there is no kitchen workflow: an order counts
@@ -24,7 +25,9 @@ const orderItemSchema = new Schema(
 
 const orderSchema = new Schema(
   {
-    code: { type: String, required: true, unique: true },
+    shop: shopField,
+    // Unique within a shop: <shop's order prefix>-<number>.
+    code: { type: String, required: true },
     type: { type: String, enum: ORDER_TYPES, required: true },
     tableNumber: { type: Number, min: 1 },
     customerName: { type: String, trim: true, default: '' },
@@ -44,11 +47,14 @@ const orderSchema = new Schema(
   { timestamps: true },
 )
 
-orderSchema.index({ createdAt: -1 })
-orderSchema.index({ status: 1, createdAt: -1 })
+orderSchema.plugin(tenantPlugin)
+orderSchema.index({ shop: 1, code: 1 }, { unique: true })
+orderSchema.index({ shop: 1, createdAt: -1 })
+orderSchema.index({ shop: 1, status: 1, createdAt: -1 })
 
 export type OrderDoc = InferSchemaType<typeof orderSchema>
 export const Order = defineModel<OrderDoc>('Order', orderSchema)
 
+// Order numbers, one counter per shop: _id is `order:<shop id>`.
 const counterSchema = new Schema({ _id: { type: String, required: true }, seq: { type: Number, default: 0 } })
 export const Counter = defineModel<{ _id: string; seq: number }>('Counter', counterSchema)

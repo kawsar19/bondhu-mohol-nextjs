@@ -10,16 +10,16 @@ import { parseUserInput } from '@/lib/user-input'
 
 // Admin only: staff accounts.
 export async function GET() {
-  const { error } = await requireRole(['admin'])
+  const { session, error } = await requireRole(['admin'])
   if (error) return error
 
   await connectDB()
-  const users = await User.find().select(STAFF_FIELDS).sort({ createdAt: 1 })
+  const users = await User.find({ shop: session.shop }).select(STAFF_FIELDS).sort({ createdAt: 1 })
   return NextResponse.json({ users })
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireRole(['admin'])
+  const { session, error } = await requireRole(['admin'])
   if (error) return error
 
   const t = await getT()
@@ -29,8 +29,8 @@ export async function POST(request: Request) {
 
   await connectDB()
   try {
-    const created = await User.create({ ...fields, passwordHash: await bcrypt.hash(password!, 12) })
-    const user = await User.findById(created._id).select(STAFF_FIELDS)
+    const created = await User.create({ ...fields, shop: session.shop, passwordHash: await bcrypt.hash(password!, 12) })
+    const user = await User.findOne({ _id: created._id, shop: session.shop }).select(STAFF_FIELDS)
     return NextResponse.json({ user }, { status: 201 })
   } catch (err) {
     if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('staff.errors.emailTaken', { email: fields.email ?? '' }) }, { status: 409 })

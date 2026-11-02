@@ -1,10 +1,12 @@
 import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 // What the manager writes for one section at the end of one day. The stock side of it is also
 // written as StockMovements (linked by `sectionDay`), so stock stays the sum of movements.
 const sectionDaySchema = new Schema(
   {
+    shop: shopField,
     section: { type: Schema.Types.ObjectId, ref: 'Section', required: true },
     // Bangladesh midnight of the day.
     date: { type: Date, required: true },
@@ -41,8 +43,10 @@ const sectionDaySchema = new Schema(
   { timestamps: true },
 )
 
-sectionDaySchema.index({ section: 1, date: 1 }, { unique: true })
-sectionDaySchema.index({ date: -1 })
+sectionDaySchema.plugin(tenantPlugin)
+// Section ids are already unique to one shop; shop leads so every query can use the index.
+sectionDaySchema.index({ shop: 1, section: 1, date: 1 }, { unique: true })
+sectionDaySchema.index({ shop: 1, date: -1 })
 
 export type SectionDayDoc = InferSchemaType<typeof sectionDaySchema>
 

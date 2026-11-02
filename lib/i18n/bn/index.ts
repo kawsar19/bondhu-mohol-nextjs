@@ -17,5 +17,7 @@ import { dayEnd } from './day-end'
 import { reports } from './reports'
 import { expenses } from './expenses'
 import { dates } from './dates'
+import { settings } from './settings'
+import { platform } from './platform'
 
-export const bn: Dictionary = { common, auth, nav, overview, staff, orders, entry, billing, tables, menu, sections, ingredients, store, daily, dayEnd, reports, expenses, dates }
+export const bn: Dictionary = { common, auth, nav, overview, staff, orders, entry, billing, tables, menu, sections, ingredients, store, daily, dayEnd, reports, expenses, dates, settings, platform }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CircleDollarSign, ClipboardList, Download, Loader2, Printer, RefreshCw, ShoppingBasket, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
-import { SHOP } from '@/lib/shop'
+import { useShop } from './shop-context'
 import type { MessageKey, TFunction } from '@/lib/i18n'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
 import { DateRangePicker, describeRange, formatDay, PRESETS, type DateRange } from './date-range-picker'
@@ -123,11 +123,12 @@ export function Reports() {
 
 function ReportSheet({ report, range }: { report: Report; range: DateRange }) {
   const tr = useT()
+  const { shop } = useShop()
   const locale = useIntlLocale()
   const t = report.totals
   const cell = 'border border-black/30 px-2 py-1'
   return <div className="text-[10pt] text-black">
-    <h1 className="text-center text-[16pt] font-bold">{SHOP.name}</h1>
+    <h1 className="text-center text-[16pt] font-bold">{shop.name}</h1>
     <p className="text-center">{tr('reports.sheetTitle', { range: describeRange(range, locale) })}</p>
     <table className="mt-4 w-full border-collapse"><tbody>
       {[[tr('reports.orders'), String(t.orders)], [tr('reports.sales'), taka(t.sales)], [tr('reports.expenses'), taka(t.expenses)], [t.profit >= 0 ? tr('reports.profit') : tr('reports.loss'), taka(t.profit)], [tr('reports.unpaid'), taka(t.unpaid)], [tr('reports.cancelledOrders'), String(t.cancelled)]].map(([k, v]) => <tr key={k}><td className={cell}>{k}</td><td className={`${cell} text-right font-semibold`}>{v}</td></tr>)}

@@ -34,4 +34,10 @@ export const overview: Messages<typeof En> = {
   yesterdayNone: 'গতকাল এই সময়ে কোনো অর্ডার ছিল না',
   sameAsYesterday: 'গতকালের মতোই',
   vsYesterday: 'গতকালের চেয়ে {diff}',
+  lowStock: {
+    title: 'স্টক কমে গেছে',
+    hint: 'মাদার স্টোরে সতর্ক-সীমার সমান বা কম',
+    left: '{qty} {unit} আছে · সীমা {limit}',
+    open: 'মাদার স্টোর খুলুন',
+  },
 }

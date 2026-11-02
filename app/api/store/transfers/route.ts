@@ -15,7 +15,7 @@ type Named = { _id: Types.ObjectId; name: string } | null
 
 // What the mother store sent to the sections in a date range. ?from=YYYY-MM-DD&to=YYYY-MM-DD
 export async function GET(request: Request) {
-  const { error } = await requireRole(STORE_KEEPERS)
+  const { session, error } = await requireRole(STORE_KEEPERS)
   if (error) return error
 
   const t = await getT()
@@ -23,11 +23,11 @@ export async function GET(request: Request) {
   if (range.error) return NextResponse.json({ error: range.error }, { status: 400 })
 
   await connectDB()
-  const transfers = await StockMovement.find({ type: 'transfer', date: { $gte: range.start, $lt: range.end } })
+  const transfers = await StockMovement.find({ shop: session.shop, type: 'transfer', date: { $gte: range.start, $lt: range.end } })
     .sort({ date: -1, createdAt: -1 })
     .limit(2000)
-    .populate<{ ingredient: (Named & { unit: string }) | null }>('ingredient', 'name unit')
-    .populate<{ section: Named }>('section', 'name')
+    .populate<{ ingredient: (Named & { unit: string }) | null }>({ path: 'ingredient', select: 'name unit', match: { shop: session.shop } })
+    .populate<{ section: Named }>({ path: 'section', select: 'name', match: { shop: session.shop } })
   return NextResponse.json({
     transfers: transfers.map(m => ({
       _id: m.id,
@@ -53,9 +53,9 @@ export async function POST(request: Request) {
 
   await connectDB()
   const [section, ingredients, stock] = await Promise.all([
-    Section.findById(sectionId),
-    Ingredient.find({ _id: { $in: items.map(i => i.ingredient) } }),
-    motherStoreStock(),
+    Section.findOne({ _id: sectionId, shop: session.shop }),
+    Ingredient.find({ shop: session.shop, _id: { $in: items.map(i => i.ingredient) } }),
+    motherStoreStock(session.shop),
   ])
   if (!section || !section.isActive) return NextResponse.json({ error: t('store.api.sectionGone') }, { status: 400 })
   const byId = new Map(ingredients.map(i => [i.id, i]))
@@ -68,6 +68,6 @@ export async function POST(request: Request) {
     }
   }
 
-  await StockMovement.insertMany(items.map(item => ({ date, type: 'transfer', ingredient: item.ingredient, section: section._id, quantity: item.quantity, note, addedBy: session.name })))
+  await StockMovement.insertMany(items.map(item => ({ shop: session.shop, date, type: 'transfer', ingredient: item.ingredient, section: section._id, quantity: item.quantity, note, addedBy: session.name })))
   return NextResponse.json({ ok: true }, { status: 201 })
 }

@@ -1,0 +1,1989 @@
+{
+ "categories": [
+  {
+   "key": "rice-lentils",
+   "name": "চাল, ডাল ও শস্য",
+   "nameEn": "Rice, lentils & grains"
+  },
+  {
+   "key": "flour-bakery",
+   "name": "আটা, ময়দা ও বেকারি",
+   "nameEn": "Flour & bakery"
+  },
+  {
+   "key": "oil",
+   "name": "তেল ও ঘি",
+   "nameEn": "Oil & ghee"
+  },
+  {
+   "key": "spices",
+   "name": "মসলা",
+   "nameEn": "Spices"
+  },
+  {
+   "key": "meat-egg",
+   "name": "মাংস ও ডিম",
+   "nameEn": "Meat & eggs"
+  },
+  {
+   "key": "fish",
+   "name": "মাছ",
+   "nameEn": "Fish"
+  },
+  {
+   "key": "vegetables",
+   "name": "সবজি ও শাক",
+   "nameEn": "Vegetables & greens"
+  },
+  {
+   "key": "fruits-nuts",
+   "name": "ফল ও বাদাম",
+   "nameEn": "Fruit & nuts"
+  },
+  {
+   "key": "dairy",
+   "name": "দুধ ও দুগ্ধজাত",
+   "nameEn": "Dairy"
+  },
+  {
+   "key": "sweet",
+   "name": "চিনি ও মিষ্টি",
+   "nameEn": "Sugar & sweet"
+  },
+  {
+   "key": "drinks",
+   "name": "চা, কফি ও পানীয়",
+   "nameEn": "Tea, coffee & drinks"
+  },
+  {
+   "key": "sauces",
+   "name": "সস, আচার ও শুকনা খাবার",
+   "nameEn": "Sauces & dry goods"
+  },
+  {
+   "key": "frozen",
+   "name": "ফাস্টফুড ও ফ্রোজেন",
+   "nameEn": "Fast food & frozen"
+  },
+  {
+   "key": "packaging",
+   "name": "প্যাকেজিং",
+   "nameEn": "Packaging"
+  },
+  {
+   "key": "supplies",
+   "name": "জ্বালানি ও পরিষ্কার",
+   "nameEn": "Fuel & cleaning"
+  }
+ ],
+ "items": [
+  {
+   "key": "miniket-rice",
+   "name": "মিনিকেট চাল",
+   "nameEn": "Miniket rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "white rice grains",
+   "wiki": "Rice"
+  },
+  {
+   "key": "nazirshail-rice",
+   "name": "নাজিরশাইল চাল",
+   "nameEn": "Nazirshail rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "raw rice grains closeup",
+   "wiki": "White rice"
+  },
+  {
+   "key": "chinigura-rice",
+   "name": "পোলাওর চাল (চিনিগুঁড়া)",
+   "nameEn": "Chinigura rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "aromatic short grain rice",
+   "wiki": "Kalijira rice"
+  },
+  {
+   "key": "basmati-rice",
+   "name": "বাসমতি চাল",
+   "nameEn": "Basmati rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "basmati rice uncooked",
+   "wiki": "Basmati"
+  },
+  {
+   "key": "atap-rice",
+   "name": "আতপ চাল",
+   "nameEn": "Atap rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "white rice raw",
+   "wiki": "White rice"
+  },
+  {
+   "key": "red-lentils",
+   "name": "মসুর ডাল",
+   "nameEn": "Red lentils",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "split red lentils",
+   "wiki": "Lentil"
+  },
+  {
+   "key": "moong-dal",
+   "name": "মুগ ডাল",
+   "nameEn": "Moong dal",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "moong dal",
+   "wiki": "Mung bean"
+  },
+  {
+   "key": "urad-dal",
+   "name": "মাসকলাই ডাল",
+   "nameEn": "Urad dal",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "urad dal",
+   "wiki": "Vigna mungo"
+  },
+  {
+   "key": "chana-dal",
+   "name": "ছোলার ডাল",
+   "nameEn": "Chana dal",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "chana dal",
+   "wiki": "Chana dal"
+  },
+  {
+   "key": "khesari-dal",
+   "name": "খেসারি ডাল",
+   "nameEn": "Khesari dal",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "Lathyrus sativus seeds",
+   "wiki": "Lathyrus sativus"
+  },
+  {
+   "key": "yellow-split-peas",
+   "name": "অ্যাংকর ডাল",
+   "nameEn": "Yellow split peas",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "yellow split peas",
+   "wiki": "Split pea"
+  },
+  {
+   "key": "chickpeas",
+   "name": "ছোলা",
+   "nameEn": "Chickpeas",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "dried chickpeas",
+   "wiki": "Chickpea"
+  },
+  {
+   "key": "flattened-rice",
+   "name": "চিড়া",
+   "nameEn": "Flattened rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "flattened rice poha",
+   "wiki": "Flattened rice"
+  },
+  {
+   "key": "puffed-rice",
+   "name": "মুড়ি",
+   "nameEn": "Puffed rice",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "puffed rice muri",
+   "wiki": "Puffed rice"
+  },
+  {
+   "key": "semolina",
+   "name": "সুজি",
+   "nameEn": "Semolina",
+   "unit": "kg",
+   "category": "rice-lentils",
+   "query": "semolina",
+   "wiki": "Semolina"
+  },
+  {
+   "key": "whole-wheat-flour",
+   "name": "আটা",
+   "nameEn": "Whole wheat flour",
+   "unit": "kg",
+   "category": "flour-bakery",
+   "query": "wheat flour heap",
+   "wiki": "Whole-wheat flour"
+  },
+  {
+   "key": "flour",
+   "name": "ময়দা",
+   "nameEn": "Flour",
+   "unit": "kg",
+   "category": "flour-bakery",
+   "query": "wheat flour bowl",
+   "wiki": "Flour"
+  },
+  {
+   "key": "gram-flour",
+   "name": "বেসন",
+   "nameEn": "Gram flour",
+   "unit": "kg",
+   "category": "flour-bakery",
+   "query": "gram flour besan",
+   "wiki": "Gram flour"
+  },
+  {
+   "key": "corn-flour",
+   "name": "কর্ন ফ্লাওয়ার",
+   "nameEn": "Corn flour",
+   "unit": "packet",
+   "category": "flour-bakery",
+   "query": "cornstarch powder",
+   "wiki": "Corn starch"
+  },
+  {
+   "key": "rice-flour",
+   "name": "চালের গুঁড়া",
+   "nameEn": "Rice flour",
+   "unit": "kg",
+   "category": "flour-bakery",
+   "query": "rice flour",
+   "wiki": "Rice flour"
+  },
+  {
+   "key": "bread",
+   "name": "পাউরুটি",
+   "nameEn": "Bread",
+   "unit": "piece",
+   "category": "flour-bakery",
+   "query": "sliced bread loaf",
+   "wiki": "Sliced bread"
+  },
+  {
+   "key": "burger-bun",
+   "name": "বার্গার বান",
+   "nameEn": "Burger bun",
+   "unit": "piece",
+   "category": "flour-bakery",
+   "query": "hamburger buns",
+   "wiki": "Bun"
+  },
+  {
+   "key": "hot-dog-bun",
+   "name": "হট ডগ বান",
+   "nameEn": "Hot dog bun",
+   "unit": "piece",
+   "category": "flour-bakery",
+   "query": "hot dog buns",
+   "wiki": "Hot dog bun"
+  },
+  {
+   "key": "baking-powder",
+   "name": "বেকিং পাউডার",
+   "nameEn": "Baking powder",
+   "unit": "packet",
+   "category": "flour-bakery",
+   "query": "baking powder",
+   "wiki": "Baking powder"
+  },
+  {
+   "key": "yeast",
+   "name": "ইস্ট",
+   "nameEn": "Yeast",
+   "unit": "packet",
+   "category": "flour-bakery",
+   "query": "dry yeast granules",
+   "wiki": "Baker's yeast"
+  },
+  {
+   "key": "biscuits",
+   "name": "বিস্কুট",
+   "nameEn": "Biscuits",
+   "unit": "packet",
+   "category": "flour-bakery",
+   "query": "biscuits",
+   "wiki": "Biscuit"
+  },
+  {
+   "key": "bread-crumbs",
+   "name": "ব্রেড ক্রাম্ব",
+   "nameEn": "Bread crumbs",
+   "unit": "kg",
+   "category": "flour-bakery",
+   "query": "bread crumbs",
+   "wiki": "Bread crumbs"
+  },
+  {
+   "key": "soybean-oil",
+   "name": "সয়াবিন তেল",
+   "nameEn": "Soybean oil",
+   "unit": "litre",
+   "category": "oil",
+   "query": "soybean oil bottle",
+   "wiki": "Soybean oil"
+  },
+  {
+   "key": "mustard-oil",
+   "name": "সরিষার তেল",
+   "nameEn": "Mustard oil",
+   "unit": "litre",
+   "category": "oil",
+   "query": "mustard oil",
+   "wiki": "Mustard oil"
+  },
+  {
+   "key": "palm-oil",
+   "name": "পাম তেল",
+   "nameEn": "Palm oil",
+   "unit": "litre",
+   "category": "oil",
+   "query": "palm oil bottle",
+   "wiki": "Palm oil"
+  },
+  {
+   "key": "ghee",
+   "name": "ঘি",
+   "nameEn": "Ghee",
+   "unit": "kg",
+   "category": "oil",
+   "query": "ghee jar",
+   "wiki": "Ghee"
+  },
+  {
+   "key": "vanaspati",
+   "name": "ডালডা (বনস্পতি)",
+   "nameEn": "Vanaspati",
+   "unit": "kg",
+   "category": "oil",
+   "query": "vegetable ghee",
+   "wiki": "Vanaspati"
+  },
+  {
+   "key": "butter",
+   "name": "বাটার",
+   "nameEn": "Butter",
+   "unit": "kg",
+   "category": "oil",
+   "query": "butter block",
+   "wiki": "Butter"
+  },
+  {
+   "key": "olive-oil",
+   "name": "অলিভ অয়েল",
+   "nameEn": "Olive oil",
+   "unit": "litre",
+   "category": "oil",
+   "query": "olive oil bottle",
+   "wiki": "Olive oil"
+  },
+  {
+   "key": "salt",
+   "name": "লবণ",
+   "nameEn": "Salt",
+   "unit": "kg",
+   "category": "spices",
+   "query": "table salt",
+   "wiki": "Salt"
+  },
+  {
+   "key": "turmeric-powder",
+   "name": "হলুদ গুঁড়া",
+   "nameEn": "Turmeric powder",
+   "unit": "kg",
+   "category": "spices",
+   "query": "turmeric powder",
+   "wiki": "Turmeric"
+  },
+  {
+   "key": "chili-powder",
+   "name": "মরিচ গুঁড়া",
+   "nameEn": "Chili powder",
+   "unit": "kg",
+   "category": "spices",
+   "query": "red chili powder",
+   "wiki": "Chili powder"
+  },
+  {
+   "key": "coriander-powder",
+   "name": "ধনিয়া গুঁড়া",
+   "nameEn": "Coriander powder",
+   "unit": "kg",
+   "category": "spices",
+   "query": "coriander powder",
+   "wiki": "Coriander seed"
+  },
+  {
+   "key": "cumin",
+   "name": "জিরা",
+   "nameEn": "Cumin",
+   "unit": "kg",
+   "category": "spices",
+   "query": "cumin seeds",
+   "wiki": "Cumin"
+  },
+  {
+   "key": "ground-cumin",
+   "name": "জিরা গুঁড়া",
+   "nameEn": "Ground cumin",
+   "unit": "kg",
+   "category": "spices",
+   "query": "cumin powder",
+   "wiki": "Cumin"
+  },
+  {
+   "key": "garam-masala",
+   "name": "গরম মসলা",
+   "nameEn": "Garam masala",
+   "unit": "kg",
+   "category": "spices",
+   "query": "garam masala",
+   "wiki": "Garam masala"
+  },
+  {
+   "key": "cardamom",
+   "name": "এলাচ",
+   "nameEn": "Cardamom",
+   "unit": "kg",
+   "category": "spices",
+   "query": "green cardamom pods",
+   "wiki": "Cardamom"
+  },
+  {
+   "key": "cinnamon",
+   "name": "দারুচিনি",
+   "nameEn": "Cinnamon",
+   "unit": "kg",
+   "category": "spices",
+   "query": "cinnamon sticks",
+   "wiki": "Cinnamon"
+  },
+  {
+   "key": "cloves",
+   "name": "লবঙ্গ",
+   "nameEn": "Cloves",
+   "unit": "kg",
+   "category": "spices",
+   "query": "dried cloves spice",
+   "wiki": "Clove"
+  },
+  {
+   "key": "bay-leaf",
+   "name": "তেজপাতা",
+   "nameEn": "Bay leaf",
+   "unit": "kg",
+   "category": "spices",
+   "query": "dried bay leaves",
+   "wiki": "Indian bay leaf"
+  },
+  {
+   "key": "black-pepper",
+   "name": "গোলমরিচ",
+   "nameEn": "Black pepper",
+   "unit": "kg",
+   "category": "spices",
+   "query": "black peppercorns",
+   "wiki": "Black pepper"
+  },
+  {
+   "key": "dried-chili",
+   "name": "শুকনা মরিচ",
+   "nameEn": "Dried chili",
+   "unit": "kg",
+   "category": "spices",
+   "query": "dried red chillies",
+   "wiki": "Dried chili pepper"
+  },
+  {
+   "key": "panch-phoron",
+   "name": "পাঁচফোড়ন",
+   "nameEn": "Panch phoron",
+   "unit": "kg",
+   "category": "spices",
+   "query": "panch phoron",
+   "wiki": "Panch phoron"
+  },
+  {
+   "key": "fenugreek",
+   "name": "মেথি",
+   "nameEn": "Fenugreek",
+   "unit": "kg",
+   "category": "spices",
+   "query": "fenugreek seeds",
+   "wiki": "Fenugreek"
+  },
+  {
+   "key": "nigella-seeds",
+   "name": "কালোজিরা",
+   "nameEn": "Nigella seeds",
+   "unit": "kg",
+   "category": "spices",
+   "query": "Nigella sativa seeds",
+   "wiki": "Nigella sativa"
+  },
+  {
+   "key": "fennel-seeds",
+   "name": "মৌরি",
+   "nameEn": "Fennel seeds",
+   "unit": "kg",
+   "category": "spices",
+   "query": "fennel seeds",
+   "wiki": "Fennel seed"
+  },
+  {
+   "key": "mustard-seeds",
+   "name": "সরিষা",
+   "nameEn": "Mustard seeds",
+   "unit": "kg",
+   "category": "spices",
+   "query": "mustard seeds",
+   "wiki": "Mustard seed"
+  },
+  {
+   "key": "nutmeg",
+   "name": "জয়ফল",
+   "nameEn": "Nutmeg",
+   "unit": "kg",
+   "category": "spices",
+   "query": "nutmeg",
+   "wiki": "Nutmeg"
+  },
+  {
+   "key": "mace",
+   "name": "জয়ত্রী",
+   "nameEn": "Mace",
+   "unit": "kg",
+   "category": "spices",
+   "query": "mace spice",
+   "wiki": "Mace (spice)"
+  },
+  {
+   "key": "black-cumin",
+   "name": "শাহী জিরা",
+   "nameEn": "Black cumin",
+   "unit": "kg",
+   "category": "spices",
+   "query": "black cumin seeds",
+   "wiki": "Bunium persicum"
+  },
+  {
+   "key": "ginger-paste",
+   "name": "আদা বাটা",
+   "nameEn": "Ginger paste",
+   "unit": "kg",
+   "category": "spices",
+   "query": "ginger paste",
+   "wiki": "Ginger garlic paste"
+  },
+  {
+   "key": "garlic-paste",
+   "name": "রসুন বাটা",
+   "nameEn": "Garlic paste",
+   "unit": "kg",
+   "category": "spices",
+   "query": "garlic paste",
+   "wiki": "Ginger garlic paste"
+  },
+  {
+   "key": "biryani-masala",
+   "name": "বিরিয়ানি মসলা",
+   "nameEn": "Biryani masala",
+   "unit": "packet",
+   "category": "spices",
+   "query": "biryani masala",
+   "wiki": "Biryani masala"
+  },
+  {
+   "key": "meat-masala",
+   "name": "মাংসের মসলা",
+   "nameEn": "Meat masala",
+   "unit": "packet",
+   "category": "spices",
+   "query": "spice mix powder",
+   "wiki": "Masala (food)"
+  },
+  {
+   "key": "chaat-masala",
+   "name": "চাট মসলা",
+   "nameEn": "Chaat masala",
+   "unit": "packet",
+   "category": "spices",
+   "query": "chaat masala",
+   "wiki": "Chaat masala"
+  },
+  {
+   "key": "msg",
+   "name": "টেস্টিং সল্ট",
+   "nameEn": "MSG",
+   "unit": "kg",
+   "category": "spices",
+   "query": "monosodium glutamate crystals",
+   "wiki": "Monosodium glutamate"
+  },
+  {
+   "key": "black-salt",
+   "name": "বিট লবণ",
+   "nameEn": "Black salt",
+   "unit": "kg",
+   "category": "spices",
+   "query": "kala namak",
+   "wiki": "Kala namak"
+  },
+  {
+   "key": "saffron",
+   "name": "জাফরান",
+   "nameEn": "Saffron",
+   "unit": "packet",
+   "category": "spices",
+   "query": "saffron threads",
+   "wiki": "Saffron"
+  },
+  {
+   "key": "kewra-water",
+   "name": "কেওড়া জল",
+   "nameEn": "Kewra water",
+   "unit": "litre",
+   "category": "spices",
+   "query": "Pandanus odorifer",
+   "wiki": "Kewra"
+  },
+  {
+   "key": "rose-water",
+   "name": "গোলাপ জল",
+   "nameEn": "Rose water",
+   "unit": "litre",
+   "category": "spices",
+   "query": "rose water",
+   "wiki": "Rose water"
+  },
+  {
+   "key": "food-colour",
+   "name": "খাবার রং",
+   "nameEn": "Food colour",
+   "unit": "packet",
+   "category": "spices",
+   "query": "food coloring",
+   "wiki": "Food coloring"
+  },
+  {
+   "key": "sesame-seeds",
+   "name": "তিল",
+   "nameEn": "Sesame seeds",
+   "unit": "kg",
+   "category": "spices",
+   "query": "sesame seeds",
+   "wiki": "Sesame"
+  },
+  {
+   "key": "beef",
+   "name": "গরুর মাংস",
+   "nameEn": "Beef",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw beef meat",
+   "wiki": "Beef"
+  },
+  {
+   "key": "mutton",
+   "name": "খাসির মাংস",
+   "nameEn": "Mutton",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw goat meat",
+   "wiki": "Goat meat"
+  },
+  {
+   "key": "broiler-chicken",
+   "name": "ব্রয়লার মুরগি",
+   "nameEn": "Broiler chicken",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw whole chicken",
+   "wiki": "Chicken as food"
+  },
+  {
+   "key": "desi-chicken",
+   "name": "দেশি মুরগি",
+   "nameEn": "Desi chicken",
+   "unit": "piece",
+   "category": "meat-egg",
+   "query": "hen chicken",
+   "wiki": "Chicken"
+  },
+  {
+   "key": "sonali-chicken",
+   "name": "সোনালি মুরগি",
+   "nameEn": "Sonali chicken",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw chicken pieces",
+   "wiki": "Chicken as food"
+  },
+  {
+   "key": "chicken-breast",
+   "name": "মুরগির ব্রেস্ট",
+   "nameEn": "Chicken breast",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw chicken breast",
+   "wiki": "Chicken breast"
+  },
+  {
+   "key": "chicken-wings",
+   "name": "মুরগির উইংস",
+   "nameEn": "Chicken wings",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw chicken wings",
+   "wiki": "Buffalo wing"
+  },
+  {
+   "key": "chicken-legs",
+   "name": "মুরগির লেগ",
+   "nameEn": "Chicken legs",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw chicken drumsticks",
+   "wiki": "Drumstick (poultry)"
+  },
+  {
+   "key": "duck-meat",
+   "name": "হাঁসের মাংস",
+   "nameEn": "Duck meat",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw duck meat",
+   "wiki": "Duck as food"
+  },
+  {
+   "key": "chicken-eggs",
+   "name": "মুরগির ডিম",
+   "nameEn": "Chicken eggs",
+   "unit": "piece",
+   "category": "meat-egg",
+   "query": "chicken eggs",
+   "wiki": "Egg as food"
+  },
+  {
+   "key": "duck-eggs",
+   "name": "হাঁসের ডিম",
+   "nameEn": "Duck eggs",
+   "unit": "piece",
+   "category": "meat-egg",
+   "query": "duck eggs",
+   "wiki": "Duck egg"
+  },
+  {
+   "key": "quail-eggs",
+   "name": "কোয়েলের ডিম",
+   "nameEn": "Quail eggs",
+   "unit": "piece",
+   "category": "meat-egg",
+   "query": "quail eggs",
+   "wiki": "Quail eggs"
+  },
+  {
+   "key": "beef-liver",
+   "name": "গরুর কলিজা",
+   "nameEn": "Beef liver",
+   "unit": "kg",
+   "category": "meat-egg",
+   "query": "raw beef liver",
+   "wiki": "Liver (food)"
+  },
+  {
+   "key": "rohu",
+   "name": "রুই মাছ",
+   "nameEn": "Rohu",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Labeo rohita",
+   "wiki": "Rohu"
+  },
+  {
+   "key": "catla",
+   "name": "কাতলা মাছ",
+   "nameEn": "Catla",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Catla catla fish",
+   "wiki": "Catla"
+  },
+  {
+   "key": "hilsa",
+   "name": "ইলিশ মাছ",
+   "nameEn": "Hilsa",
+   "unit": "kg",
+   "category": "fish",
+   "query": "hilsa fish",
+   "wiki": "Ilish"
+  },
+  {
+   "key": "pangas",
+   "name": "পাঙ্গাস মাছ",
+   "nameEn": "Pangas",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Pangasius fish",
+   "wiki": "Pangasius pangasius"
+  },
+  {
+   "key": "tilapia",
+   "name": "তেলাপিয়া মাছ",
+   "nameEn": "Tilapia",
+   "unit": "kg",
+   "category": "fish",
+   "query": "tilapia fish",
+   "wiki": "Tilapia"
+  },
+  {
+   "key": "prawns",
+   "name": "চিংড়ি মাছ",
+   "nameEn": "Prawns",
+   "unit": "kg",
+   "category": "fish",
+   "query": "raw prawns",
+   "wiki": "Prawn"
+  },
+  {
+   "key": "pabda",
+   "name": "পাবদা মাছ",
+   "nameEn": "Pabda",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Ompok pabda",
+   "wiki": "Ompok pabda"
+  },
+  {
+   "key": "tengra",
+   "name": "টেংরা মাছ",
+   "nameEn": "Tengra",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Mystus tengara",
+   "wiki": "Mystus tengara"
+  },
+  {
+   "key": "koi-fish",
+   "name": "কই মাছ",
+   "nameEn": "Koi fish",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Anabas testudineus",
+   "wiki": "Anabas testudineus"
+  },
+  {
+   "key": "shing-fish",
+   "name": "শিং মাছ",
+   "nameEn": "Shing fish",
+   "unit": "kg",
+   "category": "fish",
+   "query": "Heteropneustes fossilis",
+   "wiki": "Heteropneustes fossilis"
+  },
+  {
+   "key": "dried-fish",
+   "name": "শুঁটকি মাছ",
+   "nameEn": "Dried fish",
+   "unit": "kg",
+   "category": "fish",
+   "query": "dried fish market",
+   "wiki": "Dried fish"
+  },
+  {
+   "key": "onion",
+   "name": "পেঁয়াজ",
+   "nameEn": "Onion",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "red onions",
+   "wiki": "Onion"
+  },
+  {
+   "key": "garlic",
+   "name": "রসুন",
+   "nameEn": "Garlic",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "garlic bulbs",
+   "wiki": "Garlic"
+  },
+  {
+   "key": "ginger",
+   "name": "আদা",
+   "nameEn": "Ginger",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "fresh ginger rhizome",
+   "wiki": "Ginger"
+  },
+  {
+   "key": "green-chili",
+   "name": "কাঁচা মরিচ",
+   "nameEn": "Green chili",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "green chillies",
+   "wiki": "Green chili"
+  },
+  {
+   "key": "potato",
+   "name": "আলু",
+   "nameEn": "Potato",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "potatoes",
+   "wiki": "Potato"
+  },
+  {
+   "key": "tomato",
+   "name": "টমেটো",
+   "nameEn": "Tomato",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "tomatoes",
+   "wiki": "Tomato"
+  },
+  {
+   "key": "eggplant",
+   "name": "বেগুন",
+   "nameEn": "Eggplant",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "eggplants brinjal",
+   "wiki": "Eggplant"
+  },
+  {
+   "key": "cauliflower",
+   "name": "ফুলকপি",
+   "nameEn": "Cauliflower",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "cauliflower",
+   "wiki": "Cauliflower"
+  },
+  {
+   "key": "cabbage",
+   "name": "বাঁধাকপি",
+   "nameEn": "Cabbage",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "cabbage head",
+   "wiki": "Cabbage"
+  },
+  {
+   "key": "carrot",
+   "name": "গাজর",
+   "nameEn": "Carrot",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "carrots",
+   "wiki": "Carrot"
+  },
+  {
+   "key": "cucumber",
+   "name": "শসা",
+   "nameEn": "Cucumber",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "cucumbers",
+   "wiki": "Cucumber"
+  },
+  {
+   "key": "bottle-gourd",
+   "name": "লাউ",
+   "nameEn": "Bottle gourd",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "bottle gourd",
+   "wiki": "Calabash"
+  },
+  {
+   "key": "pumpkin",
+   "name": "মিষ্টি কুমড়া",
+   "nameEn": "Pumpkin",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "pumpkin",
+   "wiki": "Pumpkin"
+  },
+  {
+   "key": "green-papaya",
+   "name": "কাঁচা পেঁপে",
+   "nameEn": "Green papaya",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "green papaya",
+   "wiki": "Papaya"
+  },
+  {
+   "key": "okra",
+   "name": "ঢেঁড়স",
+   "nameEn": "Okra",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "okra",
+   "wiki": "Okra"
+  },
+  {
+   "key": "bitter-gourd",
+   "name": "করলা",
+   "nameEn": "Bitter gourd",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "bitter gourd vegetable",
+   "wiki": "Momordica charantia"
+  },
+  {
+   "key": "pointed-gourd",
+   "name": "পটল",
+   "nameEn": "Pointed gourd",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "Trichosanthes dioica",
+   "wiki": "Trichosanthes dioica"
+  },
+  {
+   "key": "ridge-gourd",
+   "name": "ঝিঙা",
+   "nameEn": "Ridge gourd",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "ridge gourd vegetable",
+   "wiki": "Luffa acutangula"
+  },
+  {
+   "key": "snake-gourd",
+   "name": "চিচিঙ্গা",
+   "nameEn": "Snake gourd",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "snake gourd vegetable",
+   "wiki": "Trichosanthes cucumerina"
+  },
+  {
+   "key": "flat-beans",
+   "name": "শিম",
+   "nameEn": "Flat beans",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "lablab bean pods",
+   "wiki": "Lablab"
+  },
+  {
+   "key": "yardlong-beans",
+   "name": "বরবটি",
+   "nameEn": "Yardlong beans",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "yardlong bean",
+   "wiki": "Yardlong bean"
+  },
+  {
+   "key": "green-peas",
+   "name": "মটরশুঁটি",
+   "nameEn": "Green peas",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "green peas pods",
+   "wiki": "Pea"
+  },
+  {
+   "key": "green-banana",
+   "name": "কাঁচা কলা",
+   "nameEn": "Green banana",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "green plantains",
+   "wiki": "Cooking banana"
+  },
+  {
+   "key": "radish",
+   "name": "মুলা",
+   "nameEn": "Radish",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "daikon radish",
+   "wiki": "Daikon"
+  },
+  {
+   "key": "spinach",
+   "name": "পালং শাক",
+   "nameEn": "Spinach",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "spinach leaves",
+   "wiki": "Spinach"
+  },
+  {
+   "key": "red-amaranth",
+   "name": "লাল শাক",
+   "nameEn": "Red amaranth",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "red amaranth leaves",
+   "wiki": "Amaranthus tricolor"
+  },
+  {
+   "key": "coriander-leaves",
+   "name": "ধনেপাতা",
+   "nameEn": "Coriander leaves",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "coriander leaves bunch",
+   "wiki": "Coriander"
+  },
+  {
+   "key": "mint-leaves",
+   "name": "পুদিনা পাতা",
+   "nameEn": "Mint leaves",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "mint leaves",
+   "wiki": "Mentha"
+  },
+  {
+   "key": "lemon",
+   "name": "লেবু",
+   "nameEn": "Lemon",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "limes",
+   "wiki": "Key lime"
+  },
+  {
+   "key": "lettuce",
+   "name": "লেটুস পাতা",
+   "nameEn": "Lettuce",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "lettuce",
+   "wiki": "Lettuce"
+  },
+  {
+   "key": "capsicum",
+   "name": "ক্যাপসিকাম",
+   "nameEn": "Capsicum",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "bell peppers",
+   "wiki": "Bell pepper"
+  },
+  {
+   "key": "beetroot",
+   "name": "বিট",
+   "nameEn": "Beetroot",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "beetroot",
+   "wiki": "Beetroot"
+  },
+  {
+   "key": "broccoli",
+   "name": "ব্রকলি",
+   "nameEn": "Broccoli",
+   "unit": "piece",
+   "category": "vegetables",
+   "query": "broccoli",
+   "wiki": "Broccoli"
+  },
+  {
+   "key": "mushroom",
+   "name": "মাশরুম",
+   "nameEn": "Mushroom",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "button mushrooms",
+   "wiki": "Agaricus bisporus"
+  },
+  {
+   "key": "taro",
+   "name": "কচু",
+   "nameEn": "Taro",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "taro root",
+   "wiki": "Taro"
+  },
+  {
+   "key": "sweet-potato",
+   "name": "মিষ্টি আলু",
+   "nameEn": "Sweet potato",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "sweet potatoes",
+   "wiki": "Sweet potato"
+  },
+  {
+   "key": "spring-onion",
+   "name": "পেঁয়াজ পাতা",
+   "nameEn": "Spring onion",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "spring onions",
+   "wiki": "Scallion"
+  },
+  {
+   "key": "drumstick",
+   "name": "সজনে ডাটা",
+   "nameEn": "Drumstick",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "moringa pods vegetable",
+   "wiki": "Moringa oleifera"
+  },
+  {
+   "key": "green-mango",
+   "name": "কাঁচা আম",
+   "nameEn": "Green mango",
+   "unit": "kg",
+   "category": "vegetables",
+   "query": "green mangoes",
+   "wiki": "Mango"
+  },
+  {
+   "key": "banana",
+   "name": "কলা",
+   "nameEn": "Banana",
+   "unit": "piece",
+   "category": "fruits-nuts",
+   "query": "bananas",
+   "wiki": "Banana"
+  },
+  {
+   "key": "apple",
+   "name": "আপেল",
+   "nameEn": "Apple",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "red apples",
+   "wiki": "Apple"
+  },
+  {
+   "key": "malta",
+   "name": "মাল্টা",
+   "nameEn": "Malta",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "oranges fruit",
+   "wiki": "Orange (fruit)"
+  },
+  {
+   "key": "pineapple",
+   "name": "আনারস",
+   "nameEn": "Pineapple",
+   "unit": "piece",
+   "category": "fruits-nuts",
+   "query": "pineapple fruit",
+   "wiki": "Pineapple"
+  },
+  {
+   "key": "papaya",
+   "name": "পাকা পেঁপে",
+   "nameEn": "Papaya",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "papaya fruit",
+   "wiki": "Papaya"
+  },
+  {
+   "key": "mango",
+   "name": "আম",
+   "nameEn": "Mango",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "ripe mangoes",
+   "wiki": "Mango"
+  },
+  {
+   "key": "watermelon",
+   "name": "তরমুজ",
+   "nameEn": "Watermelon",
+   "unit": "piece",
+   "category": "fruits-nuts",
+   "query": "watermelon",
+   "wiki": "Watermelon"
+  },
+  {
+   "key": "grapes",
+   "name": "আঙুর",
+   "nameEn": "Grapes",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "green grapes",
+   "wiki": "Grape"
+  },
+  {
+   "key": "green-coconut",
+   "name": "ডাব",
+   "nameEn": "Green coconut",
+   "unit": "piece",
+   "category": "fruits-nuts",
+   "query": "green coconuts",
+   "wiki": "Coconut water"
+  },
+  {
+   "key": "coconut",
+   "name": "নারকেল",
+   "nameEn": "Coconut",
+   "unit": "piece",
+   "category": "fruits-nuts",
+   "query": "coconut fruit",
+   "wiki": "Coconut"
+  },
+  {
+   "key": "dates",
+   "name": "খেজুর",
+   "nameEn": "Dates",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "dried dates fruit",
+   "wiki": "Date palm"
+  },
+  {
+   "key": "raisins",
+   "name": "কিসমিস",
+   "nameEn": "Raisins",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "raisins",
+   "wiki": "Raisin"
+  },
+  {
+   "key": "cashew",
+   "name": "কাজুবাদাম",
+   "nameEn": "Cashew",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "cashew nuts",
+   "wiki": "Cashew"
+  },
+  {
+   "key": "peanuts",
+   "name": "চিনাবাদাম",
+   "nameEn": "Peanuts",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "peanuts",
+   "wiki": "Peanut"
+  },
+  {
+   "key": "pistachio",
+   "name": "পেস্তা বাদাম",
+   "nameEn": "Pistachio",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "pistachios",
+   "wiki": "Pistachio"
+  },
+  {
+   "key": "almonds",
+   "name": "কাঠবাদাম",
+   "nameEn": "Almonds",
+   "unit": "kg",
+   "category": "fruits-nuts",
+   "query": "almonds",
+   "wiki": "Almond"
+  },
+  {
+   "key": "milk",
+   "name": "গরুর দুধ",
+   "nameEn": "Milk",
+   "unit": "litre",
+   "category": "dairy",
+   "query": "glass of milk",
+   "wiki": "Milk"
+  },
+  {
+   "key": "milk-powder",
+   "name": "গুঁড়া দুধ",
+   "nameEn": "Milk powder",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "milk powder",
+   "wiki": "Powdered milk"
+  },
+  {
+   "key": "condensed-milk",
+   "name": "কনডেন্সড মিল্ক",
+   "nameEn": "Condensed milk",
+   "unit": "piece",
+   "category": "dairy",
+   "query": "sweetened condensed milk",
+   "wiki": "Condensed milk"
+  },
+  {
+   "key": "yogurt",
+   "name": "টক দই",
+   "nameEn": "Yogurt",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "plain yogurt",
+   "wiki": "Yogurt"
+  },
+  {
+   "key": "mishti-doi",
+   "name": "মিষ্টি দই",
+   "nameEn": "Mishti doi",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "mishti doi",
+   "wiki": "Mishti doi"
+  },
+  {
+   "key": "paneer",
+   "name": "পনির",
+   "nameEn": "Paneer",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "paneer",
+   "wiki": "Paneer"
+  },
+  {
+   "key": "mozzarella",
+   "name": "মোজারেলা চিজ",
+   "nameEn": "Mozzarella",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "mozzarella cheese",
+   "wiki": "Mozzarella"
+  },
+  {
+   "key": "cheese-slices",
+   "name": "চিজ স্লাইস",
+   "nameEn": "Cheese slices",
+   "unit": "packet",
+   "category": "dairy",
+   "query": "cheese slices",
+   "wiki": "Processed cheese"
+  },
+  {
+   "key": "fresh-cream",
+   "name": "ফ্রেশ ক্রিম",
+   "nameEn": "Fresh cream",
+   "unit": "litre",
+   "category": "dairy",
+   "query": "whipping cream",
+   "wiki": "Cream"
+  },
+  {
+   "key": "chhena",
+   "name": "ছানা",
+   "nameEn": "Chhena",
+   "unit": "kg",
+   "category": "dairy",
+   "query": "chhena",
+   "wiki": "Chhena"
+  },
+  {
+   "key": "sugar",
+   "name": "চিনি",
+   "nameEn": "Sugar",
+   "unit": "kg",
+   "category": "sweet",
+   "query": "white sugar",
+   "wiki": "Sugar"
+  },
+  {
+   "key": "jaggery",
+   "name": "গুড়",
+   "nameEn": "Jaggery",
+   "unit": "kg",
+   "category": "sweet",
+   "query": "jaggery",
+   "wiki": "Jaggery"
+  },
+  {
+   "key": "honey",
+   "name": "মধু",
+   "nameEn": "Honey",
+   "unit": "kg",
+   "category": "sweet",
+   "query": "honey jar",
+   "wiki": "Honey"
+  },
+  {
+   "key": "chocolate-syrup",
+   "name": "চকলেট সিরাপ",
+   "nameEn": "Chocolate syrup",
+   "unit": "litre",
+   "category": "sweet",
+   "query": "chocolate syrup",
+   "wiki": "Chocolate syrup"
+  },
+  {
+   "key": "ice-cream",
+   "name": "আইসক্রিম",
+   "nameEn": "Ice cream",
+   "unit": "litre",
+   "category": "sweet",
+   "query": "ice cream",
+   "wiki": "Ice cream"
+  },
+  {
+   "key": "vermicelli",
+   "name": "সেমাই",
+   "nameEn": "Vermicelli",
+   "unit": "packet",
+   "category": "sweet",
+   "query": "vermicelli",
+   "wiki": "Vermicelli"
+  },
+  {
+   "key": "tea-leaves",
+   "name": "চা পাতা",
+   "nameEn": "Tea leaves",
+   "unit": "kg",
+   "category": "drinks",
+   "query": "black tea leaves",
+   "wiki": "Black tea"
+  },
+  {
+   "key": "tea-bags",
+   "name": "টি ব্যাগ",
+   "nameEn": "Tea bags",
+   "unit": "packet",
+   "category": "drinks",
+   "query": "tea bags",
+   "wiki": "Tea bag"
+  },
+  {
+   "key": "coffee",
+   "name": "কফি",
+   "nameEn": "Coffee",
+   "unit": "packet",
+   "category": "drinks",
+   "query": "instant coffee",
+   "wiki": "Instant coffee"
+  },
+  {
+   "key": "soft-drinks",
+   "name": "সফট ড্রিংকস",
+   "nameEn": "Soft drinks",
+   "unit": "piece",
+   "category": "drinks",
+   "query": "soft drink bottles",
+   "wiki": "Soft drink"
+  },
+  {
+   "key": "water-bottle",
+   "name": "পানির বোতল",
+   "nameEn": "Water bottle",
+   "unit": "piece",
+   "category": "drinks",
+   "query": "bottled water",
+   "wiki": "Bottled water"
+  },
+  {
+   "key": "water-jar",
+   "name": "পানির জার",
+   "nameEn": "Water jar",
+   "unit": "piece",
+   "category": "drinks",
+   "query": "water cooler bottle",
+   "wiki": "Water cooler"
+  },
+  {
+   "key": "energy-drink",
+   "name": "এনার্জি ড্রিংক",
+   "nameEn": "Energy drink",
+   "unit": "piece",
+   "category": "drinks",
+   "query": "energy drink can",
+   "wiki": "Energy drink"
+  },
+  {
+   "key": "juice",
+   "name": "প্যাকেট জুস",
+   "nameEn": "Juice",
+   "unit": "piece",
+   "category": "drinks",
+   "query": "juice box",
+   "wiki": "Juice box"
+  },
+  {
+   "key": "basil-seeds",
+   "name": "তোকমা",
+   "nameEn": "Basil seeds",
+   "unit": "packet",
+   "category": "drinks",
+   "query": "basil seeds sabja",
+   "wiki": "Basil seed drink"
+  },
+  {
+   "key": "psyllium-husk",
+   "name": "ইসবগুল",
+   "nameEn": "Psyllium husk",
+   "unit": "packet",
+   "category": "drinks",
+   "query": "psyllium husk",
+   "wiki": "Psyllium"
+  },
+  {
+   "key": "tomato-sauce",
+   "name": "টমেটো সস",
+   "nameEn": "Tomato sauce",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "tomato ketchup",
+   "wiki": "Ketchup"
+  },
+  {
+   "key": "chili-sauce",
+   "name": "চিলি সস",
+   "nameEn": "Chili sauce",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "chili sauce bottle",
+   "wiki": "Chili sauce and paste"
+  },
+  {
+   "key": "mayonnaise",
+   "name": "মেয়োনিজ",
+   "nameEn": "Mayonnaise",
+   "unit": "kg",
+   "category": "sauces",
+   "query": "mayonnaise",
+   "wiki": "Mayonnaise"
+  },
+  {
+   "key": "soy-sauce",
+   "name": "সয়া সস",
+   "nameEn": "Soy sauce",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "soy sauce",
+   "wiki": "Soy sauce"
+  },
+  {
+   "key": "vinegar",
+   "name": "ভিনেগার",
+   "nameEn": "Vinegar",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "vinegar bottle",
+   "wiki": "Vinegar"
+  },
+  {
+   "key": "tamarind",
+   "name": "তেঁতুল",
+   "nameEn": "Tamarind",
+   "unit": "kg",
+   "category": "sauces",
+   "query": "tamarind pods",
+   "wiki": "Tamarind"
+  },
+  {
+   "key": "pickle",
+   "name": "আচার",
+   "nameEn": "Pickle",
+   "unit": "kg",
+   "category": "sauces",
+   "query": "indian pickle achar",
+   "wiki": "South Asian pickle"
+  },
+  {
+   "key": "kasundi",
+   "name": "কাসুন্দি",
+   "nameEn": "Kasundi",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "mustard sauce",
+   "wiki": "Kasundi"
+  },
+  {
+   "key": "oyster-sauce",
+   "name": "অয়েস্টার সস",
+   "nameEn": "Oyster sauce",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "oyster sauce",
+   "wiki": "Oyster sauce"
+  },
+  {
+   "key": "bbq-sauce",
+   "name": "বারবিকিউ সস",
+   "nameEn": "BBQ sauce",
+   "unit": "litre",
+   "category": "sauces",
+   "query": "barbecue sauce",
+   "wiki": "Barbecue sauce"
+  },
+  {
+   "key": "noodles",
+   "name": "নুডলস",
+   "nameEn": "Noodles",
+   "unit": "packet",
+   "category": "sauces",
+   "query": "instant noodles",
+   "wiki": "Instant noodles"
+  },
+  {
+   "key": "pasta",
+   "name": "পাস্তা",
+   "nameEn": "Pasta",
+   "unit": "kg",
+   "category": "sauces",
+   "query": "dry pasta",
+   "wiki": "Pasta"
+  },
+  {
+   "key": "sweet-corn",
+   "name": "সুইট কর্ন",
+   "nameEn": "Sweet corn",
+   "unit": "piece",
+   "category": "sauces",
+   "query": "sweet corn kernels",
+   "wiki": "Sweet corn"
+  },
+  {
+   "key": "chanachur",
+   "name": "চানাচুর",
+   "nameEn": "Chanachur",
+   "unit": "kg",
+   "category": "sauces",
+   "query": "Bombay mix",
+   "wiki": "Bombay mix"
+  },
+  {
+   "key": "sausage",
+   "name": "সসেজ",
+   "nameEn": "Sausage",
+   "unit": "packet",
+   "category": "frozen",
+   "query": "sausages",
+   "wiki": "Sausage"
+  },
+  {
+   "key": "chicken-nuggets",
+   "name": "চিকেন নাগেটস",
+   "nameEn": "Chicken nuggets",
+   "unit": "packet",
+   "category": "frozen",
+   "query": "chicken nuggets",
+   "wiki": "Chicken nugget"
+  },
+  {
+   "key": "french-fries",
+   "name": "ফ্রেঞ্চ ফ্রাই",
+   "nameEn": "French fries",
+   "unit": "kg",
+   "category": "frozen",
+   "query": "french fries",
+   "wiki": "French fries"
+  },
+  {
+   "key": "frozen-paratha",
+   "name": "ফ্রোজেন পরোটা",
+   "nameEn": "Frozen paratha",
+   "unit": "packet",
+   "category": "frozen",
+   "query": "paratha",
+   "wiki": "Paratha"
+  },
+  {
+   "key": "spring-roll-sheets",
+   "name": "স্প্রিং রোল শিট",
+   "nameEn": "Spring roll sheets",
+   "unit": "packet",
+   "category": "frozen",
+   "query": "spring roll wrappers",
+   "wiki": "Spring roll"
+  },
+  {
+   "key": "tortilla",
+   "name": "টর্টিলা",
+   "nameEn": "Tortilla",
+   "unit": "piece",
+   "category": "frozen",
+   "query": "tortillas",
+   "wiki": "Tortilla"
+  },
+  {
+   "key": "fuchka-puri",
+   "name": "ফুচকার খোসা",
+   "nameEn": "Fuchka puri",
+   "unit": "packet",
+   "category": "frozen",
+   "query": "panipuri",
+   "wiki": "Panipuri"
+  },
+  {
+   "key": "takeaway-box",
+   "name": "পার্সেল বক্স",
+   "nameEn": "Takeaway box",
+   "unit": "piece",
+   "category": "packaging",
+   "query": "takeaway food container",
+   "wiki": "Take-out"
+  },
+  {
+   "key": "disposable-cup",
+   "name": "ওয়ান টাইম কাপ",
+   "nameEn": "Disposable cup",
+   "unit": "piece",
+   "category": "packaging",
+   "query": "disposable paper cups",
+   "wiki": "Paper cup"
+  },
+  {
+   "key": "plastic-spoon",
+   "name": "প্লাস্টিক চামচ",
+   "nameEn": "Plastic spoon",
+   "unit": "piece",
+   "category": "packaging",
+   "query": "plastic spoons",
+   "wiki": "Plastic cutlery"
+  },
+  {
+   "key": "tissue",
+   "name": "টিস্যু",
+   "nameEn": "Tissue",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "paper napkins",
+   "wiki": "Napkin"
+  },
+  {
+   "key": "polythene-bag",
+   "name": "পলিথিন ব্যাগ",
+   "nameEn": "Polythene bag",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "plastic shopping bags",
+   "wiki": "Plastic bag"
+  },
+  {
+   "key": "aluminium-foil",
+   "name": "ফয়েল পেপার",
+   "nameEn": "Aluminium foil",
+   "unit": "piece",
+   "category": "packaging",
+   "query": "aluminium foil roll",
+   "wiki": "Aluminium foil"
+  },
+  {
+   "key": "butter-paper",
+   "name": "বাটার পেপার",
+   "nameEn": "Butter paper",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "parchment paper",
+   "wiki": "Parchment paper"
+  },
+  {
+   "key": "straw",
+   "name": "স্ট্র",
+   "nameEn": "Straw",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "drinking straws",
+   "wiki": "Drinking straw"
+  },
+  {
+   "key": "paper-bag",
+   "name": "কাগজের ঠোঙা",
+   "nameEn": "Paper bag",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "paper bags",
+   "wiki": "Paper bag"
+  },
+  {
+   "key": "toothpick",
+   "name": "টুথপিক",
+   "nameEn": "Toothpick",
+   "unit": "packet",
+   "category": "packaging",
+   "query": "toothpicks",
+   "wiki": "Toothpick"
+  },
+  {
+   "key": "lpg-cylinder",
+   "name": "এলপি গ্যাস সিলিন্ডার",
+   "nameEn": "LPG cylinder",
+   "unit": "piece",
+   "category": "supplies",
+   "query": "LPG gas cylinder",
+   "wiki": "Gas cylinder"
+  },
+  {
+   "key": "charcoal",
+   "name": "কয়লা",
+   "nameEn": "Charcoal",
+   "unit": "kg",
+   "category": "supplies",
+   "query": "charcoal",
+   "wiki": "Charcoal"
+  },
+  {
+   "key": "firewood",
+   "name": "লাকড়ি",
+   "nameEn": "Firewood",
+   "unit": "kg",
+   "category": "supplies",
+   "query": "firewood",
+   "wiki": "Firewood"
+  },
+  {
+   "key": "dishwashing-liquid",
+   "name": "ডিশ ওয়াশ লিকুইড",
+   "nameEn": "Dishwashing liquid",
+   "unit": "litre",
+   "category": "supplies",
+   "query": "dishwashing liquid",
+   "wiki": "Dishwashing liquid"
+  },
+  {
+   "key": "hand-soap",
+   "name": "হাত ধোয়ার সাবান",
+   "nameEn": "Hand soap",
+   "unit": "piece",
+   "category": "supplies",
+   "query": "hand soap",
+   "wiki": "Soap"
+  },
+  {
+   "key": "detergent",
+   "name": "ডিটারজেন্ট",
+   "nameEn": "Detergent",
+   "unit": "kg",
+   "category": "supplies",
+   "query": "laundry detergent powder",
+   "wiki": "Laundry detergent"
+  },
+  {
+   "key": "floor-cleaner",
+   "name": "ফিনাইল",
+   "nameEn": "Floor cleaner",
+   "unit": "litre",
+   "category": "supplies",
+   "query": "floor cleaner bottle",
+   "wiki": "Cleaning agent"
+  },
+  {
+   "key": "scrubber",
+   "name": "স্ক্রাবার",
+   "nameEn": "Scrubber",
+   "unit": "piece",
+   "category": "supplies",
+   "query": "scouring pad",
+   "wiki": "Scouring pad"
+  },
+  {
+   "key": "ice",
+   "name": "বরফ",
+   "nameEn": "Ice",
+   "unit": "kg",
+   "category": "supplies",
+   "query": "ice cubes",
+   "wiki": "Ice cube"
+  }
+ ]
+}

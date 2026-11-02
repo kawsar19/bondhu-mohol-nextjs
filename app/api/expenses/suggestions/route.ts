@@ -6,12 +6,12 @@ import { DAY_MS } from '@/lib/time'
 
 // Admin: things bought often in the last 90 days, so the form can fill them in with one tap.
 export async function GET() {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   await connectDB()
   // Mother store purchases are entered from there, so they aren't offered here.
-  const since = { date: { $gte: new Date(Date.now() - 90 * DAY_MS) }, purchase: null }
+  const since = { shop: session.shop, date: { $gte: new Date(Date.now() - 90 * DAY_MS) }, purchase: null }
   const [items, vendors] = await Promise.all([
     Expense.aggregate([
       { $match: since },

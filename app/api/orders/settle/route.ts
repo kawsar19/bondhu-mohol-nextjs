@@ -8,7 +8,7 @@ import { MANAGERS } from '@/lib/permissions'
 
 // Manager: one payment for several orders, e.g. everything a table ordered.
 export async function POST(request: Request) {
-  const { error } = await requireRole(MANAGERS)
+  const { session, error } = await requireRole(MANAGERS)
   if (error) return error
 
   const t = await getT()
@@ -18,11 +18,11 @@ export async function POST(request: Request) {
   if (!PAYMENT_METHODS.includes(body?.paymentMethod)) return NextResponse.json({ error: t('billing.api.chooseMethod') }, { status: 400 })
 
   await connectDB()
-  const orders = await Order.find({ _id: { $in: ids } })
+  const orders = await Order.find({ _id: { $in: ids }, shop: session.shop })
   if (orders.length !== new Set(ids).size) return NextResponse.json({ error: t('billing.api.ordersGone') }, { status: 404 })
   const blocked = orders.find(o => o.status === 'Cancelled' || o.paymentStatus === 'Paid')
   if (blocked) return NextResponse.json({ error: t(blocked.status === 'Cancelled' ? 'billing.api.alreadyCancelled' : 'billing.api.alreadyPaid', { code: blocked.code }) }, { status: 409 })
 
-  await Order.updateMany({ _id: { $in: ids } }, { $set: { paymentStatus: 'Paid', paymentMethod: body.paymentMethod, paidAt: new Date() } })
-  return NextResponse.json({ orders: await Order.find({ _id: { $in: ids } }) })
+  await Order.updateMany({ _id: { $in: ids }, shop: session.shop }, { $set: { paymentStatus: 'Paid', paymentMethod: body.paymentMethod, paidAt: new Date() } })
+  return NextResponse.json({ orders: await Order.find({ _id: { $in: ids }, shop: session.shop }) })
 }

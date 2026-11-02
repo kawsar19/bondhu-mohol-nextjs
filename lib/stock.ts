@@ -14,9 +14,10 @@ export type MotherStock = { stock: number; bought: number; spent: number }
  * Mother store stock per ingredient id, with total quantity bought and taka spent for the average price.
  * With `before`, only movements dated earlier count: the stock as it was at that moment.
  */
-export async function motherStoreStock(ingredient?: Types.ObjectId | string, before?: Date) {
+export async function motherStoreStock(shop: Types.ObjectId, ingredient?: Types.ObjectId | string, before?: Date) {
   // Aggregation doesn't cast like find() does, so the id must already be an ObjectId.
   const match = {
+    shop,
     ...MOTHER_STORE_MATCH,
     ...(ingredient ? { ingredient: new Types.ObjectId(String(ingredient)) } : {}),
     ...(before ? { date: { $lt: before } } : {}),
@@ -40,8 +41,9 @@ export async function motherStoreStock(ingredient?: Types.ObjectId | string, bef
 const SECTION_DELTA = { $cond: [{ $eq: ['$type', 'use'] }, { $multiply: ['$quantity', -1] }, '$quantity'] }
 
 /** Kitchen stock per section id, then per ingredient id. Ingredients a section never had are left out. `before` works as above. */
-export async function sectionStock(filter?: { section: Types.ObjectId | string; ingredient: Types.ObjectId | string }, before?: Date) {
+export async function sectionStock(shop: Types.ObjectId, filter?: { section: Types.ObjectId | string; ingredient: Types.ObjectId | string }, before?: Date) {
   const match = {
+    shop,
     ...(filter ? { section: new Types.ObjectId(String(filter.section)), ingredient: new Types.ObjectId(String(filter.ingredient)) } : { section: { $ne: null } }),
     ...(before ? { date: { $lt: before } } : {}),
   }
@@ -65,10 +67,10 @@ export type DayBalance = { opening: number; received: number; available: number 
  * what was sent in that day, and what there should be at the end of it before any use is taken off.
  * The day's own entry is left out, so saving it again starts from the same numbers.
  */
-export async function sectionDayBalances(section: Types.ObjectId | string, day: Date, exclude?: Types.ObjectId | null) {
+export async function sectionDayBalances(shop: Types.ObjectId, section: Types.ObjectId | string, day: Date, exclude?: Types.ObjectId | null) {
   const end = new Date(day.getTime() + DAY_MS)
   const rows: { _id: Types.ObjectId; opening: number; received: number; available: number }[] = await StockMovement.aggregate([
-    { $match: { section: new Types.ObjectId(String(section)), date: { $lt: end }, type: { $in: ['transfer', 'use', 'adjust'] }, ...(exclude ? { sectionDay: { $ne: exclude } } : {}) } },
+    { $match: { shop, section: new Types.ObjectId(String(section)), date: { $lt: end }, type: { $in: ['transfer', 'use', 'adjust'] }, ...(exclude ? { sectionDay: { $ne: exclude } } : {}) } },
     {
       $group: {
         _id: '$ingredient',

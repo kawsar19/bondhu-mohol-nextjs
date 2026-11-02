@@ -32,4 +32,10 @@ export const overview = {
   yesterdayNone: 'Yesterday had none by now',
   sameAsYesterday: 'Same as yesterday',
   vsYesterday: '{diff} vs yesterday',
+  lowStock: {
+    title: 'Running low',
+    hint: 'Mother store at or below the warning level',
+    left: '{qty} {unit} left · warn at {limit}',
+    open: 'Open mother store',
+  },
 }

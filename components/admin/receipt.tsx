@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
-import { SHOP } from '@/lib/shop'
+import { useShop } from './shop-context'
 import { methodLabel } from './payment'
 
 export type ReceiptOrder = { code: string; type: 'Dine in' | 'Takeaway'; tableNumber?: number; customerName: string; phone: string; items: { name: string; price: number; qty: number }[]; total: number; paymentStatus: 'Unpaid' | 'Paid'; paymentMethod?: string; createdAt: string }
@@ -27,12 +27,13 @@ export function PrintReceipt({ order, onDone }: { order: ReceiptOrder; onDone: (
 function Receipt({ order }: { order: ReceiptOrder }) {
   const t = useT()
   const intl = useIntlLocale()
+  const { shop } = useShop()
   // Always Bangladesh time, whatever the printing computer is set to.
   const when = new Date(order.createdAt).toLocaleString(intl, { timeZone: 'Asia/Dhaka', day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
   const guest = order.type === 'Dine in' ? t('common.table', { number: order.tableNumber ?? '' }) : [order.customerName, order.phone].filter(Boolean).join(' · ') || t('common.orderType.Takeaway')
 
   return <div className="mx-auto w-[72mm] text-[10pt] leading-snug text-black">
-    <div className="text-center"><p className="text-[16pt] font-bold leading-tight">{SHOP.name}</p><p className="text-[10pt] font-semibold">{SHOP.tagline}</p><p className="mt-[1mm] text-[8pt]">{SHOP.address}</p></div>
+    <div className="text-center"><p className="text-[16pt] font-bold leading-tight">{shop.name}</p>{shop.tagline && <p className="text-[10pt] font-semibold">{shop.tagline}</p>}{shop.address && <p className="mt-[1mm] text-[8pt]">{shop.address}</p>}{shop.phone && <p className="text-[8pt]">{shop.phone}</p>}</div>
     <Rule />
     <Row label={t('billing.receipt.order')} value={<span className="font-bold">{order.code}</span>} />
     <Row label={t('billing.receipt.date')} value={when} />
@@ -45,8 +46,7 @@ function Receipt({ order }: { order: ReceiptOrder }) {
     <Rule />
     <div className="flex justify-between text-[13pt] font-bold"><span>{t('billing.receipt.total')}</span><span>{taka(order.total)}</span></div>
     <p className="mt-[1.5mm] text-center text-[11pt] font-bold tracking-wider">{order.paymentStatus === 'Paid' ? `${t('billing.receipt.paid')}${order.paymentMethod ? ` · ${methodLabel(t, order.paymentMethod).toUpperCase()}` : ''}` : t('billing.receipt.unpaid')}</p>
-    <Rule />
-    <p className="text-center">{SHOP.thanks}</p>
+    {shop.thanks && <><Rule /><p className="text-center">{shop.thanks}</p></>}
   </div>
 }
 

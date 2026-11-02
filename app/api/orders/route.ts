@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   await connectDB()
   try {
-    const order = await createOrder(body, { name: session.name })
+    const order = await createOrder(session.shop, body, { name: session.name })
     return NextResponse.json({ order }, { status: 201 })
   } catch (err) {
     if (err instanceof OrderInputError) return NextResponse.json({ error: err.message }, { status: 400 })
@@ -24,11 +24,11 @@ export async function POST(request: Request) {
 
 // Manager: list orders, newest first. ?status=Cancelled&day=today
 export async function GET(request: Request) {
-  const { error } = await requireRole(MANAGERS)
+  const { session, error } = await requireRole(MANAGERS)
   if (error) return error
 
   const params = new URL(request.url).searchParams
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = { shop: session.shop }
   const statuses = (params.get('status') ?? '').split(',').filter(s => ORDER_STATUSES.includes(s as never))
   if (statuses.length) filter.status = { $in: statuses }
   if (params.get('day') === 'today') filter.createdAt = { $gte: startOfBusinessDay() }

@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import { RegisterServiceWorker } from '@/components/admin/register-sw'
-import { SHOP } from '@/lib/shop'
+import { APP_NAME } from '@/lib/shop'
 
 // Makes the dashboard installable ("Add to Home Screen") as its own app.
 export const metadata: Metadata = {
   manifest: '/admin.webmanifest',
-  appleWebApp: { capable: true, title: SHOP.name, statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: 'default' },
   icons: { apple: '/pwa/apple-touch-180.png' },
 }
 

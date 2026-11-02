@@ -16,7 +16,7 @@ const MOTHER_COUNTS = { type: 'adjust' as const, section: null, sectionDay: null
 
 // Corrections from hand counts in a date range. ?from=YYYY-MM-DD&to=YYYY-MM-DD
 export async function GET(request: Request) {
-  const { error } = await requireRole(STORE_KEEPERS)
+  const { session, error } = await requireRole(STORE_KEEPERS)
   if (error) return error
 
   const t = await getT()
@@ -24,10 +24,10 @@ export async function GET(request: Request) {
   if (range.error) return NextResponse.json({ error: range.error }, { status: 400 })
 
   await connectDB()
-  const counts = await StockMovement.find({ ...MOTHER_COUNTS, date: { $gte: range.start, $lt: range.end } })
+  const counts = await StockMovement.find({ ...MOTHER_COUNTS, shop: session.shop, date: { $gte: range.start, $lt: range.end } })
     .sort({ date: -1, createdAt: -1 })
     .limit(2000)
-    .populate<{ ingredient: { _id: Types.ObjectId; name: string; unit: string } | null }>('ingredient', 'name unit')
+    .populate<{ ingredient: { _id: Types.ObjectId; name: string; unit: string } | null }>({ path: 'ingredient', select: 'name unit', match: { shop: session.shop } })
   return NextResponse.json({
     counts: counts.map(c => ({
       _id: c.id,
@@ -51,13 +51,13 @@ export async function POST(request: Request) {
   const { items, note } = parsed.data
 
   await connectDB()
-  const [found, stock] = await Promise.all([Ingredient.countDocuments({ _id: { $in: items.map(i => i.ingredient) } }), motherStoreStock()])
+  const [found, stock] = await Promise.all([Ingredient.countDocuments({ shop: session.shop, _id: { $in: items.map(i => i.ingredient) } }), motherStoreStock(session.shop)])
   if (found !== items.length) return NextResponse.json({ error: t('store.api.ingredientGone') }, { status: 400 })
 
   const date = startOfBusinessDay()
   const adjusts = items
     .map(i => ({ ingredient: i.ingredient, quantity: Math.round((i.counted - (stock.get(i.ingredient)?.stock ?? 0)) * 1000) / 1000 }))
     .filter(a => Math.abs(a.quantity) >= 0.0005)
-  if (adjusts.length) await StockMovement.insertMany(adjusts.map(a => ({ ...MOTHER_COUNTS, date, ingredient: a.ingredient, quantity: a.quantity, note, addedBy: session.name })))
+  if (adjusts.length) await StockMovement.insertMany(adjusts.map(a => ({ ...MOTHER_COUNTS, shop: session.shop, date, ingredient: a.ingredient, quantity: a.quantity, note, addedBy: session.name })))
   return NextResponse.json({ changed: adjusts.length }, { status: 201 })
 }

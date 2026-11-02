@@ -10,7 +10,10 @@
     "seed:admin": "node --env-file=.env.local scripts/seed-admin.mjs",
     "seed:menu": "node --env-file=.env.local scripts/seed-menu.mjs",
     "copy:atlas": "node --env-file=.env.local scripts/copy-to-atlas.mjs",
-    "migrate:v2": "node --env-file=.env.local scripts/migrate-v2.mjs"
+    "migrate:v2": "node --env-file=.env.local scripts/migrate-v2.mjs",
+    "migrate:shops": "node --env-file=.env.local scripts/migrate-shops.mjs",
+    "create:shop": "node --env-file=.env.local scripts/create-shop.mjs",
+    "seed:superadmin": "node --env-file=.env.local scripts/seed-superadmin.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

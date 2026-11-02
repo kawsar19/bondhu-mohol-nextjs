@@ -13,7 +13,7 @@ const byDay = (field: string) => ({ $dateToString: { format: '%Y-%m-%d', date: f
 // Admins, managers and partners: sales, spending and profit for ?from=YYYY-MM-DD&to=YYYY-MM-DD (Bangladesh dates, inclusive).
 // Sales count every order that wasn't cancelled, paid or not; unpaid is shown separately.
 export async function GET(request: Request) {
-  const { error } = await requireRole(REPORT_VIEWERS)
+  const { session, error } = await requireRole(REPORT_VIEWERS)
   if (error) return error
 
   const t = await getT()
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   if (range.error) return NextResponse.json({ error: range.error }, { status: 400 })
 
   await connectDB()
-  const inRange = { createdAt: { $gte: range.start, $lt: range.end } }
+  const inRange = { shop: session.shop, createdAt: { $gte: range.start, $lt: range.end } }
   const sold = { ...inRange, status: { $ne: 'Cancelled' } }
 
   const [[totals], cancelled, byType, byPayment, salesByDay, topItems, expensesByDay, expensesByCategory] = await Promise.all([
@@ -40,9 +40,9 @@ export async function GET(request: Request) {
       { $sort: { revenue: -1, qty: -1 } },
       { $limit: 10 },
     ]),
-    Expense.aggregate([{ $match: { date: { $gte: range.start, $lt: range.end } } }, { $group: { _id: byDay('$date'), amount: { $sum: '$amount' } } }]),
+    Expense.aggregate([{ $match: { shop: session.shop, date: { $gte: range.start, $lt: range.end } } }, { $group: { _id: byDay('$date'), amount: { $sum: '$amount' } } }]),
     Expense.aggregate([
-      { $match: { date: { $gte: range.start, $lt: range.end } } },
+      { $match: { shop: session.shop, date: { $gte: range.start, $lt: range.end } } },
       { $group: { _id: '$category', amount: { $sum: '$amount' }, count: { $sum: 1 } } },
       { $sort: { amount: -1 } },
     ]),

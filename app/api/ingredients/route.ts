@@ -2,23 +2,24 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import { getT } from '@/lib/i18n/server'
-import { parseIngredientInput } from '@/lib/kitchen-input'
+import { ingredientView, parseIngredientInput } from '@/lib/kitchen-input'
 import { Ingredient } from '@/lib/models/ingredient'
+import { motherStoreStock } from '@/lib/stock'
 import { isDuplicateKeyError } from '@/lib/table-input'
 
-const view = (i: InstanceType<typeof Ingredient>) => ({ _id: i.id, name: i.name, unit: i.unit, isActive: i.isActive })
 
 export async function GET() {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   await connectDB()
-  const ingredients = await Ingredient.find().sort({ name: 1 })
-  return NextResponse.json({ ingredients: ingredients.map(view) })
+  const [ingredients, stock] = await Promise.all([Ingredient.find({ shop: session.shop }).sort({ name: 1 }), motherStoreStock(session.shop)])
+  // `stock` is what the mother store has now, so the list can flag what is running low.
+  return NextResponse.json({ ingredients: ingredients.map(i => ({ ...ingredientView(i), stock: stock.get(i.id)?.stock ?? 0 })) })
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   const t = await getT()
@@ -27,8 +28,8 @@ export async function POST(request: Request) {
 
   await connectDB()
   try {
-    const ingredient = await Ingredient.create(parsed.data)
-    return NextResponse.json({ ingredient: view(ingredient) }, { status: 201 })
+    const ingredient = await Ingredient.create({ ...parsed.data, shop: session.shop })
+    return NextResponse.json({ ingredient: { ...ingredientView(ingredient), stock: 0 } }, { status: 201 })
   } catch (err) {
     if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('ingredients.api.exists', { name: parsed.data.name ?? '' }) }, { status: 409 })
     throw err

@@ -1,8 +1,10 @@
 import { Schema, type InferSchemaType } from 'mongoose'
 import { defineModel } from './define-model'
+import { shopField, tenantPlugin } from './tenant'
 
 const menuItemSchema = new Schema(
   {
+    shop: shopField,
     name: { type: String, required: true, trim: true, maxlength: 80 },
     description: { type: String, trim: true, default: '', maxlength: 300 },
     price: { type: Number, required: true, min: 0, max: 100000 },
@@ -16,7 +18,8 @@ const menuItemSchema = new Schema(
   { timestamps: true },
 )
 
-menuItemSchema.index({ section: 1, name: 1 })
+menuItemSchema.plugin(tenantPlugin)
+menuItemSchema.index({ shop: 1, section: 1, name: 1 })
 
 export type MenuItemDoc = InferSchemaType<typeof menuItemSchema>
 

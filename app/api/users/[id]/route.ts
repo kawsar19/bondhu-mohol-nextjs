@@ -30,10 +30,10 @@ export async function PATCH(request: Request, { params }: Context) {
   if (isSelf && fields.isActive === false) return badRequest(t('staff.errors.cantDisableOwn'))
 
   await connectDB()
-  const user = await User.findById(id)
+  const user = await User.findOne({ _id: id, shop: session.shop })
   if (!user) return notFound(t)
   const losesAdmin = user.role === 'admin' && ((fields.role !== undefined && fields.role !== 'admin') || fields.isActive === false)
-  if (losesAdmin && !(await hasOtherActiveAdmin(id))) return badRequest(t('staff.errors.keepOneAdmin'))
+  if (losesAdmin && !(await hasOtherActiveAdmin(session.shop, id))) return badRequest(t('staff.errors.keepOneAdmin'))
 
   user.set(fields)
   if (password) user.passwordHash = await bcrypt.hash(password, 12)
@@ -47,8 +47,8 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   // Keep the admin who changed their own password signed in here.
-  if (isSelf) await setSessionCookie({ userId: id, name: user.name, email: user.email, role: user.role ?? 'admin', sv: user.sessionVersion ?? 0 })
-  return NextResponse.json({ user: await User.findById(id).select(STAFF_FIELDS) })
+  if (isSelf) await setSessionCookie({ userId: id, shopId: session.shopId, name: user.name, email: user.email, role: user.role ?? 'admin', sv: user.sessionVersion ?? 0 })
+  return NextResponse.json({ user: await User.findOne({ _id: id, shop: session.shop }).select(STAFF_FIELDS) })
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
@@ -60,9 +60,9 @@ export async function DELETE(_request: Request, { params }: Context) {
   if (id === session.userId) return badRequest(t('staff.errors.cantDeleteOwn'))
 
   await connectDB()
-  const user = await User.findById(id).select('role isActive')
+  const user = await User.findOne({ _id: id, shop: session.shop }).select('role isActive')
   if (!user) return notFound(t)
-  if (user.role === 'admin' && user.isActive !== false && !(await hasOtherActiveAdmin(id))) return badRequest(t('staff.errors.keepOneAdmin'))
-  await user.deleteOne()
+  if (user.role === 'admin' && user.isActive !== false && !(await hasOtherActiveAdmin(session.shop, id))) return badRequest(t('staff.errors.keepOneAdmin'))
+  await User.deleteOne({ _id: user._id, shop: session.shop })
   return NextResponse.json({ ok: true })
 }

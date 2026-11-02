@@ -1,14 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowUpRight, Bike, CircleDollarSign, ClipboardList, Coffee, Loader2, Plus, RefreshCw, ShoppingBasket, UserRound, Utensils, Wallet } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, Bike, CircleDollarSign, ClipboardList, Coffee, Loader2, Package, Plus, RefreshCw, ShoppingBasket, UserRound, Utensils, Wallet } from 'lucide-react'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
 import type { TFunction } from '@/lib/i18n'
 
 type Totals = { orders: number; sales: number; unpaid: number }
 type RecentOrder = { id: string; code: string; type: 'Dine in' | 'Takeaway'; tableNumber: number | null; customerName: string; items: string; total: number; status: string; takenBy: string; createdAt: string }
 type Popular = { id: string; name: string; image: string; qty: number; revenue: number }
-type Stats = { today: Totals; yesterday: Totals; expenses: { amount: number; count: number }; recent: RecentOrder[]; popular: Popular[]; updatedAt: string }
+type LowItem = { id: string; name: string; unit: 'kg' | 'litre' | 'piece' | 'packet'; image: string; lowStock: number; stock: number }
+type Stats = { today: Totals; yesterday: Totals; expenses: { amount: number; count: number }; recent: RecentOrder[]; popular: Popular[]; lowStock?: LowItem[]; updatedAt: string }
 
 const taka = (n: number) => `৳ ${n.toLocaleString('en-IN')}`
 
@@ -66,7 +67,7 @@ export function Overview({ onNavigate, canOpen }: { onNavigate: (tab: string) =>
 
   if (!stats) return <div>{header}{error ? <p role="alert" className="rounded-xl bg-[#fdf0ec] px-4 py-3 text-xs font-medium text-[#b4472c]">{error}</p> : <div className="mt-10 flex justify-center text-[#87928a]"><Loader2 className="size-6 animate-spin" /></div>}</div>
 
-  const { today, yesterday, expenses, recent, popular } = stats
+  const { today, yesterday, expenses, recent, popular, lowStock = [] } = stats
   const ordersCmp = compare(t, today.orders, yesterday.orders)
   const salesCmp = compare(t, today.sales, yesterday.sales, true)
   const maxQty = Math.max(1, ...popular.map(p => p.qty))
@@ -95,6 +96,14 @@ export function Overview({ onNavigate, canOpen }: { onNavigate: (tab: string) =>
       </section>
 
       <div className="flex flex-col gap-6">
+        {lowStock.length > 0 && <section className="rounded-2xl border border-[#f3d7b8] bg-[#fffaf3] p-5 sm:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3"><div><h3 className="flex items-center gap-2 font-serif text-lg font-bold text-[#8a4f1f]"><AlertTriangle className="size-4" /> {t('overview.lowStock.title')}</h3><p className="mt-0.5 text-xs text-[#a07a58]">{t('overview.lowStock.hint')}</p></div>{canOpen('Mother store') && <button onClick={() => onNavigate('Mother store')} className="shrink-0 text-xs font-semibold text-[#b86f3c] hover:underline">{t('overview.lowStock.open')} <ArrowUpRight className="ml-1 inline size-3.5" /></button>}</div>
+          <ul className="flex flex-col gap-3">{lowStock.slice(0, 8).map(item => <li key={item.id} className="flex items-center gap-3">
+            {item.image ? <img src={item.image} alt="" className="size-10 shrink-0 rounded-xl object-cover" /> : <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6e6d2] text-[#c9a978]"><Package className="size-4" /></div>}
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{item.name}</p><p className="text-[11px] text-[#a07a58]">{t('overview.lowStock.left', { qty: Number(item.stock.toFixed(3)), unit: t(`ingredients.units.${item.unit}`), limit: Number(item.lowStock.toFixed(3)) })}</p></div>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${item.stock <= 0 ? 'bg-[#fdf0ec] text-[#b4472c]' : 'bg-[#fff0df] text-[#a8622f]'}`}>{item.stock <= 0 ? t('store.outOfStock') : t('store.lowStock')}</span>
+          </li>)}</ul>
+        </section>}
         <section className="rounded-2xl border border-[#e3e8e1] bg-white p-5 sm:p-6">
           <div className="mb-4 flex items-center justify-between"><div><h3 className="font-serif text-lg font-bold">{t('overview.bestSellers')}</h3><p className="mt-0.5 text-xs text-[#87928a]">{t('overview.last7Days')}</p></div>{canOpen('Menu') && <button onClick={() => onNavigate('Menu')} className="text-xs font-semibold text-[#b86f3c] hover:underline">{t('overview.manageMenu')} <ArrowUpRight className="ml-1 inline size-3.5" /></button>}</div>
           {popular.length === 0 ? <p className="py-6 text-center text-xs text-[#89938b]">{t('overview.noSales')}</p>

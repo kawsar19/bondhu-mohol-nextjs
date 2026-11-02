@@ -39,6 +39,9 @@ import { SectionsManager } from "./sections-manager";
 import { StaffManager } from "./staff-manager";
 import { StoreManager } from "./store-manager";
 import { TablesManager } from "./tables-manager";
+import { ShopProvider, useShop } from "./shop-context";
+import { ShopSettings } from "./shop-settings";
+import type { ShopInfo } from "@/lib/shop";
 
 export type AdminUser = { id: string; name: string; email: string; role: string };
 type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
@@ -78,7 +81,15 @@ function greeting(t: TFunction, hour: number) {
   return t("nav.goodEvening");
 }
 
-export function AdminDashboard({ user }: { user: AdminUser }) {
+export function AdminDashboard({ user, shop }: { user: AdminUser; shop: ShopInfo }) {
+  return (
+    <ShopProvider initial={shop}>
+      <Dashboard user={user} />
+    </ShopProvider>
+  );
+}
+
+function Dashboard({ user }: { user: AdminUser }) {
   const router = useRouter();
   const t = useT();
   const intlLocale = useIntlLocale();
@@ -103,7 +114,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   const mobileQuickItems = quickItems.slice(0, 4);
   const hasMoreTabs = quickItems.length > 4;
   const mobileBottomItems = hasMoreTabs
-    ? [...mobileQuickItems, { label: "More", key: "nav.mainMenu", icon: PanelLeft }]
+    ? [...mobileQuickItems, { label: "More", key: "nav.mainMenu" as MessageKey, icon: PanelLeft }]
     : mobileQuickItems;
   const selectNav = (label: string) => {
     setActive(label);
@@ -149,6 +160,8 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       <SectionDayEntry />
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
+    ) : active === "Settings" ? (
+      <ShopSettings canEdit={user.role === "admin"} />
     ) : (
       <ComingSoon title={sectionName(t, active)} />
     );
@@ -163,7 +176,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             <Utensils />
           </div>
           <div>
-            <p className="font-serif text-[17px] font-bold tracking-tight"></p>
+            <p className="font-serif text-[17px] font-bold tracking-tight"><ShopName /></p>
             <p className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[.08em] text-[#849087]">
               {t("nav.tagline")}
             </p>
@@ -293,6 +306,10 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       </button>
     </div>
   );
+}
+
+function ShopName() {
+  return <>{useShop().shop.name}</>;
 }
 
 function ComingSoon({ title }: { title: string }) {

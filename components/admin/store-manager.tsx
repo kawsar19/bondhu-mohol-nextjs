@@ -1,15 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowDown, ArrowRight, ChefHat, ClipboardCheck, Loader2, Package, Plus, RefreshCw, Search, Send, ShoppingBasket, Trash2, Warehouse, X } from 'lucide-react'
+import { AlertTriangle, ArrowDown, ArrowRight, ChefHat, ClipboardCheck, Loader2, Package, Plus, RefreshCw, Search, Send, ShoppingBasket, Trash2, Warehouse, X } from 'lucide-react'
 import { businessDateString } from '@/lib/time'
 import type { MessageKey, TFunction } from '@/lib/i18n'
 import { useIntlLocale, useT } from '@/components/i18n-provider'
 import { IngredientPicker } from './ingredient-picker'
+import { isLow } from './ingredients-manager'
 import { addDays, DateRangePicker, describeRange, formatDay, PRESETS, type DateRange } from './date-range-picker'
 
 type Unit = 'kg' | 'litre' | 'piece' | 'packet'
-type StockItem = { _id: string; name: string; unit: Unit; isActive: boolean; stock: number; avgPrice: number | null }
+type StockItem = { _id: string; name: string; unit: Unit; isActive: boolean; lowStock: number | null; image: string; stock: number; avgPrice: number | null }
 type Purchase = { _id: string; date: string; ingredient: { _id: string; name: string; unit: Unit } | null; quantity: number; cost: number; paidTo: string; note: string; addedBy: string }
 // `stock` maps ingredient id to quantity, for ingredients the section has ever had.
 type SectionInfo = { _id: string; name: string; isActive: boolean; stock: Record<string, number> }
@@ -131,9 +132,57 @@ function FlowStrip({ items, sections, version, onOpen }: { items: StockItem[]; s
   </section>
 }
 
+type StockStatus = 'ok' | 'low' | 'out'
+type StockFilter = 'all' | StockStatus
+const FILTERS: StockFilter[] = ['all', 'low', 'out', 'ok']
+
+// Warning levels are for the mother store, so section stock is only ever ok or out.
+function statusOf(i: StockItem, warn: boolean): StockStatus {
+  if (warn && isLow(i)) return 'low'
+  return i.stock > 0 ? 'ok' : 'out'
+}
+
+const STATUS_STYLE: Record<StockStatus, { badge: string; bar: string; ring: string }> = {
+  ok: { badge: 'bg-[#e9f4ec] text-[#2f7a55]', bar: 'bg-[#3f9a6b]', ring: 'border-[#e3e8e1]' },
+  low: { badge: 'bg-[#fff0df] text-[#a8622f]', bar: 'bg-[#e08a3c]', ring: 'border-[#f0cfa8]' },
+  out: { badge: 'bg-[#fdf0ec] text-[#b4472c]', bar: 'bg-[#b4472c]', ring: 'border-[#efd3cb]' },
+}
+
+/** One ingredient as a card: photo, how much is left, how close to its warning level, and where the rest sits. */
+function StockCard({ item: i, sections, warn }: { item: StockItem; sections: SectionInfo[]; warn: boolean }) {
+  const t = useT()
+  const unit = t(`ingredients.units.${i.unit}`)
+  const status = statusOf(i, warn)
+  const style = STATUS_STYLE[status]
+  const spread = sections.filter(s => (s.stock[i._id] ?? 0) > 0)
+  // Full bar at twice the warning level, so "just above the limit" still looks half empty.
+  const fill = warn && i.lowStock ? Math.max(0, Math.min(1, i.stock / (i.lowStock * 2))) : null
+
+  return <li className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:shadow-sm ${style.ring} ${i.isActive ? '' : 'opacity-70'}`}>
+    <span aria-hidden className={`absolute inset-x-0 top-0 h-1 ${style.bar}`} />
+    <div className="flex items-start gap-3 p-3 pb-0 pt-4">
+      {i.image ? <img src={i.image} alt="" className={`size-14 shrink-0 rounded-xl object-cover ${status === 'out' ? 'grayscale' : ''}`} />
+        : <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-[#f5f1e8] font-serif text-2xl font-bold text-[#cdb48a]">{i.name.trim().charAt(0).toUpperCase() || <Package className="size-6" />}</span>}
+      <div className="min-w-0 flex-1">
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${style.badge}`}>{status === 'low' && <AlertTriangle className="size-3" />}{t(status === 'low' ? 'store.lowStock' : status === 'out' ? 'store.outOfStock' : 'store.filter.ok')}</span>
+        <p className="mt-1 line-clamp-2 text-sm font-semibold leading-snug" title={i.name}>{i.name}{!i.isActive && <span className="ml-1 text-[10px] font-medium text-[#a0aaa2]">{t('store.hidden')}</span>}</p>
+      </div>
+    </div>
+    <div className="flex flex-1 flex-col p-3">
+      <p className={`font-serif text-2xl font-bold leading-none tracking-tight tabular-nums ${status === 'out' ? 'text-[#b4472c]' : status === 'low' ? 'text-[#a8622f]' : ''}`}>{amount(i.stock)} <span className="font-sans text-xs font-semibold text-[#68756b]">{unit}</span></p>
+      {fill !== null && <div className="mt-2"><div className="h-1.5 w-full overflow-hidden rounded-full bg-[#edf1ec]"><div className={`h-full rounded-full ${style.bar}`} style={{ width: `${fill * 100}%` }} /></div><p className="mt-1 text-[10px] text-[#9aa39c]">{t('ingredients.warnAt', { qty: amount(i.lowStock!), unit })}</p></div>}
+      <div className="mt-auto pt-2.5 text-[11px] text-[#89938b]">
+        {i.avgPrice === null ? <p>{t('store.noPurchaseYet')}</p> : <p className="flex justify-between gap-2"><span>{t('store.avgPrice', { price: amount(i.avgPrice, 2), unit })}</span>{i.stock > 0 && <span className="font-semibold text-[#4f5b52]">{taka(Math.round(i.stock * i.avgPrice))}</span>}</p>}
+        {spread.length > 0 && <p className="mt-1.5 flex flex-wrap gap-1">{spread.map(s => <span key={s._id} className={`max-w-full truncate rounded-full px-2 py-0.5 text-[10px] font-semibold ${sectionTone(sections, s._id)}`}>{s.name} · {amount(s.stock[i._id])} {unit}</span>)}</p>}
+      </div>
+    </div>
+  </li>
+}
+
 function StockList({ view, items, sections, loading, version, onOpen }: { view: 'mother' | 'kitchen'; items: StockItem[]; sections: SectionInfo[]; loading: boolean; version: number; onOpen: (tab: Tab) => void }) {
   const t = useT()
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<StockFilter>('all')
   // The section picked on the kitchen store page; the first one until the user picks another.
   const [place, setPlace] = useState<string | null>(null)
   // Closed sections only show while they still hold something.
@@ -144,10 +193,14 @@ function StockList({ view, items, sections, loading, version, onOpen }: { view: 
   const shown = useMemo(() => section
     ? items.filter(i => i._id in section.stock && (section.stock[i._id] !== 0 || i.isActive)).map(i => ({ ...i, stock: section.stock[i._id] }))
     : items.filter(i => i.isActive || i.stock !== 0), [items, section])
+  // What needs buying comes first: running low, then run out, then everything that is fine.
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return q ? shown.filter(i => i.name.toLowerCase().includes(q)) : shown
-  }, [shown, search])
+    const rank = { low: 0, out: 1, ok: 2 }
+    return shown
+      .filter(i => (!q || i.name.toLowerCase().includes(q)) && (filter === 'all' || statusOf(i, !section) === filter))
+      .sort((a, b) => rank[statusOf(a, !section)] - rank[statusOf(b, !section)] || a.name.localeCompare(b.name))
+  }, [shown, search, filter, section])
   const value = shown.reduce((sum, i) => sum + (i.stock > 0 && i.avgPrice ? i.stock * i.avgPrice : 0), 0)
   const inStock = shown.filter(i => i.stock > 0).length
 
@@ -182,22 +235,20 @@ function StockList({ view, items, sections, loading, version, onOpen }: { view: 
 
     {view === 'kitchen' && section && <p className="mt-5 text-[11px] text-[#9aa39c]">{t('store.inStock', { count: inStock, total: shown.length })} · {t('store.stockValue')} {taka(Math.round(value))} ({t('store.stockValueHint')})</p>}
 
-    {shown.length > 8 && <div className="relative mt-5 max-w-xs"><Search className="absolute left-3 top-2.5 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('store.searchPlaceholder')} aria-label={t('store.searchPlaceholder')} className="h-9 w-full rounded-lg border border-[#e2e7e1] bg-white pl-9 pr-3 text-xs outline-none focus:border-[#8eaf9b]" /></div>}
+    <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div role="group" aria-label={t('store.filter.label')} className="inline-flex rounded-xl border border-[#e2e7e1] bg-white p-0.5">
+        {FILTERS.map(f => {
+          const count = shown.filter(i => f === 'all' || statusOf(i, !section) === f).length
+          if (f !== 'all' && count === 0) return null
+          return <button key={f} aria-pressed={filter === f} onClick={() => setFilter(f)} className={`flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition ${filter === f ? 'bg-[#202521] text-white' : 'text-[#5f6b62] hover:bg-[#f5f7f4]'}`}>{f === 'low' && <AlertTriangle className="size-3" />}{t(`store.filter.${f}`)}<span className={`tabular-nums ${filter === f ? 'text-white/70' : 'text-[#a0aaa2]'}`}>{count}</span></button>
+        })}
+      </div>
+      {shown.length > 8 && <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search className="absolute left-3 top-2.5 size-4 text-[#a0aaa2]" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('store.searchPlaceholder')} aria-label={t('store.searchPlaceholder')} className="h-9 w-full rounded-lg border border-[#e2e7e1] bg-white pl-9 pr-3 text-xs outline-none focus:border-[#8eaf9b]" /></div>}
+    </div>
 
     {shown.length === 0 && section ? <p className="mt-8 text-sm text-[#89938b]">{t('store.sectionEmpty')}</p>
       : visible.length === 0 ? <p className="mt-8 text-sm text-[#89938b]">{t('store.noMatch')}</p>
-      : <ul className="mt-5 max-w-3xl divide-y divide-[#f0f2ef] rounded-2xl border border-[#e3e8e1] bg-white px-5">{visible.map(i => {
-        const unit = t(`ingredients.units.${i.unit}`)
-        // On the mother store page, also where the rest of it sits in the kitchen.
-        const spread = section ? [] : sections.filter(s => (s.stock[i._id] ?? 0) > 0)
-        return <li key={i._id} className="flex items-center gap-3 py-3.5">
-          <span aria-hidden className={`size-2 shrink-0 rounded-full ${i.stock > 0 ? 'bg-[#3f9a6b]' : i.stock < 0 ? 'bg-[#b4472c]' : 'bg-[#d3d9d3]'}`} />
-          <div className={`min-w-0 flex-1 ${i.stock > 0 ? '' : 'opacity-70'}`}><p className="flex items-center gap-2 truncate text-sm font-semibold">{i.name}{!i.isActive && <span className="text-[11px] font-medium text-[#a0aaa2]">{t('store.hidden')}</span>}</p><p className="mt-0.5 text-[11px] text-[#89938b]">{i.avgPrice === null ? t('store.noPurchaseYet') : t('store.avgPrice', { price: amount(i.avgPrice, 2), unit })}</p>
-            {spread.length > 0 && <p className="mt-1.5 flex flex-wrap items-center gap-1"><span className="text-[10px] font-medium text-[#9aa39c]">{t('store.atSections')}</span>{spread.map(s => <span key={s._id} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${sectionTone(sections, s._id)}`}>{s.name} · {amount(s.stock[i._id])} {unit}</span>)}</p>}</div>
-          <div className="text-right">{i.stock > 0 ? <><p className="text-base font-bold">{amount(i.stock)} <span className="text-xs font-semibold text-[#68756b]">{unit}</span></p>{i.avgPrice !== null && <p className="text-[11px] text-[#89938b]">{taka(Math.round(i.stock * i.avgPrice))}</p>}</>
-            : <p className={`text-xs font-semibold ${i.stock < 0 ? 'text-[#b4472c]' : 'text-[#a0aaa2]'}`}>{i.stock < 0 ? `${amount(i.stock)} ${unit}` : t('store.outOfStock')}</p>}</div>
-        </li>
-      })}</ul>}
+      : <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{visible.map(i => <StockCard key={i._id} item={i} sections={section ? [] : sections} warn={!section} />)}</ul>}
   </>
 }
 

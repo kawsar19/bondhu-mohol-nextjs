@@ -18,7 +18,7 @@ const round = (n: number) => Math.round(n * 1000) / 1000
 // One section's day: stock for each ingredient, the menu items it makes, and what was saved for that day if anything.
 // ?section=<id>&date=YYYY-MM-DD
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   const t = await getT()
@@ -29,14 +29,14 @@ export async function GET(request: Request) {
   if (!date) return NextResponse.json({ error: t('daily.api.invalidDate') }, { status: 400 })
 
   await connectDB()
-  const [section, day] = await Promise.all([Section.findById(sectionId), SectionDay.findOne({ section: sectionId, date })])
+  const [section, day] = await Promise.all([Section.findOne({ _id: sectionId, shop: session.shop }), SectionDay.findOne({ shop: session.shop, section: sectionId, date })])
   if (!section) return NextResponse.json({ error: t('daily.api.sectionNotFound') }, { status: 404 })
-  const [balances, menuItems] = await Promise.all([sectionDayBalances(section._id, date, day?._id), MenuItem.find({ section: section._id }).sort({ name: 1 }).select('name')])
+  const [balances, menuItems] = await Promise.all([sectionDayBalances(session.shop, section._id, date, day?._id), MenuItem.find({ shop: session.shop, section: section._id }).sort({ name: 1 }).select('name')])
 
   // Every ingredient the section has had up to this day, plus any on the saved entry.
   const saved = new Map((day?.items ?? []).map(i => [String(i.ingredient), i]))
   const ids = [...new Set([...balances.keys(), ...saved.keys()])]
-  const ingredients = await Ingredient.find({ _id: { $in: ids } }).sort({ name: 1 })
+  const ingredients = await Ingredient.find({ shop: session.shop, _id: { $in: ids } }).sort({ name: 1 })
 
   return NextResponse.json({
     section: { _id: section.id, name: section.name },
@@ -68,16 +68,16 @@ export async function PUT(request: Request) {
 
   await connectDB()
   const [section, existing, ingredients, menuItems] = await Promise.all([
-    Section.findById(sectionId),
-    SectionDay.findOne({ section: sectionId, date }).select('_id'),
-    Ingredient.find({ _id: { $in: items.map(i => i.ingredient) } }),
-    MenuItem.find({ _id: { $in: production.map(p => p.menuItem) }, section: sectionId }).select('name'),
+    Section.findOne({ _id: sectionId, shop: session.shop }),
+    SectionDay.findOne({ shop: session.shop, section: sectionId, date }).select('_id'),
+    Ingredient.find({ shop: session.shop, _id: { $in: items.map(i => i.ingredient) } }),
+    MenuItem.find({ shop: session.shop, _id: { $in: production.map(p => p.menuItem) }, section: sectionId }).select('name'),
   ])
   if (!section) return NextResponse.json({ error: t('daily.api.sectionNotFound') }, { status: 404 })
   if (ingredients.length !== items.length) return NextResponse.json({ error: t('daily.api.ingredientGone') }, { status: 400 })
   if (menuItems.length !== production.length) return NextResponse.json({ error: t('daily.api.menuItemGone') }, { status: 400 })
 
-  const balances = await sectionDayBalances(section._id, date, existing?._id)
+  const balances = await sectionDayBalances(session.shop, section._id, date, existing?._id)
   const byId = new Map(ingredients.map(i => [i.id, i]))
   const lines: { ingredient: string; used: number; closing: number; extra: number }[] = []
   for (const item of items) {
@@ -100,7 +100,7 @@ export async function PUT(request: Request) {
   let day
   try {
     day = await SectionDay.findOneAndUpdate(
-      { section: section._id, date },
+      { shop: session.shop, section: section._id, date },
       {
         $set: {
           items: lines.map(l => ({ ingredient: l.ingredient, used: l.used, closing: l.closing })),
@@ -118,11 +118,11 @@ export async function PUT(request: Request) {
     throw err
   }
 
-  await StockMovement.deleteMany({ sectionDay: day._id })
+  await StockMovement.deleteMany({ shop: session.shop, sectionDay: day._id })
   const movements = lines.flatMap(l => [
     ...(l.used > 0 ? [{ type: 'use', quantity: l.used }] : []),
     ...(l.extra > 0 ? [{ type: 'adjust', quantity: l.extra }] : []),
-  ].map(m => ({ ...m, date, ingredient: new Types.ObjectId(l.ingredient), section: section._id, sectionDay: day._id, addedBy: session.name })))
+  ].map(m => ({ ...m, date, ingredient: new Types.ObjectId(l.ingredient), shop: session.shop, section: section._id, sectionDay: day._id, addedBy: session.name })))
   if (movements.length) await StockMovement.insertMany(movements)
 
   return NextResponse.json({ ok: true })

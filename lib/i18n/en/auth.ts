@@ -9,6 +9,7 @@ export const auth = {
   required: 'Email and password are required',
   wrongCredentials: 'Wrong email or password',
   accountDisabled: 'This account is disabled. Ask the admin.',
+  shopDisabled: 'This shop\'s account is switched off. Please contact support.',
   tooManyOne: 'Too many wrong attempts. Try again in {minutes} minute.',
   tooManyMany: 'Too many wrong attempts. Try again in {minutes} minutes.',
 }

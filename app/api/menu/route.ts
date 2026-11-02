@@ -9,16 +9,16 @@ import { Section } from '@/lib/models/section'
 
 // Also read by the order entry screen.
 export async function GET() {
-  const { error } = await requireRole(MANAGERS)
+  const { session, error } = await requireRole(MANAGERS)
   if (error) return error
 
   await connectDB()
-  const items = await MenuItem.find().sort({ name: 1 })
+  const items = await MenuItem.find({ shop: session.shop }).sort({ name: 1 })
   return NextResponse.json({ items })
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   const t = await getT()
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
   await connectDB()
-  if (parsed.data.section && !(await Section.exists({ _id: parsed.data.section }))) return NextResponse.json({ error: t('menu.api.sectionInvalid') }, { status: 400 })
-  const item = await MenuItem.create(parsed.data)
+  if (parsed.data.section && !(await Section.exists({ _id: parsed.data.section, shop: session.shop }))) return NextResponse.json({ error: t('menu.api.sectionInvalid') }, { status: 400 })
+  const item = await MenuItem.create({ ...parsed.data, shop: session.shop })
   return NextResponse.json({ item }, { status: 201 })
 }

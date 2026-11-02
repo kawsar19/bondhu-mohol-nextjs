@@ -11,18 +11,18 @@ type Context = { params: Promise<{ id: string }> }
 const notFound = async () => NextResponse.json({ error: (await getT())('tables.api.notFound') }, { status: 404 })
 
 export async function GET(_request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const table = await Table.findById(id)
+  const table = await Table.findOne({ _id: id, shop: session.shop })
   return table ? NextResponse.json({ table }) : notFound()
 }
 
 export async function PATCH(request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
@@ -33,7 +33,7 @@ export async function PATCH(request: Request, { params }: Context) {
 
   await connectDB()
   try {
-    const table = await Table.findByIdAndUpdate(id, parsed.data, { new: true, runValidators: true })
+    const table = await Table.findOneAndUpdate({ _id: id, shop: session.shop }, parsed.data, { new: true, runValidators: true })
     return table ? NextResponse.json({ table }) : notFound()
   } catch (err) {
     if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('tables.api.exists', { number: parsed.data.number ?? '' }) }, { status: 409 })
@@ -42,12 +42,12 @@ export async function PATCH(request: Request, { params }: Context) {
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const table = await Table.findByIdAndDelete(id)
+  const table = await Table.findOneAndDelete({ _id: id, shop: session.shop })
   return table ? NextResponse.json({ ok: true }) : notFound()
 }

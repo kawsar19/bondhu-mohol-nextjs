@@ -14,7 +14,7 @@ type Context = { params: Promise<{ id: string }> }
 const notFound = async () => NextResponse.json({ error: (await getT())('sections.api.notFound') }, { status: 404 })
 
 export async function PATCH(request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: Context) {
   if (!parsed.data) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
   await connectDB()
-  const section = await Section.findById(id)
+  const section = await Section.findOne({ _id: id, shop: session.shop })
   if (!section) return notFound()
   section.set(parsed.data)
   try {
@@ -33,23 +33,23 @@ export async function PATCH(request: Request, { params }: Context) {
     if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('sections.api.exists', { name: parsed.data.name ?? '' }) }, { status: 409 })
     throw err
   }
-  const itemCount = await MenuItem.countDocuments({ section: section._id })
+  const itemCount = await MenuItem.countDocuments({ shop: session.shop, section: section._id })
   return NextResponse.json({ section: { _id: section.id, name: section.name, sortOrder: section.sortOrder, isActive: section.isActive, itemCount } })
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
   const { id } = await params
   if (!isValidObjectId(id)) return notFound()
 
   await connectDB()
-  const section = await Section.findById(id)
+  const section = await Section.findOne({ _id: id, shop: session.shop })
   if (!section) return notFound()
   // Menu items point at the section, so it can only be closed while any use it.
-  const used = await MenuItem.countDocuments({ section: section._id })
+  const used = await MenuItem.countDocuments({ shop: session.shop, section: section._id })
   if (used > 0) return NextResponse.json({ error: (await getT())(used === 1 ? 'sections.api.inUseOne' : 'sections.api.inUseMany', { count: used, name: section.name }) }, { status: 409 })
-  if (await StockMovement.exists({ section: section._id })) return NextResponse.json({ error: (await getT())('sections.api.hasStock', { name: section.name }) }, { status: 409 })
-  await section.deleteOne()
+  if (await StockMovement.exists({ shop: session.shop, section: section._id })) return NextResponse.json({ error: (await getT())('sections.api.hasStock', { name: section.name }) }, { status: 409 })
+  await Section.deleteOne({ _id: section._id, shop: session.shop })
   return NextResponse.json({ ok: true })
 }

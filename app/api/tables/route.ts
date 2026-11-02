@@ -8,16 +8,16 @@ import { isDuplicateKeyError, parseTableInput } from '@/lib/table-input'
 
 // Also read by the order entry screen.
 export async function GET() {
-  const { error } = await requireRole(MANAGERS)
+  const { session, error } = await requireRole(MANAGERS)
   if (error) return error
 
   await connectDB()
-  const tables = await Table.find().sort({ number: 1 })
+  const tables = await Table.find({ shop: session.shop }).sort({ number: 1 })
   return NextResponse.json({ tables })
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { session, error } = await requireAdmin()
   if (error) return error
 
   const t = await getT()
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   await connectDB()
   try {
-    const table = await Table.create(parsed.data)
+    const table = await Table.create({ ...parsed.data, shop: session.shop })
     return NextResponse.json({ table }, { status: 201 })
   } catch (err) {
     if (isDuplicateKeyError(err)) return NextResponse.json({ error: t('tables.api.exists', { number: parsed.data.number ?? '' }) }, { status: 409 })
