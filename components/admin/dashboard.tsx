@@ -44,16 +44,17 @@ export type AdminUser = { id: string; name: string; email: string; role: string 
 type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
 
 // `label` is the section ID (used for permissions and navigation); `key` is its display name.
+// Ordered as the working day runs: stock in → sections → orders → costs → reports → day end.
 const navItems: NavItem[] = [
   { label: "Overview", key: "nav.sections.Overview", icon: LayoutDashboard },
-  { label: "New order", key: "nav.sections.New order", icon: SquarePen },
-  { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
-  { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
-  { label: "Day end", key: "nav.sections.Day end", icon: FileText },
-  { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
   { label: "Mother store", key: "nav.sections.Mother store", icon: Warehouse },
   { label: "Kitchen store", key: "nav.sections.Kitchen store", icon: CookingPot },
+  { label: "New order", key: "nav.sections.New order", icon: SquarePen },
+  { label: "Orders", key: "nav.sections.Orders", icon: ClipboardList },
+  { label: "Expenses", key: "nav.sections.Expenses", icon: ShoppingBasket },
   { label: "Daily entry", key: "nav.sections.Daily entry", icon: ClipboardCheck },
+  { label: "Reports", key: "nav.sections.Reports", icon: ChartColumn },
+  { label: "Day end", key: "nav.sections.Day end", icon: FileText },
 ];
 const secondaryItems: NavItem[] = [
   { label: "Menu", key: "nav.sections.Menu", icon: Utensils },

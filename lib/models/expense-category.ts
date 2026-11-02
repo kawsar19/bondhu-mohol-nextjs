@@ -21,6 +21,9 @@ export const ExpenseCategory = defineModel<ExpenseCategoryDoc>('ExpenseCategory'
 /** All categories in display order, creating the starter set the first time. */
 export async function listExpenseCategories() {
   if ((await ExpenseCategory.estimatedDocumentCount()) === 0) {
+    // On a new database two screens can ask at the same moment. Waiting for the unique name index
+    // makes the second insert fail instead of saving every category twice.
+    await ExpenseCategory.init()
     await ExpenseCategory.insertMany(DEFAULT_EXPENSE_CATEGORIES.map((c, i) => ({ ...c, sortOrder: i })), { ordered: false }).catch(() => {})
   }
   return ExpenseCategory.find().sort({ sortOrder: 1, name: 1 })
