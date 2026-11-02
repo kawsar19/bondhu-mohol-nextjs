@@ -43,6 +43,7 @@ import { TablesManager } from "./tables-manager";
 export type AdminUser = { id: string; name: string; email: string; role: string };
 type NavItem = { label: string; key: MessageKey; icon: typeof LayoutDashboard };
 
+// `label` is the section ID (used for permissions and navigation); `key` is its display name.
 const navItems: NavItem[] = [
   { label: "Overview", key: "nav.sections.Overview", icon: LayoutDashboard },
   { label: "New order", key: "nav.sections.New order", icon: SquarePen },
@@ -70,41 +71,10 @@ const ROLE_KEY = {
   partner: "staff.roles.partner.label",
 } as const;
 
-const workflowOrder = [
-  "Sections",
-  "Ingredients",
-  "Mother store",
-  "Kitchen store",
-  "Menu",
-  "Daily entry",
-  "Day end",
-] as const;
-
 function greeting(t: TFunction, hour: number) {
   if (hour < 12) return t("nav.goodMorning");
   if (hour < 17) return t("nav.goodAfternoon");
   return t("nav.goodEvening");
-}
-
-function getSidebarDisplayName(label: string) {
-  switch (label) {
-    case "Sections":
-      return "Section (সেকশন)";
-    case "Ingredients":
-      return "Raw Materials / Kachamal (কাঁচামাল)";
-    case "Mother store":
-      return "Mother Store (মাদার স্টোর)";
-    case "Kitchen store":
-      return "Kitchen Store (কিচেন স্টোর)";
-    case "Menu":
-      return "Menu (মেনু)";
-    case "Daily entry":
-      return "Daily Account / Doinik Hisab (দৈনিক হিসাব)";
-    case "Day end":
-      return "End of Day Report / Din Sesar Report (দিন শেষের রিপোর্ট)";
-    default:
-      return label;
-  }
 }
 
 export function AdminDashboard({ user }: { user: AdminUser }) {
@@ -123,27 +93,29 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     router.replace("/admin/login");
     router.refresh();
   };
-
-  const allItems = [...navItems, ...secondaryItems];
-  const sidebarItems = workflowOrder
-    .map((label) => allItems.find((item) => item.label === label) ?? null)
-    .filter((item): item is NavItem => !!item && canAccess(user.role, item.label));
-
-  const mobileBottomItems = sidebarItems.length > 4 ? [...sidebarItems.slice(0, 4), { label: "More", key: "nav.mainMenu", icon: PanelLeft }] : sidebarItems;
-
-  const [active, setActive] = useState(() => sidebarItems[0]?.label ?? "Sections");
+  // Each role only sees the sections it is allowed to open; the APIs enforce the same rules.
+  const mainItems = navItems.filter((item) => canAccess(user.role, item.label));
+  const operationItems = secondaryItems.filter((item) => canAccess(user.role, item.label));
+  const [active, setActive] = useState(() => [...mainItems, ...operationItems][0]?.label ?? "Overview");
   const [mobileNav, setMobileNav] = useState(false);
+  const quickItems = [...mainItems, ...operationItems];
+  const mobileQuickItems = quickItems.slice(0, 4);
+  const hasMoreTabs = quickItems.length > 4;
+  const mobileBottomItems = hasMoreTabs
+    ? [...mobileQuickItems, { label: "More", key: "nav.mainMenu", icon: PanelLeft }]
+    : mobileQuickItems;
   const selectNav = (label: string) => {
     setActive(label);
     setMobileNav(false);
   };
 
+  // Date and greeting use the viewer's clock, so they are set after mount to avoid a server/client mismatch.
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-  const [now, setNow] = useState<Date | null>(null);
 
   const content =
     !canAccess(user.role, active) ? (
@@ -203,16 +175,20 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             <X />
           </button>
         </div>
-
         <div className="mt-9 flex flex-1 flex-col gap-7">
           <NavGroup
             label={t("nav.mainMenu")}
-            items={sidebarItems}
+            items={mainItems}
+            active={active}
+            setActive={selectNav}
+          />
+          <NavGroup
+            label={t("nav.operations")}
+            items={operationItems}
             active={active}
             setActive={selectNav}
           />
         </div>
-
         <div className="mt-4 flex items-center gap-3 border-t border-[#e8ece7] px-2 pt-4">
           <div className="flex size-9 items-center justify-center rounded-full bg-[#ead8b6] text-xs font-bold text-[#714b17]">
             {initials}
@@ -231,7 +207,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           </button>
         </div>
       </aside>
-
       {mobileNav && (
         <button
           aria-label={t("nav.closeNavigation")}
@@ -239,7 +214,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           className="fixed inset-0 z-30 bg-black/20 lg:hidden"
         />
       )}
-
       <main className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b border-[#e6eae4] bg-[#f7f8f6]/95 px-5 backdrop-blur-md sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
@@ -255,12 +229,12 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
                   : " "}
               </p>
               <h1 className="truncate font-serif text-lg font-bold tracking-tight sm:text-xl">
-                {now ? greeting(t, now.getHours()) : t("nav.hello")}, {user.name.split(" ")[0]}
+                {now ? greeting(t, now.getHours()) : t("nav.hello")},{" "}
+                {user.name.split(" ")[0]}
                 <span className="text-[#c48545]">.</span>
               </h1>
             </div>
           </div>
-
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSwitch />
             <div className="hidden items-center gap-2 rounded-full border border-[#e0e5df] bg-white py-1.5 pl-1.5 pr-3 sm:flex">
@@ -282,40 +256,32 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             </button>
           </div>
         </header>
-
         <div className="mx-auto max-w-[1440px] p-5 pb-24 sm:p-8 sm:pb-24 lg:pb-8">{content}</div>
       </main>
-
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7e1] bg-white/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:hidden">
         <div className="grid grid-cols-5 gap-1">
-          {mobileBottomItems.map((item, index) => {
+          {mobileBottomItems.map((item) => {
             const Icon = item.icon;
             const isMore = item.label === "More";
             const isActive = isMore ? mobileNav : active === item.label;
-
+            const displayLabel = isMore ? t("nav.mainMenu") : t(item.key);
             return (
               <button
-                key={isMore ? "more" : item.label}
+                key={item.label}
                 type="button"
                 onClick={() => (isMore ? setMobileNav(true) : selectNav(item.label))}
-                aria-label={isMore ? t("nav.mainMenu") : getSidebarDisplayName(item.label)}
+                aria-label={displayLabel}
                 className={`flex flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 transition ${
                   isActive ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#6a766f] hover:bg-[#f3f6f3]"
                 }`}
               >
-                <div className="flex items-center gap-1">
-                  {!isMore && <span className="text-[9px] font-bold">{index + 1}</span>}
-                  <Icon className="size-[18px]" />
-                </div>
-                <span className="text-[9px] font-semibold leading-none">
-                  {isMore ? t("nav.mainMenu") : getSidebarDisplayName(item.label)}
-                </span>
+                <Icon className="size-[18px]" />
+                <span className="text-[10px] font-semibold leading-none">{displayLabel}</span>
               </button>
             );
           })}
         </div>
       </nav>
-
       <button
         onClick={() => setMobileNav((open) => !open)}
         aria-label={mobileNav ? t("nav.closeMenu") : t("nav.openMenu")}
@@ -358,14 +324,13 @@ function NavGroup({
 }) {
   const t = useT();
   if (items.length === 0) return null;
-
   return (
     <div>
       <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.16em] text-[#a3aca5]">
         {label}
       </p>
       <div className="flex flex-col gap-1">
-        {items.map((item, index) => {
+        {items.map((item) => {
           const Icon = item.icon;
           return (
             <button
@@ -373,11 +338,8 @@ function NavGroup({
               onClick={() => setActive(item.label)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition ${active === item.label ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#7d897f] hover:bg-[#f5f7f4]"}`}
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#edf3ee] text-[10px] font-bold text-[#174d3c]">
-                {index + 1}
-              </span>
-              <Icon className="size-[17px]" />
-              <span className="flex-1">{getSidebarDisplayName(item.label)}</span>
+              <Icon className="size-[17px]" />{" "}
+              <span className="flex-1">{t(item.key)}</span>
             </button>
           );
         })}
