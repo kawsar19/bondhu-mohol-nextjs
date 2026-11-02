@@ -98,6 +98,12 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   const operationItems = secondaryItems.filter((item) => canAccess(user.role, item.label));
   const [active, setActive] = useState(() => [...mainItems, ...operationItems][0]?.label ?? "Overview");
   const [mobileNav, setMobileNav] = useState(false);
+  const quickItems = [...mainItems, ...operationItems];
+  const mobileQuickItems = quickItems.slice(0, 4);
+  const hasMoreTabs = quickItems.length > 4;
+  const mobileBottomItems = hasMoreTabs
+    ? [...mobileQuickItems, { label: "More", key: "nav.mainMenu", icon: PanelLeft }]
+    : mobileQuickItems;
   const selectNav = (label: string) => {
     setActive(label);
     setMobileNav(false);
@@ -223,8 +229,7 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
                   : " "}
               </p>
               <h1 className="truncate font-serif text-lg font-bold tracking-tight sm:text-xl">
-                {now ? greeting(t, now.getHours()) : t("nav.hello")},{" "}
-                {user.name.split(" ")[0]}
+                {now ? greeting(t, now.getHours()) : t("nav.hello")}, {user.name.split(" ")[0]}
                 <span className="text-[#c48545]">.</span>
               </h1>
             </div>
@@ -252,11 +257,37 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         </header>
         <div className="mx-auto max-w-[1440px] p-5 pb-24 sm:p-8 sm:pb-24 lg:pb-8">{content}</div>
       </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7e1] bg-white/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:hidden">
+        <div className="grid grid-cols-5 gap-1">
+          {mobileBottomItems.map((item) => {
+            const Icon = item.icon;
+            const isMore = item.label === "More";
+            const isActive = isMore ? mobileNav : active === item.label;
+            const displayLabel = isMore ? t("nav.mainMenu") : t(item.key);
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => (isMore ? setMobileNav(true) : selectNav(item.label))}
+                aria-label={displayLabel}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 transition ${
+                  isActive ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#6a766f] hover:bg-[#f3f6f3]"
+                }`}
+              >
+                <Icon className="size-[18px]" />
+                <span className="text-[10px] font-semibold leading-none">{displayLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
       <button
         onClick={() => setMobileNav((open) => !open)}
         aria-label={mobileNav ? t("nav.closeMenu") : t("nav.openMenu")}
         aria-expanded={mobileNav}
-        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-[35] flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl lg:hidden"
+        className="fixed bottom-[5.1rem] right-4 z-[35] flex size-14 items-center justify-center rounded-full bg-[#174d3c] text-white shadow-xl lg:hidden"
       >
         {mobileNav ? <X className="size-6" /> : <PanelLeft className="size-6" />}
       </button>
@@ -308,8 +339,7 @@ function NavGroup({
               onClick={() => setActive(item.label)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition ${active === item.label ? "bg-[#eaf2eb] text-[#174d3c]" : "text-[#7d897f] hover:bg-[#f5f7f4]"}`}
             >
-              <Icon className="size-[17px]" />{" "}
-              <span className="flex-1">{t(item.key)}</span>
+              <Icon className="size-[17px]" /> <span className="flex-1">{t(item.key)}</span>
             </button>
           );
         })}
