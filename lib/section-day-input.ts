@@ -8,9 +8,10 @@ export type SectionDayInput = {
   section: string
   date: Date
   items: DayItemInput[]
-  production: { menuItem: string; quantity: number }[]
-  ownersShare: { item: string; quantity: string; takenBy: string }[]
-  note: string
+  // Left out by the dashboard since these were dropped from the form; absent means "keep what was saved".
+  production?: { menuItem: string; quantity: number }[]
+  ownersShare?: { item: string; quantity: string; takenBy: string }[]
+  note?: string
 }
 
 type Result = { data: SectionDayInput; error?: never } | { data?: never; error: string }
@@ -48,7 +49,7 @@ export function parseSectionDayInput(body: unknown, t: TFunction): Result {
     items.push(hasClosing ? { ingredient: item.ingredient, closing: value } : { ingredient: item.ingredient, used: value })
   }
 
-  const production: SectionDayInput['production'] = []
+  const production: NonNullable<SectionDayInput['production']> = []
   for (const p of rawProduction) {
     if (!p || typeof p.menuItem !== 'string' || !isValidObjectId(p.menuItem)) return { error: t('common.invalidRequest') }
     if (production.some(x => x.menuItem === p.menuItem)) return { error: t('daily.api.duplicate') }
@@ -57,12 +58,21 @@ export function parseSectionDayInput(body: unknown, t: TFunction): Result {
     if (quantity > 0) production.push({ menuItem: p.menuItem, quantity })
   }
 
-  const ownersShare: SectionDayInput['ownersShare'] = []
+  const ownersShare: NonNullable<SectionDayInput['ownersShare']> = []
   for (const s of rawShare) {
     const item = text(s?.item, 60)
     if (!item) continue
     ownersShare.push({ item, quantity: text(s.quantity, 30), takenBy: text(s.takenBy, 60) })
   }
 
-  return { data: { section: raw.section, date, items, production, ownersShare, note: text(raw.note, 300) } }
+  return {
+    data: {
+      section: raw.section,
+      date,
+      items,
+      ...(raw.production !== undefined && { production }),
+      ...(raw.ownersShare !== undefined && { ownersShare }),
+      ...(raw.note !== undefined && { note: text(raw.note, 300) }),
+    },
+  }
 }

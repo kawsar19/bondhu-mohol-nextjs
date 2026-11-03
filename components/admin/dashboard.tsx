@@ -157,7 +157,7 @@ function Dashboard({ user }: { user: AdminUser }) {
     ) : active === "Kitchen store" ? (
       <StoreManager key="kitchen" view="kitchen" />
     ) : active === "Daily entry" ? (
-      <SectionDayEntry />
+      <SectionDayEntry onOpenStore={() => setActive("Mother store")} />
     ) : active === "Staff" ? (
       <StaffManager currentUserId={user.id} />
     ) : active === "Settings" ? (

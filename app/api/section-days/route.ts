@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     rows: ingredients.map(i => {
       const b = balances.get(i.id) ?? { opening: 0, received: 0, available: 0 }
       const s = saved.get(i.id)
-      return { ingredient: { _id: i.id, name: i.name, unit: i.unit }, ...b, used: s?.used ?? null, closing: s?.closing ?? null }
+      return { ingredient: { _id: i.id, name: i.name, unit: i.unit, image: i.image ?? '' }, ...b, used: s?.used ?? null, closing: s?.closing ?? null }
     }),
     menuItems: menuItems.map(m => ({ _id: m.id, name: m.name })),
     entry: day ? {
@@ -71,11 +71,11 @@ export async function PUT(request: Request) {
     Section.findOne({ _id: sectionId, shop: session.shop }),
     SectionDay.findOne({ shop: session.shop, section: sectionId, date }).select('_id'),
     Ingredient.find({ shop: session.shop, _id: { $in: items.map(i => i.ingredient) } }),
-    MenuItem.find({ shop: session.shop, _id: { $in: production.map(p => p.menuItem) }, section: sectionId }).select('name'),
+    production?.length ? MenuItem.find({ shop: session.shop, _id: { $in: production.map(p => p.menuItem) }, section: sectionId }).select('name') : [],
   ])
   if (!section) return NextResponse.json({ error: t('daily.api.sectionNotFound') }, { status: 404 })
   if (ingredients.length !== items.length) return NextResponse.json({ error: t('daily.api.ingredientGone') }, { status: 400 })
-  if (menuItems.length !== production.length) return NextResponse.json({ error: t('daily.api.menuItemGone') }, { status: 400 })
+  if (menuItems.length !== (production?.length ?? 0)) return NextResponse.json({ error: t('daily.api.menuItemGone') }, { status: 400 })
 
   const balances = await sectionDayBalances(session.shop, section._id, date, existing?._id)
   const byId = new Map(ingredients.map(i => [i.id, i]))
@@ -104,9 +104,9 @@ export async function PUT(request: Request) {
       {
         $set: {
           items: lines.map(l => ({ ingredient: l.ingredient, used: l.used, closing: l.closing })),
-          production: production.map(p => ({ menuItem: p.menuItem, name: names.get(p.menuItem)!, quantity: p.quantity })),
-          ownersShare,
-          note,
+          ...(production && { production: production.map(p => ({ menuItem: p.menuItem, name: names.get(p.menuItem)!, quantity: p.quantity })) }),
+          ...(ownersShare && { ownersShare }),
+          ...(note !== undefined && { note }),
           enteredBy: session.name,
         },
       },
